@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registered DCUs</title>
+</head>
+<body>
+    <h1>✅ Registered DCUs</h1>
+
+    <a href="/">← Back to DCU Connection Monitor</a>
+
+    {% if message %}
+        <div style="margin: 20px 0; padding: 10px; background-color: #e1ffe1; border: 1px solid #00aa00;">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <table border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>DCU Number</th>
+                <th>IP Address</th>
+                <th>Password</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dcu in registered %}
+            <tr>
+                <td>{{ dcu['dcu_number'] }}</td>
+                <td>{{ dcu['ip_address'] }}</td>
+                <td>{{ dcu['password'] }}</td>
+                <td>
+                    <!-- Deregister Button -->
+                    <form action="/deregister-dcu" method="post" style="display:inline;">
+                        <input type="hidden" name="dcu_number" value="{{ dcu['dcu_number'] }}">
+                        <button type="submit">❌ Deregister</button>
+                    </form>
+        
+                    <!-- Send Command Form -->
+                    <form action="/send-command" method="post" style="display:inline; margin-left: 5px;">
+                        <input type="hidden" name="dcu_number" value="{{ dcu['dcu_number'] }}">
+                        <input type="text" name="command" placeholder="Enter Command" required>
+                        <button type="submit">📡 Send</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>        
+    </table>
+</body>
+</html>
