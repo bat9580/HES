@@ -1,60 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCU Connection Search</title>
-</head>
-<body>
-    <h1>Search DCU Connections</h1>
-    <a href="/registered">🔒 View Registered DCUs</a> 
-    <!-- Search Form -->
-    <form action="/search" method="get">
-        <label for="dcu_number">DCU Number:</label>
-        <input type="text" id="dcu_number" name="dcu_number" placeholder="Enter DCU Number">
+{% extends "base.html" %}
 
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date">
+{% block content %}
 
-        <button type="submit">Search</button>
-    </form>
+<h2 class="mb-4">🔌 Unregistered Devices</h2>
 
-    <h2>Results</h2>
-    {% if message %} 
-        <div style="margin-top: 20px; padding: 10px; background-color: #e1ffe1; border: 1px solid #00aa00;">
-            {{message}} 
-        </div> 
-    {% endif %}  
-    <table border="1">
-        <thead>
-            <tr>
-                <th>DCU Number</th>
-                <th>IP Address</th>
-                <th>First Connection</th>
-                <th>Last Connection</th>
-                <th>Access Time</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for client in clients %}
-                <tr>
-                    <td>{{ client['DCU_number'] }}</td>
-                    <td>{{ client['ip_address'] }}</td>
-                    <td>{{ client['first_connection'] }}</td>
-                    <td>{{ client['last_connection'] }}</td>
-                    <td>{{ client['access_time'] }}</td>
-                    <td>
-                        <form action="/register_dcu" method="post">
-                            <input type="hidden" name="dcu_number" value="{{ client['DCU_number'] }}">
-                            <input type="hidden" name="ip_address" value="{{ client['ip_address'] }}">
-                            <input type="text" name="password" placeholder="Enter password" required>
-                            <button type="submit">Register</button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+<div class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+  <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr">
+  
+  <select class="form-select" style="max-width: 180px;">
+    <option selected>Device Type</option>
+    <option>DCU</option>
+    <option>Smart Meter</option>
+  </select>
+
+  <input type="date" class="form-control" style="max-width: 160px;">
+  <input type="date" class="form-control" style="max-width: 160px;">
+
+  <button class="btn btn-primary btn-sm">🔍 Search</button>
+  <button class="btn btn-danger btn-sm">🗑️ Clear Selected</button>
+  <button class="btn btn-danger btn-sm">🧹 Clear All</button>
+</div>
+
+<table class="table table-bordered table-hover table-striped align-middle text-center">
+  <thead class="table-light">
+    <tr>
+      <th><input type="checkbox" id="select-all"></th>
+      <th>#</th>
+      <th>Comm Addr</th>
+      <th>Device IP</th>
+      <th>Access Time</th>
+      <th>Last Access Time</th>
+      <th>Device Type</th>
+      <th>Access Times</th>
+      <th>Host Name</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="device-table-body">
+    <!-- dynamic rows here -->
+  </tbody>
+</table>
+
+<style>
+  th, td { text-align: center; vertical-align: middle; }
+  .btn-sm { padding: 4px 10px; font-size: 13px; }
+  .form-control, .form-select { height: 32px; font-size: 14px; }
+</style>
+
+<script>
+  // Select All checkbox
+  document.getElementById("select-all").addEventListener("click", function() {
+    const checkboxes = document.querySelectorAll(".device-checkbox");
+    checkboxes.forEach(cb => cb.checked = this.checked);
+  });
+
+  // Example function to add a row dynamically
+  function addDeviceRow(index, commAddr, ip, accessTime, lastAccessTime, type, accessTimes, hostName) {
+    const tbody = document.getElementById("device-table-body");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="checkbox" class="device-checkbox"></td>
+      <td>${index}</td>
+      <td>${commAddr}</td>
+      <td>${ip}</td>
+      <td>${accessTime}</td>
+      <td>${lastAccessTime}</td>
+      <td>${type}</td>
+      <td>${accessTimes}</td>
+      <td>${hostName}</td>
+      <td><button class="btn btn-success btn-sm">Install</button></td>
+    `;
+    tbody.appendChild(row);
+  }
+
+  // Example static row for testing
+  addDeviceRow(1, "DCU12345", "192.168.0.10", "2025-05-05 13:00", "2025-05-05 14:00", "DCU", 5, "Server-1");
+</script>
+
+{% endblock %}

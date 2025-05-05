@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HES System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+  <button class="btn btn-outline-light toggle-btn" onclick="toggleSidebar()">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <div>
+    <a href="#" class="nav-link" onclick="toggleMenu('warehouse')" data-bs-toggle="tooltip" title="Warehouse">
+      <i class="bi bi-box-seam"></i> <span class="label">Warehouse</span>
+    </a>
+    <div class="submenu" id="warehouse">
+      <a href="/meter-management" class="nav-link"><i class="bi bi-speedometer2"></i> <span class="label">Meter Management</span></a>
+      <a href="/DCU-management" class="nav-link"><i class="bi bi-hdd-network"></i> <span class="label">DCU Management</span></a>
+      <a href="/delete-management" class="nav-link"><i class="bi bi-trash3"></i> <span class="label">Delete Management</span></a>
+    </div>
+
+    <a href="#" class="nav-link" onclick="toggleMenu('archive')" data-bs-toggle="tooltip" title="Archive">
+      <i class="bi bi-archive"></i> <span class="label">Archive</span>
+    </a>
+    <div class="submenu" id="archive">
+      <a href="/meter-installation" class="nav-link"><i class="bi bi-lightning-charge"></i> <span class="label">Meter Installation</span></a>
+      <a href="/dcu-installation" class="nav-link"><i class="bi bi-pc-display-horizontal"></i> <span class="label">DCU Installation</span></a>
+    </div>
+
+    <a href="/unregistered-device" class="nav-link" data-bs-toggle="tooltip" title="Unregistered Device">
+      <i class="bi bi-exclamation-circle"></i> <span class="label">Unregistered Device</span>
+    </a>
+
+    <a href="#" class="nav-link" onclick="toggleMenu('terminal')" data-bs-toggle="tooltip" title="Terminal Management">
+      <i class="bi bi-terminal"></i> <span class="label">Terminal Management</span>
+    </a>
+    <div class="submenu" id="terminal">
+      <a href="/read_parameter" class="nav-link"><i class="bi bi-hdd"></i> <span class="label">DCU Parameter</span></a>
+      <a href="/meter-parameter" class="nav-link"><i class="bi bi-plug"></i> <span class="label">Meter Parameter</span></a>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  {% block content %}
+  <!-- Page content here -->
+  {% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  }
+
+  function toggleMenu(menuId) {
+    document.getElementById(menuId).classList.toggle('open');
+  }
+
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el))
+</script>
+
+</body>
+</html>
