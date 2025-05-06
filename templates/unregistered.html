@@ -3,23 +3,25 @@
 {% block content %}
 
 <h2 class="mb-4">🔌 Unregistered Devices</h2>
-
-<div class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
-  <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr">
+<form method="GET" action="/search-unregistered-dcu" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
   
-  <select class="form-select" style="max-width: 180px;">
-    <option selected>Device Type</option>
-    <option>DCU</option>
-    <option>Smart Meter</option>
-  </select>
+    <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}">
+    
+    <select class="form-select" style="max-width: 180px;">
+      <option selected>Device Type</option>
+      <option>DCU</option>
+      <option>Smart Meter</option>
+    </select>
 
-  <input type="date" class="form-control" style="max-width: 160px;">
-  <input type="date" class="form-control" style="max-width: 160px;">
+    <input type="date" class="form-control" style="max-width: 160px;">
+    <input type="date" class="form-control" style="max-width: 160px;">
+  
+    
+        <button type="submit"  class="btn btn-primary btn-sm">🔍 Search</button>
+        <button class="btn btn-danger btn-sm" id="clear-selected-button">🗑️ Clear Selected</button>
+        <button class="btn btn-danger btn-sm">🧹 Clear All</button>
 
-  <button class="btn btn-primary btn-sm">🔍 Search</button>
-  <button class="btn btn-danger btn-sm">🗑️ Clear Selected</button>
-  <button class="btn btn-danger btn-sm">🧹 Clear All</button>
-</div>
+</form> 
 
 <table class="table table-bordered table-hover table-striped align-middle text-center">
   <thead class="table-light">
@@ -28,18 +30,124 @@
       <th>#</th>
       <th>Comm Addr</th>
       <th>Device IP</th>
-      <th>Access Time</th>
+      <th>FirstAccess Time</th> 
       <th>Last Access Time</th>
-      <th>Device Type</th>
       <th>Access Times</th>
-      <th>Host Name</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody id="device-table-body">
+    {% for dcu in Unregistered %} 
+    <tr>
+      <!-- <td><input type="checkbox" class="dcu-checkbox" value="{{ dcu['dcu_number'] }}"></td> -->
+      <td><input type="checkbox" class="device-checkbox" value="{{ dcu['dcu_number']}}"></td>  
+      <td>{{ loop.index }}</td>
+      <td>{{ dcu['dcu_number'] }}</td> 
+      <td>{{ dcu['ip_address'] }}</td>
+      <td>{{ dcu['first_connection'] }}</td>
+      <td>{{ dcu['last_connection'] }}</td>
+      <td>{{ dcu['access_time'] }}</td> 
+      <td>
+        <button class="btn btn-success btn-sm" 
+                data-bs-toggle="modal" 
+                data-bs-target="#installDCUModal"    
+                data-dcu-number="{{dcu['dcu_number']}}">  
+              Install
+        </button> 
+      </td> 
+    </tr>
+    {% endfor %}
     <!-- dynamic rows here -->
   </tbody>
 </table>
+<!-- install button form for meter installing  --> 
+<div class="modal fade" id="installDCUModal" tabindex="-1" aria-labelledby="installDCUModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="installDCUModalLabel">Add DCU</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="installDCUForm" method = "Post" action = "/install-unregistered-dcu">    
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Detail</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">Safety</button>
+          </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="detail" role="tabpanel">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label>Device Type</label>
+                  <select class="form-select" name="device_type"  required> 
+                    <option>GPRS Meter</option>
+                    <option>PLC Meter</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label>* DCU No.</label>
+                  <input type="text" name="dcu_number" class="form-control" required> 
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label>* Comm Addr</label>
+                  <input type="text" name="comm_address" id="comm_address_input"  class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label>* Type</label>
+                  <select class="form-select" name="type" required> 
+                    <option>DDSY283SR</option>
+                    <option>DTSD545S</option> 
+                    
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label>Status</label>
+                  <input type="text" name="status" class="form-control"  value="Archived" readonly> 
+                </div>
+                <div class="col-md-6">
+                  <label>Remarks</label>
+                  <input type="text" name = "remarks" class="form-control">
+                </div>
+              </div>
+
+
+            
+          </div>
+
+          <div class="tab-pane fade" id="safety" role="tabpanel">
+              <label>Password</label> 
+              <input type="text" name="password" class="form-control" required>
+          </div>
+        </div>
+      </form>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" form="installDCUForm" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
 
 <style>
   th, td { text-align: center; vertical-align: middle; }
@@ -48,33 +156,63 @@
 </style>
 
 <script>
+const installModal = document.getElementById('installDCUModal');
+
+installModal.addEventListener('show.bs.modal', function (event) {
+  const button = event.relatedTarget;
+  const dcuNumber = button.getAttribute('data-dcu-number');
+
+  // Set DCU number field in modal form
+  installModal.querySelector('input[name="dcu_number"]').value = dcuNumber;
+
+  // Also set it into Comm Address field
+  installModal.querySelector('#comm_address_input').value = dcuNumber;
+});
+document.getElementById('clear-selected-button').addEventListener('click', function () {
+  const selectedDcus = Array.from(document.querySelectorAll('.device-checkbox:checked')).map(cb => cb.value);
+
+  if (selectedDcus.length === 0) {
+    alert("Please select at least one DCU.");
+    return;
+  }
+
+  fetch('/clear-unregistered-dcu', { 
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selected_dcus: selectedDcus
+    })
+  }); 
+
+});
   // Select All checkbox
   document.getElementById("select-all").addEventListener("click", function() {
     const checkboxes = document.querySelectorAll(".device-checkbox");
     checkboxes.forEach(cb => cb.checked = this.checked);
   });
+  
 
   // Example function to add a row dynamically
   function addDeviceRow(index, commAddr, ip, accessTime, lastAccessTime, type, accessTimes, hostName) {
     const tbody = document.getElementById("device-table-body");
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><input type="checkbox" class="device-checkbox"></td>
-      <td>${index}</td>
-      <td>${commAddr}</td>
-      <td>${ip}</td>
-      <td>${accessTime}</td>
-      <td>${lastAccessTime}</td>
-      <td>${type}</td>
-      <td>${accessTimes}</td>
-      <td>${hostName}</td>
-      <td><button class="btn btn-success btn-sm">Install</button></td>
-    `;
+  <td><input type="checkbox" class="device-checkbox"></td>
+  <td>${index}</td>
+  <td>${commAddr}</td>
+  <td>${ip}</td>
+  <td>${accessTime}</td>
+  <td>${lastAccessTime}</td>
+  <td>${type}</td>
+  <td>${accessTimes}</td>
+  <td>${hostName}</td>
+  <td><button class="btn btn-success btn-sm">Install</button></td>
+`;
     tbody.appendChild(row);
   }
 
   // Example static row for testing
-  addDeviceRow(1, "DCU12345", "192.168.0.10", "2025-05-05 13:00", "2025-05-05 14:00", "DCU", 5, "Server-1");
+  // addDeviceRow(1, "DCU12345", "192.168.0.10", "2025-05-05 13:00", "2025-05-05 14:00", "DCU", 5, "Server-1");
 </script>
 
-{% endblock %}
+{% endblock %} 

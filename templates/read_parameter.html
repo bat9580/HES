@@ -60,7 +60,13 @@
         <td>{{ loop.index }}</td>
         <td>{{ dcu['dcu_number'] }}</td>
         <td>{{ dcu['com_address'] }}</td>
-        <td><span class="status-online">Online</span></td>
+        <td> 
+          {% if dcu['dcu_number'] in connected_clients %} 
+          <span class="badge bg-success">Online</span> 
+          {% else %}
+          <span class="badge bg-secondary">Offline</span>
+          {% endif %}
+        </td>
         <td><span id="result-{{dcu['dcu_number']}}" >-</span></td>
       </tr>
       {% endfor %}
@@ -68,23 +74,6 @@
   </table>
   
 </div>
-<style>
-  .tree ul {
-    list-style-type: none;
-    padding-left: 1rem;
-  }
-  .tree .nested {
-    display: none;
-  }
-  .tree .toggle {
-    cursor: pointer;
-    user-select: none;
-    margin-right: 6px;
-  }
-  .tree .active {
-    display: block;
-  }
-</style>
 <script>
 
 document.getElementById('read-button').addEventListener('click', function () {

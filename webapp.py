@@ -5,11 +5,11 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from datetime import datetime 
  
 from fastapi.requests import Request
 import asyncio
 import sqlite3 
-import datetime
 import frames
 
 app = FastAPI()
@@ -50,6 +50,20 @@ def init_db():
             type TEXT,
             remarks TEXT,
             status TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS installed_meters( 
+            meter_number TEXT PRIMARY KEY,
+            com_address TEXT,
+            password TEXT,
+            device_type TEXT, 
+            type TEXT, 
+            remarks TEXT,
+            status TEXT,
+            DCU_number TEXT, 
+            Zone TEXT, 
+            POWER_grid TEXT  
         )
     """)
     conn.commit()
@@ -98,7 +112,24 @@ async def handle_client(reader, writer):
                 DCU_number = data[22:30].decode('utf-8', errors='ignore').strip()
                 print(f"DCU number = : {DCU_number}") 
 
-                # Update connected_clients and database 
+                # Update connected_clients and database  
+
+
+                # check if the the dcu is registered
+                conn = get_db_connection() 
+                cursor = conn.cursor() 
+                result = cursor.execute("SELECT 1 FROM registered_dcus WHERE dcu_number = ?", (DCU_number,))    
+                result = result.fetchone() 
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S') 
+                if result is None: 
+                    print("adding unregistered dcus") 
+                    cursor.execute("""
+                    INSERT OR REPLACE INTO unregistered_dcu (dcu_number, ip_address,first_connection,last_connection,access_time)    
+                    VALUES (?,?,?,?,?)
+                    """, (DCU_number, addr[0], current_time, current_time,access_time))
+                    conn.commit()
+                    conn.close()  
+                  
                 connected_clients[DCU_number] = {
                     'addr' : addr,  
                     'access_time': access_time,
@@ -127,6 +158,17 @@ async def handle_client(reader, writer):
                 await writer.drain() 
                 print(f"🆔 From server: {frames.DCU_ACK}")    
             connected_clients[DCU_number]['access_time'] = access_time 
+            conn = get_db_connection() 
+            cursor = conn.cursor() 
+            cursor.execute("""
+            UPDATE unregistered_dcu
+            SET last_connection = ?, access_time = access_time + 1
+            WHERE dcu_number = ?
+            """, (current_time, DCU_number)) 
+            conn.commit()
+            conn.close()
+             
+            
  
           
     finally:
@@ -384,8 +426,7 @@ async def read_DCU_parameter(request: Request, message: str=None):
     conn = get_db_connection() 
     registered_dcu = conn.execute("SELECT *FROM registered_dcus").fetchall()   
     conn.close()
-    return templates.TemplateResponse("read_parameter.html", {"request": request,"registered_dcus": registered_dcu}) 
-
+    return templates.TemplateResponse("read_parameter.html", {"request": request,"registered_dcus": registered_dcu,"connected_clients": connected_clients})  
 @app.get("/search-dcu-1", response_class=HTMLResponse)
 async def search_dcu(request:Request, dcu_number: str = ""):   
     query = "SELECT * FROM registered_dcus WHERE 1=1"  
@@ -395,7 +436,7 @@ async def search_dcu(request:Request, dcu_number: str = ""):
     
     conn = get_db_connection()  
     searched_dcus = conn.execute(query, params).fetchall() 
-    conn.close() 
+    conn.close()  
  
     return templates.TemplateResponse("read_parameter.html",{  
         "request": request, 
@@ -444,12 +485,85 @@ async def read_DCU_parameter(request: Request):
 
 @app.get("/unregistered-device",response_class=HTMLResponse) 
 async def Unregistered_device(request: Request, message: str=None): 
-    conn = get_db_connection()  
-    unregistered = conn.execute("SELECT *FROM unregistered_dcu").fetchall()    
+    conn = get_db_connection()   
+    unregistered = conn.execute("SELECT *FROM unregistered_dcu").fetchall()   
+    print(unregistered)    
     conn.close()
-    return templates.TemplateResponse("unregistered.html", {"request": request, "Unregistered":unregistered,"message":message}) 
+    return templates.TemplateResponse("unregistered.html", {"request": request, "Unregistered":unregistered,"message":message})   
 
+@app.get("/search-unregistered-dcu", response_class=HTMLResponse)
+async def search_dcu(request:Request, dcu_number: str = ""):  
+      
+    query = "SELECT * FROM unregistered_dcu WHERE 1=1"  
+    params = [] 
+    query+= " AND dcu_number LIKE ?"   
+    params.append(f"%{dcu_number}%") 
+    
+    conn = get_db_connection()  
+    searched_dcus = conn.execute(query, params).fetchall() 
+    print(searched_dcus) 
+    conn.close() 
  
+    return templates.TemplateResponse("unregistered.html",{   
+        "request": request, 
+        "Unregistered": searched_dcus, 
+        "dcu_number": dcu_number 
+    })  
+@app.post("/clear-unregistered-dcu")
+async def clear_selected_dcu(request:Request):
+    data = await request.json()
+    selected_dcus = data.get("selected_dcus")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+     
+    for dcu in selected_dcus:
+        cursor.execute("DELETE FROM unregistered_dcu WHERE dcu_number = ?", (dcu,))  
+    conn.commit()
+    conn.close() 
+    message = f"✅ DCU is successfully deleted."  
+    return RedirectResponse(url=f"/unregistered-device?message={message}", status_code=303) 
+
+@app.post("/install-unregistered-dcu") 
+async def add_dcu(
+    request: Request,
+    dcu_number: str = Form(...),
+    comm_address: str = Form(...),
+    remarks: str = Form(None),
+    password: str = Form(...),
+    status: str = Form(...)): 
+
+    conn = get_db_connection() 
+    cursor = conn.cursor() 
+    try: 
+        cursor.execute("""
+            INSERT INTO registered_dcus
+            (dcu_number, com_address,password,remarks,status)
+            VALUES (?,?,?,?,?)  
+        """, (dcu_number, comm_address, password,remarks,status))  
+        cursor.execute("DELETE FROM unregistered_dcu WHERE dcu_number = ?", (dcu_number,)) 
+        conn.commit() 
+        message = f"✅ DCU added successfully."    
+        
+    except sqlite3.IntegrityError: 
+        message = f"⚠️ same DCU NUMBER is already registered."  
+    finally: 
+        conn.close() 
+    return RedirectResponse(url=f"/unregistered-device?message={message}", status_code=303)   
+
+
+@app.get("/meter-installation",response_class=HTMLResponse)
+async def meter_installation(request: Request, message: str=None):
+    conn = get_db_connection()   
+    installed_meters = conn.execute("SELECT *FROM installed_meters").fetchall()        
+    conn.close()
+    return templates.TemplateResponse("meter_installation.html", {"request": request, "installed_meters":installed_meters,"message":message}) 
+    
+    
+
+
+     
+
+
 
     
  

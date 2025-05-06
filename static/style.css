@@ -97,4 +97,25 @@ body {
     min-width: 120px;
     display: inline-block;
   }
-  
+  .badge {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+  } 
+  .tree ul {
+    list-style-type: none;
+    padding-left: 1rem;
+  }
+  .tree .nested {
+    display: none;
+  }
+  .tree .toggle {
+    cursor: pointer;
+    user-select: none;
+    margin-right: 6px;
+  }
+  .tree .active {
+    display: block;
+  } 
+
+
