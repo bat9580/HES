@@ -117,5 +117,181 @@ body {
   .tree .active {
     display: block;
   } 
+/* Smooth dropdown effect */
+select.form-select {
+  transition: all 0.3s ease;
+}
 
+select.form-select:focus {
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  border-color: #80bdff;
+}
 
+/* Dim subtle placeholder */
+::placeholder {
+  color: #adb5bd;
+  font-style: italic; 
+  font-size: 0.95rem;
+}
+
+/* Unified input and select appearance */
+.form-control, .form-select {
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Title placeholder style inside input */
+input::placeholder {
+  color: #adb5bd;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+/* Button hover polish */
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Nav-tab active effect */
+.nav-tabs .nav-link.active {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #0d6efd;
+}
+
+/* Modal header styling */
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  font-weight: 600;
+  color: #343a40;
+}
+.custom-select {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
+}
+
+.custom-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.custom-select:hover {
+  border-color: #adb5bd;
+}
+.form-select {
+  transition: all 0.3s ease;
+}
+
+/* Optional: Style the dropdown options */
+.form-select option {
+  padding: 8px;
+  transition: background 0.2s;
+}
+
+.form-select option:hover {
+  background: #f0f0f0;
+}
+ @keyframes slideUpIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes slideDownOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
+  
+  .dropdown-menu {
+    position: absolute;
+    opacity: 0;
+    transform: translateY(-20px);
+    visibility: hidden;
+    transition: all 0.3s ease;
+    display: block !important;
+  }
+
+  /* Open state - visible with slide-up effect */
+  .dropdown.show .dropdown-menu {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+  }
+  
+  .dropdown:not(.show) .dropdown-menu {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.2s ease-in;
+  }
+  .btn.dimmed-text {
+    color: #8a8d90 !important;
+    font-size: 0.95rem !important;
+    opacity: 0.9;
+  }
+  /* style.css */
+/* Existing dimmed text class */
+.dimmed-text { 
+  color: #adb5bd;
+  font-size: 0.95rem;
+}
+
+/* Dropdown animation */
+.dropdown-menu {
+  transform-origin: top center;
+  transition: 
+    opacity 0.2s ease,
+    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+.dropdown:not(.show) .dropdown-menu {
+  opacity: 0;
+  transform: translateY(-10px) scaleY(0.95);
+  display: block; /* Required for animations */
+  pointer-events: none;
+}
+
+.dropdown.show .dropdown-menu {
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+  pointer-events: auto;
+}
+
+/* Search input styling */
+.search-input {
+  border-radius: 2px !important;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Scrollbar styling */
+.dropdown-options::-webkit-scrollbar {
+  width: 6px;
+}
+.dropdown-options::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+
+  
