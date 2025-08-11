@@ -5,7 +5,7 @@ conn = sqlite3.connect("connection.db")
 cursor = conn.cursor()
 
 # Run the query
-cursor.execute("PRAGMA table_info(registered_meters);")
+cursor.execute("PRAGMA table_info(installed_meters);")
 
 # Fetch and print the result
 columns = cursor.fetchall()

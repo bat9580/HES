@@ -7,7 +7,7 @@ body {
   .sidebar {
     min-height: 100vh;
     width: 250px;
-    background-color: #2c3e50;
+    background-color: #20609c;
     color: #ecf0f1;
     transition: width 0.3s;
     overflow-x: hidden;
@@ -224,59 +224,24 @@ input::placeholder {
     }
   }
   
-  .dropdown-menu {
-    position: absolute;
-    opacity: 0;
-    transform: translateY(-20px);
-    visibility: hidden;
-    transition: all 0.3s ease;
-    display: block !important;
-  }
-
-  /* Open state - visible with slide-up effect */
-  .dropdown.show .dropdown-menu {
-    opacity: 1;
-    transform: translateY(0);
-    visibility: visible;
-  }
   
-  .dropdown:not(.show) .dropdown-menu {
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.2s ease-in;
-  }
   .btn.dimmed-text {
-    color: #8a8d90 !important;
+    color: #989b9d !important;
     font-size: 0.95rem !important;
     opacity: 0.9;
   }
   /* style.css */
 /* Existing dimmed text class */
 .dimmed-text { 
-  color: #adb5bd;
+  color: #e3e6e9;
   font-size: 0.95rem;
 }
 
 /* Dropdown animation */
-.dropdown-menu {
-  transform-origin: top center;
-  transition: 
-    opacity 0.2s ease,
-    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-}
 
-.dropdown:not(.show) .dropdown-menu {
-  opacity: 0;
-  transform: translateY(-10px) scaleY(0.95);
-  display: block; /* Required for animations */
-  pointer-events: none;
-}
 
-.dropdown.show .dropdown-menu {
-  opacity: 1;
-  transform: translateY(0) scaleY(1);
-  pointer-events: auto;
-}
+
+
 
 /* Search input styling */
 .search-input {
@@ -293,5 +258,145 @@ input::placeholder {
   background: #ddd;
   border-radius: 3px;
 }
+/* Search Input Styles */
+.dropdown-toggle-wrapper {
+  cursor: pointer;
+}
 
-  
+.dropdown-search-input {
+  background-color: #f8f9fa;
+  border: 1px solid #989b9d; 
+  color: #b5b9bd;
+  font-size: 0.95rem;
+}
+.dropdown-search-input::placeholder{ 
+  color: #cfd2d4;
+}
+.dropdown-search-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.1rem rgba(214, 208, 226, 0.25);
+}
+
+.dropdown-chevron {
+  font-size: 0.6rem;
+  color: #cfd2d4;  
+  pointer-events: none;
+}
+
+/* Animation Styles (keep your existing animations) */
+.dropdown-menu {
+  transform-origin: top center;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  display: block !important;
+}
+
+.dropdown:not(.show) .dropdown-menu {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+.dropdown.show .dropdown-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+} 
+/* Input hover effect */
+/* Hover Effects */
+.hoverable-input:hover {
+  border-color: #364b60 !important;
+  background-color: #f8f9fa !important;
+}
+
+.hoverable-menu {
+  display: block !important;
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.dropdown.show .hoverable-menu {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.hoverable-item:hover {
+  background-color: #f1f1f1 !important;
+  color: #212529 !important;
+}
+
+.dropdown-toggle-wrapper:hover .dropdown-chevron {
+  color: #495057 !important;
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Transition Effects */
+.hoverable-input,
+.hoverable-item,
+.dropdown-chevron {
+  transition: all 0.2s ease-in-out;
+}
+
+.table th, .table td {
+  font-size: 13px;
+  padding: 8px 12px;
+  height: 45px;
+  text-align: left;
+  vertical-align: middle;
+  color: #090909;
+}
+
+  .table thead th {
+    background-color: rgb(255, 255, 255);
+    border-color:#e8eaeb ;
+    color: #333;
+    font-weight: normal;
+    font-style:initial;
+    color: #8e8c8c;
+  }
+.table{
+  border-color: #e8eaeb;
+}
+  .btn-sm {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-style: normal;
+    height: 30px;
+    min-width: 34px;
+  }
+
+  /* If you also want to control icon size inside buttons */
+  .btn-sm i {
+    font-size: 12px;
+    font-style: normal;
+  }
+  .badge {
+    font-size: 12px;
+    padding: 4x 8px; 
+    border-radius: 2px;
+    font-style: normal;
+    height: 30px;
+    min-width: 34px;
+    font-weight: normal;
+    text-align: center;
+    line-height: 30px;
+  }
+  .stat-card {
+    border-radius: 12px;
+    border: none;
+    background-color: #ffffff;
+  }
+  .stat-card h6 {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .stat-card h3 {
+    font-size: 28px;
+    margin: 0;
+  }
+  .custom-modal{
+     max-width: 1400px;
+  }

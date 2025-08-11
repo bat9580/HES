@@ -10,37 +10,66 @@
   <h4 class="mb-3">Бүртгэсэн тоолуурууд</h4> 
 
   <form method = "GET" action = "/search-meter" class="row g-2 mb-3">
-    <div class="col-md-2">
-      <input type="text" class="form-control" placeholder="Meter No." name="meter_number" value="{{ meter_number | default('') }}">  
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Тоолуур хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        </div>
+      </div>
     </div>
-    <div class="col-md-2">
-      <select class="form-select">
-        <option>Status</option>
-        <option>Installed</option>
-        <option>Archived</option>
-      </select>
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>Status</option>
+            <option>Installed</option>
+            <option>Archived</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="col-md-2">
-      <select class="form-select">
-        <option value="">type</option>
-        <option value="DTS545S">DTS545S</option> 
-        <option value="DDSY283SR">DDSY283SR</option>   
-      </select>
+        <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>Device type</option>
+            <option>GPRS meter</option>
+            <option>PLC meter</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="col-md-2">
-      <select class="form-select" name="device_type">
-        <option value="">Device type</option> 
-        <option value="GPRS Meter">GPRS Meter</option>
-        <option value="PLC Meter">PLC Meter</option>
-      </select>
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>type</option>
+            <option>DDSY283</option>
+            <option>DTSD545S</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">Search</button>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
     </div>
 
-    <div class="col-md-2">
-        <button type="button" class="btn btn-dark w-100" data-bs-toggle="modal" data-bs-target="#addMeterModal">
-            + Add
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
+          <i class="bi bi-plus-lg"></i>
         </button>
     </div>
   </form>
@@ -56,6 +85,7 @@
         <th>remarks</th>
         <th>Create By</th>
         <th>Status</th>
+        <th>Operation</th>
       </tr>
     </thead>
     <tbody>
@@ -69,16 +99,16 @@
         <td>{{ meter['remarks'] or '-' }}</td>
         <td>{{ meter['created_by'] }}</td>
         <td>
-          {% if meter['status'] == 'Installed' %}
-            <span class="badge bg-warning text-dark">Installed</span>
-          {% elif meter['status'] == 'Archived' %}
+          {% if meter['status'] == 'installed' %} 
+            <span class="badge bg-success text-white">Installed</span>
+          {% elif meter['status'] == 'archived' %}
             <span class="badge bg-secondary">Archived</span>
           {% else %}
             <span class="badge bg-light text-muted">Unknown</span>
           {% endif %}
         </td>
         <td>
-          <button class="btn btn-sm btn-warning" 
+          <button class="btn btn-sm btn-secondary"  
                   data-bs-toggle="modal" 
                   data-bs-target="#editMeterModal" 
                   data-original-meter-number="{{meter['meter_number']}}"  
@@ -89,12 +119,14 @@
                   data-password="{{ meter['password'] }}"
                   data-remarks="{{ meter['remarks'] }}"
                   data-status="{{ meter['status'] }}"> 
-            ✏️ Edit
+              <i class="bi bi-pencil-square"> Edit</i>
           </button> 
           <!-- <button class="btn btn-sm btn-danger">🗑️ Delete</button> -->
           <form method="POST" action="/delete-meter" style="display:inline;" onsubmit="return confirmDelete();">  
             <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}"> 
-            <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+            <button type="submit" class="btn btn-sm btn-danger">
+              <i class="bi bi-trash"> Delete</i>
+            </button>
           </form>
         </td>
       </tr>
@@ -162,7 +194,7 @@
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Status</label>
-                    <input type="text" name="status" class="form-control"  value="Archived" readonly> 
+                    <input type="text" name="status" class="form-control"  value="archived" readonly> 
                   </div>
                   <div class="col-md-6">
                     <label>Remarks</label>

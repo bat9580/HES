@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">Smart Meter System Dashboard</h2>
+
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm stat-card">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Total Installations</h6>
+          <h3 class="fw-bold">56</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm stat-card">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Collection Rate</h6>
+          <h3 class="fw-bold">87%</h3>
+          <div class="progress mt-2" style="height: 8px;">
+            <div class="progress-bar bg-success" role="progressbar" 
+                 style="width: 87%;" aria-valuenow="{{ collection_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm stat-card">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Total Consumption</h6>
+          <h3 class="fw-bold">89 kWh</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm stat-card">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Avg Collect Rate</h6>
+          <h3 class="fw-bold">56%</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row g-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title">Meter Installation</h6>
+          <canvas id="statusPieChartMeter" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title">DCU Installation</h6>
+          <canvas id="statusPieChartDCU" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title">Monthly Consumption (kWh)</h6>
+          <canvas id="consumptionLineChart" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-12">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="card-title">Monthly Collection Progress</h6>
+      <canvas id="progressBarChart" height="100"></canvas>
+    </div>
+  </div>
+</div>
+
+</div>
+<script> 
+    const statusPieChart = new Chart(document.getElementById("statusPieChartMeter"), {
+    type: 'pie',
+    data: {
+      labels: ['Installed', 'Archived', 'Pending'],
+      datasets: [{
+        data: [15, 12, 55], 
+        backgroundColor: ['#28a745', '#6c757d', '#ffc107'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+   const statusPieChart1 = new Chart(document.getElementById("statusPieChartDCU"), {
+    type: 'pie',
+    data: {
+      labels: ['Installed', 'Archived', 'Pending'],
+      datasets: [{
+        data: [15, 12, 55], 
+        backgroundColor: ['#28a745', '#6c757d', '#ffc107'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  
+  const consumptionLineChart = new Chart(document.getElementById("consumptionLineChart"), {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Consumption (kWh)',
+        data: [5200, 7300, 6800, 7100, 7650, 8200],
+        fill: true,
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0,123,255,0.2)',
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+    const progressBarChart = new Chart(document.getElementById("progressBarChart"), {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr'],  // e.g. ['Jan', 'Feb', 'Mar', 'Apr']
+      datasets: [{
+        label: 'Collection Rate (%)',
+        data: [85, 90, 80, 95],  // e.g. [85, 90, 80, 95]
+        backgroundColor: '#28a745',
+        borderRadius: 5,
+        barThickness: 25  // adjust bar width here
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Percentage (%)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

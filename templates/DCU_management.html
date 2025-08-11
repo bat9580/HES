@@ -11,16 +11,53 @@
   <h2 class="mb-4">🔥 DCU Management</h2>
 
   <form method = "GET" action = "/search-dcu" class="row g-2 mb-3">
-    <div class="col-md-2">
-      <input type="text" class="form-control" placeholder="DCU No." name="dcu_number" value="{{ dcu_number | default('') }}">  
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="DCU хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        </div>
+      </div>
     </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">Search</button>
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>status</option>
+            <option>istalled</option>
+            <option>archived</option>
+          </select>
+        </div>
+      </div>
     </div>
+        <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>type</option>
+            <option>DCU</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
+    </div>
+    
 
-    <div class="col-md-2">
-        <button type="button" class="btn btn-dark w-100" data-bs-toggle="modal" data-bs-target="#addDCUModal">
-            + Add
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
+          <i class="bi bi-plus-lg"></i>
         </button>
     </div>
   </form>
@@ -54,7 +91,7 @@
           {% endif %}
         </td>
         <td>
-          <button class="btn btn-sm btn-warning" 
+          <button class="btn btn-sm btn-secondary" 
                   data-bs-toggle="modal" 
                   data-bs-target="#editDCUModal" 
                   data-original-dcu-number="{{dcu['dcu_number']}}"  
@@ -63,11 +100,13 @@
                   data-password="{{ dcu['password'] }}"
                   data-remarks="{{ dcu['remarks'] }}"
                   data-status="{{ dcu['status'] }}">  
-            ✏️ Edit
+            <i class="bi bi-pencil-square"> Edit</i>
           </button> 
           <form method="POST" action="/delete-dcu" style="display:inline;" onsubmit="return confirmDelete();">  
             <input type="hidden" name="dcu_number" value="{{ dcu['dcu_number'] }}"> 
-            <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+            <button type="submit" class="btn btn-sm btn-danger">
+              <i class="bi bi-trash"> Delete</i>
+            </button>
           </form>
         </td>
       </tr>

@@ -7,99 +7,141 @@
 </div>
 {% endif %} 
 <div class="p-4">
-  <h2 class="mb-4">⚡ Meter Management</h2>
+  <h4 class="mb-4">⚡Суулгасан тоолуурууд</h4>
 
-  <form method = "GET" action = "/search-meter" class="row g-2 mb-3">
-    <div class="col-md-2">
-      <input type="text" class="form-control" placeholder="Meter No." name="meter_number" value="{{ meter_number | default('') }}">  
-    </div>
-    <div class="col-md-2">
-      <div class="dropdown">
-        <button class="btn btn-light border dropdown-toggle w-100 text-start position-relative dimmed-text"
-                type="button"
-                id="deviceDropdown"
-                aria-expanded="false"
-                style="height: 38px; text-align: left; border-radius: 2px !important;">
-          Бүлэг
-        </button>
-        <ul class="dropdown-menu w-100"
+  <form method = "GET" action = "/search-meter-installation" class="row g-1 mb-1">
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Тоолуур хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="installed-meter-list" 
+            class="dropdown-menu w-100"
             aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px;">
-          <!-- Search Box -->
-          <div class="p-2 border-bottom">
-            <input type="text" 
-                   class="form-control form-control-sm search-input" 
-                   placeholder="Хайх..." 
-                   style="border-radius: 2px;">
-          </div>
-          
-          <!-- Options -->
-          <div class="dropdown-options" style="max-height: 160px; overflow-y: auto;">
-            <li><a class="dropdown-item" href="#" data-value="GPRS Meter" style="border-radius: 0 !important;">ДаланЗадгад</a></li>
-            <li><a class="dropdown-item" href="#" data-value="PLC Meter" style="border-radius: 0 !important;">Цагаан хад</a></li>
-          </div>
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
         </ul>
         <input type="hidden" name="device_type" required>
       </div>
     </div>
-    <div class="col-md-2">
-      <div class="dropdown">
-        <button class="btn btn-light border dropdown-toggle w-100 text-start position-relative dimmed-text"
-                type="button"
-                id="deviceDropdown"
-                aria-expanded="false"
-                style="height: 38px; text-align: left;border-radius: 2px !important;">
-          Тоолуурын төрөл
-        </button>
+    
+
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <!-- Search Input + Dropdown Toggle Combined -->
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 placeholder="Бүлэг хайх"
+                 name = "Zone"  
+                 value="{{ Zone | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <!-- Dropdown Menu (unchanged) -->
         <ul class="dropdown-menu w-100"
-            aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px;border-radius: 2px !important;">
-          <li><a class="dropdown-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
-          <li><a class="dropdown-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+            aria-labelledby="zoneDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+        </ul>
+        <input type="hidden" name="region" required>
+      </div>
+    </div>
+    <div class="col-md-auto" style="width: 22.8%;">
+      <div class="dropdown" style="height: 35px;">
+        <!-- Search Input + Dropdown Toggle Combined -->
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 placeholder="Дэд станц"
+                 name = "station"
+                 value="{{ station | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <!-- Dropdown Menu (unchanged) -->
+        <ul class="dropdown-menu w-100"
+            aria-labelledby="stationDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+        </ul>
+        <input type="hidden" name="device_type" required>
+      </div>
+
+    </div>
+    <div class="col-md-auto" style="width: 22.8%;">
+      <div class="dropdown" style="height: 35px;">
+        <!-- Search Input + Dropdown Toggle Combined -->
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 placeholder="DCU" 
+                 name = "DCU"
+                 value="{{ DCU | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <!-- Dropdown Menu (unchanged) -->
+        <ul class="dropdown-menu w-100"
+            aria-labelledby="dcuDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
         </ul>
         <input type="hidden" name="device_type" required>
       </div>
     </div>
-    <div class="col-md-2">
-      <div class="dropdown">
-        <button class="btn btn-light border dropdown-toggle w-100 text-start position-relative dimmed-text"
-                type="button"
-                id="deviceDropdown"
-                aria-expanded="false"
-                style="height: 38px; text-align: left;border-radius: 2px !important;">
-          Шугам
-        </button>
-        <ul class="dropdown-menu w-100"
-            aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px;border-radius: 2px !important;">
-          <li><a class="dropdown-item" href="#" data-value="GPRS Meter">ТП-78</a></li>
-          <li><a class="dropdown-item" href="#" data-value="PLC Meter">ТП-13</a></li>
-        </ul>
-        <input type="hidden" name="device_type" required>
-      </div>
-    </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">Search</button>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
     </div>
 
-    <div class="col-md-2">
-        <button type="button" class="btn btn-dark w-100" data-bs-toggle="modal" data-bs-target="#addMeterModal">
-            + Add
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+    </div>
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#uninstallMeterModal">
+          <i class="bi bi-dash-lg"></i>
         </button>
     </div>
   </form>
 
   <table class="table table-bordered">
     <thead class="table-light">
-      <tr>
-        <th>#</th>
+      <tr style = "height: 30px;">
+        <th style="width: 30px;">#</th>
         <th>Meter No.</th>
         <th>Comm Addr</th>
-        <th>Meter Type</th>
-        <th>Device Type</th>
+        <th>CT ratio</th>
+        <th>VT_ratio</th> 
         <th>remarks</th>
-        <th>Create By</th>
+        <th>line</th>
         <th>Status</th>
+        <th>Operation</th>
       </tr>
     </thead>
     <tbody>
@@ -108,13 +150,13 @@
         <td>{{ loop.index }}</td>
         <td>{{ meter['meter_number'] }}</td>
         <td>{{ meter['com_address'] }}</td>
-        <td>{{ meter['type'] }}</td>
-        <td>{{ meter['device_type'] }}</td>
+        <td>{{ meter['CT_ratio'] }}</td>
+        <td>{{ meter['VT_ratio'] }}</td>
         <td>{{ meter['remarks'] or '-' }}</td>
-        <td>{{ meter['created_by'] }}</td>
+        <td>{{ meter['line'] }}</td>
         <td>
-          {% if meter['status'] == 'Installed' %}
-            <span class="badge bg-warning text-dark">Installed</span>
+          {% if meter['status'] == 'installed' %}
+            <span class="badge bg-success text-white">Installed</span>
           {% elif meter['status'] == 'Archived' %}
             <span class="badge bg-secondary">Archived</span>
           {% else %}
@@ -122,7 +164,7 @@
           {% endif %}
         </td>
         <td>
-          <button class="btn btn-sm btn-warning" 
+          <button class="btn btn-sm btn-secondary" 
                   data-bs-toggle="modal" 
                   data-bs-target="#editMeterModal" 
                   data-original-meter-number="{{meter['meter_number']}}"  
@@ -132,14 +174,13 @@
                   data-type="{{ meter['type'] }}"
                   data-password="{{ meter['password'] }}"
                   data-remarks="{{ meter['remarks'] }}"
-                  data-status="{{ meter['status'] }}"> 
-            ✏️ Edit
+                  data-task="{{ meter['task'] }}"
+                  data-status="{{ meter['status'] }}" 
+                  data-vt_ratio = "{{ meter['VT_ratio'] }}"
+                  data-ct_ratio = "{{ meter['CT_ratio'] }}"  
+                  data-line="{{ meter['line'] }}">  
+                  <i class="bi bi-pencil-square"> Edit</i> 
           </button> 
-          <!-- <button class="btn btn-sm btn-danger">🗑️ Delete</button> -->
-          <form method="POST" action="/delete-meter" style="display:inline;" onsubmit="return confirmDelete();">  
-            <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}"> 
-            <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
-          </form>
         </td>
       </tr>
       {% endfor %}
@@ -157,7 +198,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="addMeterForm" method = "Post" action = "/add-meter">  
+          <form id="addMeterForm" method = "Post" action = "/install-meter">  
           <!-- Nav tabs -->
           <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
             <li class="nav-item">
@@ -177,50 +218,68 @@
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Device Type</label>
-                    <select class="form-select custom-select" name="device_type" required> 
+                    <select class="form-select custom-select" name="meter_type" required> 
                       <option>GPRS Meter</option>
                       <option>PLC Meter</option>
                     </select>
                   </div>
                   <div class="col-md-6">
-                    <label>* Meter No.</label>
-                    <input type="text" name="meter_number" class="form-control" required> 
+                    <div class="dropdown">  
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <label>* Meter No.</label>
+                        <input type="text" name="meter_number" class="form-control dropdown-search-input dimmed-text hoverable-input" readonly  required>
+                      </div>
+                        <ul class="dropdown-menu w-100"
+                            aria-labelledby="archivedDropdown"
+                            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+                        </ul>
+                        <input type="hidden" name="device_type" required>
+                    </div>
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>* Comm Addr</label>
-                    <input type="text" name="comm_address" class="form-control" required>
+                    <input type="text" name="comm_address" class="form-control" readonly  required>
                   </div>
                   <div class="col-md-6">
-                    <label>* Type</label>
-                    <select class="form-select" name="type" required> 
-                      <option>DDSY283SR</option>
+                    <label>Meter Type</label>
+                    <select class="form-select custom-select" name="modem_type" required> 
+                      <option>DDSY283</option>
                       <option>DTSD545S</option> 
-                      
                     </select>
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Status</label>
-                    <input type="text" name="status" class="form-control"  value="Archived" readonly> 
-                  </div>
+                    <label>CT ratio</label> 
+                    <input type="number" name="CT_ratio" class="form-control" step="1" min="0">
+                  </div> 
                   <div class="col-md-6">
                     <label>Remarks</label>
-                    <input type="text" name = "remarks" class="form-control">
+                    <input type="text" name = "remarks" class="form-control" readonly >
                   </div>
                 </div>
-  
-  
-              
+                <div class="row mb-3">
+
+                <div class="col-md-6">
+                    <label>VT ratio</label> 
+                    <input type="number" name="VT_ratio" class="form-control" step="1" min="0">
+                  </div> 
+                <div class="col-md-auto" id="parentNodeWrapper" style="display:block;">
+                        <label>Харьяа шугам</label>
+                        <div id="parentNodeTree"></div>
+                        <input type="hidden" name="line" id="parent_node_input">
+                </div> 
+                </div>
+
             </div>
   
             <div class="tab-pane fade" id="safety" role="tabpanel">
                 <label>Password</label> 
-                <input type="text" name="password" class="form-control" required>
+                <input type="text" name="password" class="form-control" readonly required>
             </div>
           </div>
         </form>
@@ -233,8 +292,77 @@
       </div>
     </div>
   </div>
+ <!-- meter uninstall hiih form --> 
+  <div class="modal fade" id="uninstallMeterModal" tabindex="-1" aria-labelledby="uninstallMeterModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uninstallMeterModalLabel">Dismantle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
 
-  
+      <div class="modal-body">
+        <form id="uninstallMeterForm" method="POST" action="/uninstall-meter">
+          <h6 class="mb-3 border-bottom pb-2">Meter Basic Information</h6>
+
+          <div class="mb-3 row align-items-center">
+            
+                  <label class="col-sm-3 col-form-label fw-bold">* Meter No.</label> 
+                   <div class="col-sm-9">
+                    <div class="dropdown">  
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <input type="text" name="meter_number" class="form-control dropdown-search-input dimmed-text hoverable-input" required>
+                      </div>
+                        <ul class="dropdown-menu w-100"
+                            aria-labelledby="installedDropdown"
+                            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+                        </ul>
+                        <input type="hidden" name="device_type" required>
+                    </div>
+                  </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-bold">Comm Addr</label>
+            <div class="col-sm-9">
+              <input type="text" name="comm_address" class="form-control">
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-bold">Type</label>
+            <div class="col-sm-9">
+              <select class="form-select" name="type" required>
+                <option>DDSY283</option>
+                <option>DTSD545S</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-bold">Status</label>
+            <div class="col-sm-9">
+              <input type="text" name="status" class="form-control" value="Archived" readonly>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label fw-bold">Remarks</label>
+            <div class="col-sm-9">
+              <textarea name="remarks" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" form="uninstallMeterForm" class="btn btn-primary">Dismantle</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- edit meter form for meter edit --> 
   <div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel" aria-hidden="true">
@@ -245,7 +373,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="editMeterForm" method = "Post" action = "/edit-meter">   
+          <form id="editMeterForm" method = "Post" action = "/edit-meter-installation">   
             <input type="hidden" name="original_meter_number" id="OriginalMeterNumber">  
           <!-- Nav tabs -->
           <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
@@ -282,26 +410,35 @@
                     <input type="text" name="comm_address" id = "editCommAddress" class="form-control" required>
                   </div>
                   <div class="col-md-6">
-                    <label>* Type</label>
+                    <label>* Type</label> 
                     <select class="form-select" name="type" id = "editType" required> 
                       <option>DDSY283SR</option>
                       <option>DTSD545S</option> 
-                      
                     </select>
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Status</label>
-                    <input type="text" name="status" class="form-control"  value="Archived" readonly> 
-                  </div>
+                    <label>CT ratio</label> 
+                    <input type="number" name="CT_ratio" id = "editCT_ratio" class="form-control" step="1" min="0">
+                  </div> 
                   <div class="col-md-6">
                     <label>Remarks</label>
-                    <input type="text" name = "remarks" id = "editRemarks" class="form-control">
+                    <input type="text" name = "remarks" id = "editRemarks" class="form-control" readonly>  
                   </div>
                 </div>
-  
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>VT ratio</label> 
+                    <input type="number" name="VT_ratio" id = "editVT_ratio" class="form-control" step="1" min="0">
+                  </div> 
+                  <div class="col-md-auto" id="editLineWrapper" style="display:block;"> 
+                    <label>Харьяа шугам</label>
+                    <div id="editLineTree"></div>
+                    <input type="hidden" name="line" id="edit_line_input">
+                  </div> 
+                </div>
   
               
             </div>
@@ -323,7 +460,6 @@
   </div>
  
   <script>
-
     const editModal = document.getElementById('editMeterModal');
     editModal.addEventListener('show.bs.modal', event => {
       const button = event.relatedTarget;
@@ -334,87 +470,223 @@
       document.getElementById('editDeviceType').value = button.getAttribute('data-device-type');
       document.getElementById('editType').value = button.getAttribute('data-type');
       document.getElementById('editPassword').value = button.getAttribute('data-password');
-      document.getElementById('editRemarks').value = button.getAttribute('data-remarks');
-    });
-    function confirmDelete(){
-      return confirm("⚠️ Are you sure you want to delete this meter?");
-    }
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-    toggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      const dropdown = this.closest('.dropdown');
-      
-      // Close other open dropdowns
-      document.querySelectorAll('.dropdown.show').forEach(d => {
-        if (d !== dropdown) d.classList.remove('show');
-      });
-      
-      // Toggle current dropdown
-      dropdown.classList.toggle('show');
-    });
-  });
+      document.getElementById('editRemarks').value = button.getAttribute('data-remarks'); 
+      document.getElementById('editVT_ratio').value = button.getAttribute('data-vt_ratio');
+      document.getElementById('editCT_ratio').value = button.getAttribute('data-ct_ratio'); 
+      console.log(button.getAttribute('data-device-type'))
+ 
 
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.dropdown')) {
-      document.querySelectorAll('.dropdown.show').forEach(dropdown => {
-        dropdown.classList.remove('show');
-      });
-    }
-  });
+      const LineName = button.getAttribute('data-line'); 
+      document.getElementById('edit_line_input').value = LineName || ''; 
 
-  // Handle dropdown item selection
-  document.querySelectorAll('.dropdown-item').forEach(item => {
-    item.addEventListener('click', function(e) {
-      e.preventDefault();
-      const dropdown = this.closest('.dropdown');
-      const value = this.getAttribute('data-value');
-      const text = this.textContent;
-      
-      // Update the toggle button text
-      dropdown.querySelector('.dropdown-toggle').textContent = text;
-      
-      // Update the hidden input value if exists
-      const hiddenInput = dropdown.querySelector('input[type="hidden"]');
-      if (hiddenInput) hiddenInput.value = value;
-      
-      dropdown.classList.remove('show');
+      $('#editLineTree').on('loaded.jstree', function () {
+        if (LineName) {
+            // Find the node by its text
+            const allLines = $('#editLineTree').jstree(true).get_json('#', { flat: true });
+            const match = allLines.find(line => line.text === LineName); 
+
+            if (match) {
+                $('#editLineTree').jstree('select_line', match.id);
+            }
+        }
     });
-  });
 
-  document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.querySelector('.search-input');
-  const dropdownItems = document.querySelectorAll('.dropdown-item');
-  
-  // Search functionality
-  searchInput.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
+    // (Re)initialize your jsTree if needed
+    $('#editLineTree').jstree({
+        core: {
+            data: {
+            url: '/line-tree-data',
+            dataType: 'json'
+            }
+        }
+    });
+
+    // Update hidden input when user selects a node
+    $('#editLineTree').on("changed.jstree", function (e, data) {
+        if (data.selected.length) {
+            const lineText = data.instance.get_node(data.selected[0]).text;
+            document.getElementById('edit_line_input').value = lineText;
+        } else {
+            document.getElementById('edit_line_input').value = '';
+        }
+    }); 
+
+
+      // $('#editLineTree').on("changed.jstree", function (e, data) {
+      //     if (data && data.selected && data.selected.length > 0) {
+      //         // Get the selected node's text (name)
+      //         let selectedNodeName = data.instance.get_node(data.selected[0]).text;
+              
+      //         // Set hidden input value
+      //         document.getElementById('edit_line_input').value = selectedNodeName;
+      //     } else {
+      //         document.getElementById('edit_line_input').value = '';
+      //     }
+      // }); 
+
+    });
+
+
     
+
+document.addEventListener('DOMContentLoaded', function() {
+  const dropdowns = document.querySelectorAll('.dropdown');  
+  dropdowns.forEach(function(dropdown) {
+    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
+    const chevron = dropdown.querySelector('.dropdown-chevron');
+    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
+    
+
+    dropdown.addEventListener('mouseenter', function() {
+      if (!dropdown.classList.contains('show')) {
+        dropdown.classList.add('hover-show');
+      }
+    });
+
+    if (searchInput) {
+  const list = dropdown.querySelector('.dropdown-menu'); 
+   
+  // Fetch meters when input is focused
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '' ; 
+    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+      path = '/get-installed-meters'; 
+    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+      path = '/get-zone';  
+    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+      path = '/get-station';
+    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+      path = '/get-installed-dcu';  
+    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+      path = '/get-archived-meter'; 
+    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+      path = '/get-installed-meters';
+    }
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
+  });
+
+  // Real-time filtering — delegate to input
+  searchInput.addEventListener('input', function () {
+    const term = this.value.toLowerCase();
+    const dropdownItems = list.querySelectorAll('.dropdown-item');
     dropdownItems.forEach(item => {
-      const text = item.textContent.toLowerCase();
-      if (text.includes(searchTerm)) {
-        item.style.display = "block";
-      } else {
-        item.style.display = "none";
+      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
+    });
+  });
+
+  // Item selection — event delegation
+  list.addEventListener('click', function (e) {
+    if (e.target && e.target.matches('.dropdown-item')) {
+      if (searchInput) searchInput.value = e.target.textContent;
+      dropdown.classList.remove('show');
+      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      e.preventDefault();
+      
+      if (list.getAttribute("aria-labelledby") === "archivedDropdown") {
+        console.log("fillput")
+      const selectedMeter = event.target.getAttribute('data-value');
+      document.querySelector('#addMeterModal input[name="meter_number"]').value = selectedMeter;
+
+      // Fetch full details for selected archived meter
+      fetch(`/get-meter-details/${encodeURIComponent(selectedMeter)}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data) 
+          if (data.error) {
+            alert(data.error);
+            return;
+          }
+          // Fill other fields inside the modal
+          document.querySelector('#addMeterModal select[name="meter_type"]').value = data.device_type;
+          document.querySelector('#addMeterModal input[name="comm_address"]').value = data.com_address;
+          document.querySelector('#addMeterModal select[name="modem_type"]').value = data.type;
+          document.querySelector('#addMeterModal input[name="remarks"]').value = data.remarks || '';
+          document.querySelector('#addMeterModal input[name="password"]').value = data.password || '';
+          console.log(document.querySelector('#addMeterModal input[name="password"]').value ) 
+        })
+        .catch(err => console.error("Error fetching meter details:", err));
+    }
+    
+    }
+  });
+}
+
+    // Chevron rotation
+    if (chevron) {
+      chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    dropdown.addEventListener('show.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+    });
+    dropdown.addEventListener('hide.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('show');
       }
     });
   });
-  
-  // Preserve your existing animations
-  const dropdownToggle = document.querySelector('.dropdown-toggle');
-  dropdownToggle.addEventListener('click', function() {
-    const dropdown = this.closest('.dropdown');
-    dropdown.classList.toggle('show');
-    
-    // Reset search on open
-    if (dropdown.classList.contains('show')) {
-      searchInput.value = '';
-      dropdownItems.forEach(item => {
-        item.style.display = "block";
-      });
-    }
-  });
 });
+$(document).ready(function () {
+  // Add modal tree
+  $('#parentNodeTree').jstree({
+    core: {
+      data: {
+        url: '/line-tree-data',
+        dataType: 'json'
+      }
+    }
+  }).on("select_node.jstree", function (e, data) {
+    $('#parent_node_input').val(data.node.text);
+  });
+  $('#editLineTree').jstree({
+    core: {
+      data: {
+        url: '/line-tree-data',
+        dataType: 'json'
+      }
+    }
+  }).on("select_node.jstree", function (e, data) {
+    $('#edit_line_input').val(data.node.text);
+  }); 
+  });
+
+
+
+$('#parentNodeTree').on("changed.jstree", function (e, data) {
+    if (data && data.selected && data.selected.length > 0) {
+        // Get the selected node's text (name)
+        let selectedNodeName = data.instance.get_node(data.selected[0]).text;
+        
+        // Set hidden input value
+        document.getElementById('parent_node_input').value = selectedNodeName;
+    } else {
+        document.getElementById('parent_node_input').value = '';
+    }
+}); 
   </script>
 
 

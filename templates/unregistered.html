@@ -4,22 +4,41 @@
 
 <h2 class="mb-4">🔌 Unregistered Devices</h2>
 <form method="GET" action="/search-unregistered-dcu" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
-  
-    <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}">
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Төхөөрөмж хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+    </div>
+    <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
+    <div class="col-md-auto  position-relative " style="width: 20%; min-height: 35px; height: auto;"> 
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>Device type</option>
+            <option>DCU</option>
+            <option>Gprs meter</option> 
+          </select>
+    </div>
     
-    <select class="form-select" style="max-width: 180px;">
-      <option selected>Device Type</option>
-      <option>DCU</option>
-      <option>Smart Meter</option>
-    </select>
-
-    <input type="date" class="form-control" style="max-width: 160px;">
-    <input type="date" class="form-control" style="max-width: 160px;">
-  
-    
-        <button type="submit"  class="btn btn-primary btn-sm">🔍 Search</button>
-        <button class="btn btn-danger btn-sm" id="clear-selected-button">🗑️ Clear Selected</button>
-        <button class="btn btn-danger btn-sm">🧹 Clear All</button>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
+    </div>
+    <div class="col-md-auto" >
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-trash3"> Clear selected</i> 
+      </button>
+    </div>
+    <div class="col-md-auto">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-trash3-fill"> Clear all</i> 
+      </button>
+    </div>
+        
 
 </form> 
 

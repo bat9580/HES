@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block content %}
+{% if message %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  {{ message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %} 
+
+
+<!-- Parameters Section -->
+<div class="card p-3 mb-4">
+  <h5>Тоолуураас шууд унших</h5>
+  <div class="tree">
+    <ul>
+      <li>
+        <span class="toggle" onclick="toggleChildren(this)">▶</span>
+        <input type="checkbox" id="select-all-parameters" > <label>Энергийн утга унших</label> 
+        <ul class="nested">
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.0"> <label>Total import active energy(1.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.1"> <label>Import active energy T1 (1.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.2"> <label>Import active energy T2 (1.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.3"> <label>Import active energy T2 (1.8.3)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.0"> <label>Total export active energy(2.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.1"> <label>Export active energy T1 (2.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.2"> <label>Export active energy T2 (2.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.3"> <label>Export active energy T2 (2.8.3)</label></li> 
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.0"> <label>Total import reactive energy(3.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.1"> <label>Import reactive energy T1 (3.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.2"> <label>Import reactive energy T2 (3.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.3"> <label>Import reactive energy T2 (3.8.3)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.0"> <label>Total export reactive energy(4.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.1"> <label>Export reactive energy T1 (4.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.2"> <label>Export reactive energy T2 (4.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.3"> <label>Export reactive energy T2 (4.8.3)</label></li>   
+        </ul>
+      </li>
+      <li>
+        <span class="toggle" onclick="toggleChildren(this)">▶</span>
+        <input type="checkbox" id="select-all-parameters" > <label>Агшин зуурын утга унших</label>
+        <ul class="nested">
+          <li><input type="checkbox" class="parameter-checkbox" value="32.7.0"> <label>A фазын хүчдэл(32.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="52.7.0"> <label>Б фазын хүчдэл(52.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="72.7.0"> <label>С фазын хүчдэл(72.7.0)</label></li> 
+          <li><input type="checkbox" class="parameter-checkbox" value="31.7.0"> <label>A фазын гүйдэл(31.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="51.7.0"> <label>Б фазын гүйдэл(51.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="71.7.0"> <label>С фазын гүйдэл(71.7.0)</label></li> 
+          <li><input type="checkbox" class="parameter-checkbox" value="15.7.0"> <label>Нийт актив чадал(15.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="21.7.0"> <label>A фазын актив чадал(21.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="41.7.0"> <label>Б фазын актив чадал(41.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="61.7.0"> <label>С фазын актив чадал(61.7.0)</label></li>  
+          <li><input type="checkbox" class="parameter-checkbox" value="3.7.0"> <label>Нийт реактив чадал(3.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="23.7.0"> <label>A фазын реактив чадал(23.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="43.7.0"> <label>Б фазын реактив чадал(43.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="63.7.0"> <label>С фазын реактив чадал(63.7.0)</label></li>  
+          <li><input type="checkbox" class="parameter-checkbox" value="14.7.0"> <label>Давтамж (14.7.0)</label></li> 
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+<div class="p-4">
+  <h4 class="mb-3">Бүртгэлтэй тоолуурууд</h4> 
+
+  <form method = "GET" action = "/search-meter-parameter" class="row g-2 mb-3">
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Тоолуур хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="installed-meter-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="deviceDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+        </ul>
+        <input type="hidden" name="device_type" required>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select"
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        <option>Status</option>
+        <option>Installed</option>
+        <option>Archived</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select"
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        <option value="">type</option>
+        <option value="DTS545S">DTS545S</option> 
+        <option value="DDSY283SR">DDSY283SR</option>   
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="device_type" 
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        <option value="">Device type</option> 
+        <option value="GPRS Meter">GPRS Meter</option>
+        <option value="PLC Meter">PLC Meter</option>
+      </select>
+    </div>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
+    </div>
+
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" id="read-button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
+          <i class="bi bi-book"></i>
+        </button>
+    </div>
+  </form>
+
+  <table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th><input type="checkbox" id="select-all-meters"></th>
+        <th>#</th>
+        <th>Meter No.</th>
+        <th>Comm Addr</th>
+        <th>Meter Type</th>
+        <th>Device Type</th>
+        <th>remarks</th>
+        <th>Create By</th>
+        <th>status</th> 
+        <th>result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for meter in installed_meters %}
+      <tr>
+        <td>
+            <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
+        </td>
+        <td>{{ loop.index }}</td>
+        <td>{{ meter['meter_number'] }}</td>
+        <td>{{ meter['com_address'] }}</td>
+        <td>{{ meter['type'] }}</td>
+        <td>{{ meter['device_type'] }}</td>
+        <td>{{ meter['remarks'] or '-' }}</td>
+        <td>
+          {% if meter['meter_number']|int in connected_clients %}   
+          <span class="badge bg-success">Online</span> 
+          {% else %}
+          <span class="badge bg-secondary">Offline</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if meter['status'] == 'installed' %}
+            <span class="badge bg-success text-white">Installed</span>
+          {% elif meter['status'] == 'Archived' %}
+            <span class="badge bg-secondary">Archived</span>
+          {% else %}
+            <span class="badge bg-light text-muted">Unknown</span>
+          {% endif %}
+        </td>
+        <td>
+          <!-- result will be displayed here  --> 
+             <button class="btn btn-sm btn-outline-primary d-none result-button" 
+          id="result-{{ meter['meter_number'] }}" 
+          data-meter="{{ meter['meter_number'] }}" 
+          onclick="showResultModal(this)">
+             Result
+           </button>
+           <span id="result-{{meter['meter_number']}}" ></span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<!-- add button form for meter adding  -->
+ <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultModalLabel">Meter Reading Result</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        <!-- Result details will be injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+ 
+  <script>
+function formatResult(result) {
+  if (typeof result === 'object') {
+    return `<ul>` + Object.entries(result)
+      .map(([key, val]) => `<li><strong>${key}</strong>: ${val}</li>`)
+      .join("") + `</ul>`;
+  }
+  return result;
+}
+
+// 🔹 Global object to store results per meter
+const resultMap = {};
+
+// 🔹 Modal trigger function
+function showResultModal(button) {
+  const meterNumber = button.getAttribute("data-meter");
+  const resultHtml = resultMap[meterNumber] || "No result found";
+  document.getElementById("modal-body-content").innerHTML = resultHtml;
+  new bootstrap.Modal(document.getElementById('resultModal')).show();
+}
+document.getElementById('read-button').addEventListener('click', function () {
+  const readBtn = this; // Reference to button
+  const originalContent = readBtn.innerHTML; // Store original text
+
+  // Show spinner and disable button
+  readBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+  readBtn.disabled = true; 
+
+
+  const selectedMeters = Array.from(document.querySelectorAll('.meter-checkbox:checked')).map(cb => cb.value);
+  const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value); 
+
+  if (selectedMeters.length === 0) {
+    alert("Please select at least one meter.");
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false; 
+    return;
+  }
+  if (selectedParameters.length === 0) {
+    alert("Please select at least one parameter.");
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false;
+    return;
+  }
+
+  fetch('/read-meter-parameter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selected_meters: selectedMeters, 
+      selected_parameters: selectedParameters
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+  data.forEach(item => {
+    const btn = document.getElementById(`result-${item.meter_number}`);
+    if (btn) {
+      btn.classList.remove("d-none");
+      resultMap[item.meter_number] = formatResult(item.result); // or item.result directly
+    }
+  });
+})
+  .catch(error => {
+    console.error("Error:", error);
+    alert("Failed to send read command.");
+   // show error in all selected result fields
+  selectedMeters.forEach(meter => {
+    const resultField = document.getElementById(`result-${meter}`);
+    if (resultField) {
+      resultField.textContent = `Error: ${error.message}`; 
+    }
+  }); 
+  })
+  .finally(() => {
+    // Restore original button state
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false;
+  });
+});
+
+
+
+document.getElementById("select-all-meters").addEventListener("change", function () {
+  const checkboxes = document.querySelectorAll(".meter-checkbox");
+  checkboxes.forEach(cb => cb.checked = this.checked);
+});
+    function toggleChildren(element) {
+    const nestedList = element.parentElement.querySelector(".nested");
+    if (nestedList) {
+      nestedList.classList.toggle("active");
+      element.textContent = nestedList.classList.contains("active") ? "▼" : "▶";
+    }
+  }
+document.addEventListener('DOMContentLoaded', function() {
+  const dropdowns = document.querySelectorAll('.dropdown');  
+  dropdowns.forEach(function(dropdown) {
+    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
+    const chevron = dropdown.querySelector('.dropdown-chevron');
+    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
+    
+
+    dropdown.addEventListener('mouseenter', function() {
+      if (!dropdown.classList.contains('show')) {
+        dropdown.classList.add('hover-show');
+      }
+    });
+
+    if (searchInput) {
+  const list = dropdown.querySelector('.dropdown-menu'); 
+   
+  // Fetch meters when input is focused
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '/get-installed-meters';   
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
+  });
+
+  // Real-time filtering — delegate to input
+  searchInput.addEventListener('input', function () {
+    const term = this.value.toLowerCase();
+    const dropdownItems = list.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
+    });
+  });
+
+  // Item selection — event delegation
+  list.addEventListener('click', function (e) {
+    if (e.target && e.target.matches('.dropdown-item')) {
+      if (searchInput) searchInput.value = e.target.textContent;
+      dropdown.classList.remove('show');
+      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      e.preventDefault();
+    }
+  });
+}
+
+    // Chevron rotation
+    if (chevron) {
+      chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    dropdown.addEventListener('show.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+    });
+    dropdown.addEventListener('hide.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+  });
+});
+
+</script> 
+
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">Заалт нөхөж унших</h2> 
+<form method="GET" action="/search-meters-ondemand" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Тоолуур хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="installed-meter-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="deviceDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+        </ul>
+        <input type="hidden" name="device_type" required>
+      </div>
+    </div>
+    <div class="col-md-auto  position-relative " style="width: 20%; min-height: 35px; height: auto;"> 
+          <select
+              name="profile" 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+                <option value="energy profile">Энергийн Профайл</option> 
+                <option value="instant profile">Агшин зуурын Профайл</option>
+          </select>
+    </div>
+    <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
+    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
+        <input type="text" id="daterange" class="form-control" style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
+        <input type="hidden" id="start_date" name="start_date">
+        <input type="hidden" id="end_date" name="end_date">
+    </div>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
+    </div>
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" id="read-button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
+          <i class="bi bi-book"></i>
+        </button>
+    </div> 
+</form> 
+
+<table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th><input type="checkbox" id="select-all-meters"></th>
+        <th>#</th>
+        <th>Meter No.</th>
+        <th>Comm Addr</th>
+        <th>Meter Type</th>
+        <th>Device Type</th>
+        <th>remarks</th>
+        <th>Create By</th>
+        <th>status</th> 
+        <th>result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for meter in installed_meters %}
+      <tr>
+        <td>
+            <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
+        </td>
+        <td>{{ loop.index }}</td>
+        <td>{{ meter['meter_number'] }}</td>
+        <td>{{ meter['com_address'] }}</td>
+        <td>{{ meter['type'] }}</td>
+        <td>{{ meter['device_type'] }}</td>
+        <td>{{ meter['remarks'] or '-' }}</td>
+        <td>
+          {% if meter['meter_number']|int in connected_clients %}   
+          <span class="badge bg-success">Online</span> 
+          {% else %}
+          <span class="badge bg-secondary">Offline</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if meter['status'] == 'installed' %}
+            <span class="badge bg-success text-white">Installed</span>
+          {% elif meter['status'] == 'Archived' %}
+            <span class="badge bg-secondary">Archived</span>
+          {% else %}
+            <span class="badge bg-light text-muted">Unknown</span>
+          {% endif %}
+        </td>
+        <td>
+          <!-- result will be displayed here  --> 
+             <button class="btn btn-sm btn-outline-primary d-none result-button" 
+          id="result-{{ meter['meter_number'] }}" 
+          data-meter="{{ meter['meter_number'] }}" 
+          onclick="showResultModal(this)">
+             Result
+           </button>
+           <span id="result-{{meter['meter_number']}}" ></span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+  <!-- result Modal --> 
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultModalLabel">Meter Reading Result</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        <!-- Result details will be injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<style>
+  th, td { text-align: center; vertical-align: middle; }
+  .btn-sm { padding: 4px 10px; font-size: 13px; }
+  .form-control, .form-select { height: 32px; font-size: 14px; }
+</style>
+
+<script>
+function formatResult(result) {
+  if (typeof result === 'object') {
+    return `<ul>` + Object.entries(result)
+      .map(([key, val]) => `<li><strong>${key}</strong>: ${val}</li>`)
+      .join("") + `</ul>`;
+  }
+  return result;
+}
+
+// 🔹 Global object to store results per meter
+const resultMap = {};
+
+// 🔹 Modal trigger function
+// үр дүнг хүснэгт хэлбэрээр харуулах 
+function showResultModal(button) {
+  const meterNumber = button.getAttribute("data-meter");
+  const data = resultMap[meterNumber];
+
+  if (!data || data.length === 0) {
+    document.getElementById("modal-body-content").innerHTML = "<p>No result found</p>";
+  } else {
+    // Create table headers
+    let table = `<table class="table table-bordered table-sm">
+      <thead>
+        <tr>
+          <th>Timestamp</th>`;
+    
+    // Get field names from first object (excluding timestamp)
+    const fieldKeys = Object.keys(data[0]).filter(key => key !== 'timestamp');
+    fieldKeys.forEach(key => {
+      table += `<th>${key}</th>`;
+    });
+
+    table += `</tr></thead><tbody>`;
+
+    // Fill table rows
+    data.forEach(entry => {
+      table += `<tr><td>${entry.timestamp}</td>`;
+      fieldKeys.forEach(key => {
+        table += `<td>${entry[key]}</td>`;
+      });
+      table += `</tr>`;
+    });
+
+    table += `</tbody></table>`;
+
+    // Inject into modal
+    document.getElementById("modal-body-content").innerHTML = table;
+  }
+
+  new bootstrap.Modal(document.getElementById('resultModal')).show();
+}
+
+
+
+document.getElementById('read-button').addEventListener('click', function () {
+  const readBtn = this; // Reference to button
+  const originalContent = readBtn.innerHTML; // Store original text
+
+  // Show spinner and disable button
+  readBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+  readBtn.disabled = true;  
+
+
+  const selectedMeters = Array.from(document.querySelectorAll('.meter-checkbox:checked')).map(cb => cb.value);
+  //const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value); 
+  const selectedProfile = document.querySelector('select[name="profile"]').value; 
+  const startDate = document.getElementById('start_date').value;
+  const endDate = document.getElementById('end_date').value;
+
+  if (selectedMeters.length === 0) {
+    alert("Please select at least one meter.");
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false;
+    return;
+  }
+  if (!startDate || !endDate) {
+  alert("Please select a valid time range.");
+  readBtn.innerHTML = originalContent;
+  readBtn.disabled = false;
+  return;
+} 
+  fetch('/read-meter-ondemand-profile',  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selected_meters: selectedMeters, 
+      selected_profile: selectedProfile,
+      start_date: startDate,
+      end_date: endDate
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log(data); 
+  data.forEach(item => {
+    const btn = document.getElementById(`result-${item.meter_number}`);
+    if (btn) {
+      btn.classList.remove("d-none");
+      resultMap[item.meter_number] = item.result; 
+    //   console.log(resultMap);  
+    }
+  });
+})
+  .catch(error => {
+    console.error("Error:", error);
+    alert("Failed to send read command.");
+   // show error in all selected result fields
+  selectedMeters.forEach(meter => {
+    const resultField = document.getElementById(`result-${meter}`);
+    if (resultField) {
+      resultField.textContent = `Error: ${error.message}`; 
+    }
+  }); 
+  })
+  .finally(() => {
+    // Restore original button state
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false;
+  });
+});
+
+
+
+document.getElementById("select-all-meters").addEventListener("change", function () {
+  const checkboxes = document.querySelectorAll(".meter-checkbox");
+  checkboxes.forEach(cb => cb.checked = this.checked);
+});
+
+
+// ////////////////////////
+
+$(function() {
+  $('#daterange').daterangepicker({
+    timePicker: true,
+    timePicker24Hour: true,
+    timePickerSeconds: true,
+    locale: {
+      format: 'YYYY-MM-DD[T]HH:mm:ss', // Match database format
+      separator: 'T' // Explicitly set the separator
+    },
+    startDate: moment().startOf('hour'),
+    endDate: moment().endOf('hour')
+  }, function(start, end) {
+    // Update hidden inputs
+    $('#start_date').val(start.format('YYYY-MM-DD[T]HH:mm:ss'));
+    $('#end_date').val(end.format('YYYY-MM-DD[T]HH:mm:ss'));
+  });
+});
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const dropdowns = document.querySelectorAll('.dropdown');  
+  dropdowns.forEach(function(dropdown) {
+    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
+    const chevron = dropdown.querySelector('.dropdown-chevron');
+    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
+    
+
+    dropdown.addEventListener('mouseenter', function() {
+      if (!dropdown.classList.contains('show')) {
+        dropdown.classList.add('hover-show');
+      }
+    });
+
+    if (searchInput) {
+  const list = dropdown.querySelector('.dropdown-menu'); 
+   
+  // Fetch meters when input is focused
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '' ; 
+    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+      path = '/get-installed-meters'; 
+    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+      path = '/get-zone';  
+    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+      path = '/get-station';
+    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+      path = '/get-installed-dcu';  
+    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+      path = '/get-archived-meter'; 
+    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+      path = '/get-installed-meters';
+    }
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
+  });
+
+  // Real-time filtering — delegate to input
+  searchInput.addEventListener('input', function () {
+    const term = this.value.toLowerCase();
+    const dropdownItems = list.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
+    });
+  });
+
+  // Item selection — event delegation
+  list.addEventListener('click', function (e) {
+    if (e.target && e.target.matches('.dropdown-item')) {
+      if (searchInput) searchInput.value = e.target.textContent;
+      dropdown.classList.remove('show');
+      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      e.preventDefault();
+    }
+  });
+}
+
+    // Chevron rotation
+    if (chevron) {
+      chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    dropdown.addEventListener('show.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+    });
+    dropdown.addEventListener('hide.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('show'); 
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %} 

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>🔌 DCU Management Console</h2>
+
+<!-- Parameters Section -->
+<div class="card p-3 mb-4">
+  <h5>Read Parameters</h5>
+  <div class="tree">
+    <ul>
+      <li>
+        <span class="toggle" onclick="toggleChildren(this)">▶</span>
+        <input type="checkbox" id="select-all-parameters" > <label>DCU Parameter</label>
+        <ul class="nested">
+          <li><input type="checkbox" class="parameter-checkbox" value="device-name"> <label>Cosem Logical Device Name</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="Serial Number"> <label>Serial Number</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="GPRS/4G Module Firmware"> <label>GPRS/4G Module Firmware</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="RF/PLC Module Firmware"> <label>RF/PLC Module Firmware</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="Application Firmware Version"> <label>Application Firmware Version</label></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+<!-- Search & Table Section -->
+<div class="card p-3">
+  <div class="row g-2 mb-3">
+
+    <!-- Search Form -->
+    <form method="GET" action="/search-dcu-1" class="col-md-4 d-flex gap-2">
+      <input type="text" class="form-control" placeholder="DCU No" name="dcu_number" value="{{ dcu_number | default('') }}">
+      <button type="submit" class="btn btn-primary">Search</button>
+      <button type="button" id="read-button" class="btn btn-success w-100">Read</button>
+      <button type="button" class="btn btn-danger w-100">Write</button> 
+    </form>
+  </div>
+
+  <!-- DCU Table -->
+  <table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th><input type="checkbox" id="select-all-dcu"></th> 
+        <th>#</th>
+        <th>DCU No</th>
+        <th>Comm Addr</th>
+        <th>Status</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dcu in registered_dcus %}
+      <tr>
+        <td><input type="checkbox" class="dcu-checkbox" value="{{ dcu['dcu_number'] }}"></td>
+        <td>{{ loop.index }}</td>
+        <td>{{ dcu['dcu_number'] }}</td>
+        <td>{{ dcu['com_address'] }}</td>
+        <td> 
+          {% if dcu['dcu_number'] in connected_clients %} 
+          <span class="badge bg-success">Online</span> 
+          {% else %}
+          <span class="badge bg-secondary">Offline</span>
+          {% endif %}
+        </td>
+        <td><span id="result-{{dcu['dcu_number']}}" >-</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+</div>
+<script>
+
+document.getElementById('read-button').addEventListener('click', function () {
+  const selectedDcus = Array.from(document.querySelectorAll('.dcu-checkbox:checked')).map(cb => cb.value);
+  const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value);
+
+  if (selectedDcus.length === 0) {
+    alert("Please select at least one DCU.");
+    return;
+  }
+  if (selectedParameters.length === 0) {
+    alert("Please select at least one parameter.");
+    return;
+  }
+
+  fetch('/read-dcu-parameter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selected_dcus: selectedDcus,
+      selected_parameters: selectedParameters
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    data.forEach(item => {
+      const resultField = document.getElementById(`result-${item.dcu_number}`);
+      if (resultField) {
+        resultField.textContent = item.result;
+      }
+    });
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    alert("Failed to send read command.");
+   // show error in all selected result fields
+  selectedDcus.forEach(dcu => {
+    const resultField = document.getElementById(`result-${dcu}`);
+    if (resultField) {
+      resultField.textContent = `Error: ${error.message}`;
+    }
+  }); 
+  });
+});
+ 
+  function toggleChildren(element) {
+    const nestedList = element.parentElement.querySelector(".nested");
+    if (nestedList) {
+      nestedList.classList.toggle("active");
+      element.textContent = nestedList.classList.contains("active") ? "▼" : "▶";
+    }
+  }
+const selectAllDCUCheckbox = document.getElementById('select-all-dcu'); 
+const selectAllParameterCheckbox = document.getElementById('select-all-parameters'); 
+
+// Listen for DCU Select All
+selectAllDCUCheckbox.addEventListener('click', function () {
+  const dcuCheckboxes = document.querySelectorAll('.dcu-checkbox');
+  dcuCheckboxes.forEach(cb => cb.checked = selectAllDCUCheckbox.checked);
+});
+
+// Listen for Parameter Select All
+selectAllParameterCheckbox.addEventListener('click', function () {
+  const parameterCheckboxes = document.querySelectorAll('.parameter-checkbox');
+  parameterCheckboxes.forEach(cb => cb.checked = selectAllParameterCheckbox.checked);
+});
+
+
+  
+</script>
+{% endblock %}
