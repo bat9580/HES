@@ -7,10 +7,13 @@ from services.state import connected_clients, pending_requests
 from utils.parameters import obis_name_map 
 from utils.generator_funcitons import generate_frame_from_obis 
 import utils.frames as frames 
-from utils.parser_functions import get_real_value 
+from utils.parser_functions import get_real_value,calculate_value_with_ratio_single  
+from utils.utility_functions import get_ratios  
 
 from services.database import get_db_connection
 from utils.reader_functions import read_meter_manual
+from fastapi.responses import StreamingResponse 
+import json 
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
@@ -21,12 +24,16 @@ async def meter_parameter(request: Request, message: str=None):
     conn.close()
     return templates.TemplateResponse("meter_parameter.html", {"request": request, "installed_meters": installed_meters, "connected_clients": connected_clients, "message": message,})
 @router.get("/search-meter-parameter", response_class=HTMLResponse)
-async def search_meter(request:Request, meter_number: str = ""):  
+async def search_meter(request:Request, meter_number: str = "",line: str= ""):  
+    print(line) 
     query = "SELECT * FROM installed_meters WHERE 1=1"
     params = [] 
     if meter_number: 
         query+= " AND meter_number LIKE ?" 
-        params.append(f"%{meter_number}%")  
+        params.append(f"%{meter_number}%") 
+    if line:
+        query+= " AND line LIKE ?" 
+        params.append(f"%{line}%") 
     conn = get_db_connection()  
     searched_meters = conn.execute(query,params).fetchall() 
     conn.close() 
@@ -34,6 +41,7 @@ async def search_meter(request:Request, meter_number: str = ""):
         "request": request, 
         "installed_meters": searched_meters,
         "meter_number": meter_number,
+        "line": line,
         "connected_clients": connected_clients, 
     })
 @router.post("/read-meter-parameter")
@@ -42,43 +50,51 @@ async def read_Meter_parameter(request: Request):
     selected_meters = data.get("selected_meters")
     selected_parameters = data.get("selected_parameters")
     results = []
-    for meter in selected_meters: 
-        meter_id = int(meter) 
-        print(meter) 
-        
-        if meter_id not in connected_clients:
-            results.append({
-                "meter_number": meter, 
-                "result": "Error: meter is offline" 
-            })
-            continue  # skip the rest 
-    
-        try:
-            result_queue = connected_clients[meter_id]['real_time_result'] 
-            result_data = {
-                "meter_number": meter_id,
-                "result": {}
-            }
-            is_first = True
-            connected_clients[meter_id]['pause_event'].clear()
-            for parameter in selected_parameters:
-                #response = await read_meter_manual(meter_id, meter_parameters[parameter],is_first) 
-                await read_meter_manual(meter_id, generate_frame_from_obis(parameter),is_first) 
-                response = await asyncio.wait_for(result_queue.get(), timeout=30) 
-                is_first = False 
-                print(f"response:{response}")   
-                data_bytes = response['response'] 
-                value =  get_real_value(data_bytes)      
-                # value = data_bytes[-4:]
-                new_key = obis_name_map.get(parameter, parameter) 
-                print (new_key, value) 
-                result_data["result"][new_key] = value
-            results.append(result_data)
-            connected_clients[meter_id]['pause_event'].set() 
-        except asyncio.TimeoutError:
-            results.append({
-                "meter_number": meter,  
-                "result": "Error: Timed out waiting for METER response" 
-            })
+    async def result_generator(): 
+        for meter in selected_meters: 
+            meter_id = int(meter) 
+            ratios = get_ratios(str(meter_id)) # transformer coefficient      
+            if meter_id not in connected_clients:
+                yield json.dumps({
+                    "meter_number": meter, 
+                    "result": "Error: meter is offline" 
+                }) + "\n" 
+                continue  # skip the rest 
 
-    return JSONResponse(content=results)
+            try:
+                result_queue = connected_clients[meter_id]['real_time_result'] 
+                result_data = {
+                    "meter_number": meter_id,
+                    "result": {}, 
+                    "result_calculated": {}
+                }
+                is_first = True
+                connected_clients[meter_id]['pause_event'].clear()
+                for parameter in selected_parameters:
+                    #response = await read_meter_manual(meter_id, meter_parameters[parameter],is_first) 
+                    await read_meter_manual(meter_id, generate_frame_from_obis(parameter),is_first) 
+                    response = await asyncio.wait_for(result_queue.get(), timeout=30) 
+                    is_first = False 
+                    print(f"response:{response}")   
+                    data_bytes = response['response'] 
+                    value =  get_real_value(data_bytes)
+                    
+                    value_calculated = calculate_value_with_ratio_single(value,parameter,ratios[0],ratios[1]) 
+                    print(f"calculated:  {value_calculated}")
+                    # value = data_bytes[-4:]
+                    new_key = obis_name_map.get(parameter, parameter) 
+                    print (new_key, value) 
+                    result_data["result"][new_key] = value
+                    result_data["result_calculated"][new_key] = value_calculated
+                
+                connected_clients[meter_id]['pause_event'].set()
+                yield json.dumps(result_data) + "\n"  
+            except asyncio.TimeoutError:
+                yield json.dumps({
+                    "meter_number": meter,  
+                    "result": "Error: Timed out waiting for METER response" 
+                }) + "\n" 
+    return StreamingResponse(result_generator(), media_type="application/json") 
+
+
+

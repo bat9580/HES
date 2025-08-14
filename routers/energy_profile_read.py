@@ -19,17 +19,21 @@ async def profile_read(request: Request, message: str=None):
 async def search_energy_load_profile(
     request: Request,
     meter_number: str = "",
-    profile_type: str = "Load profile",
+    type: str = "Original",  
     start_date: str = None,
     end_date: str = None, 
 ):
+    table_name = "energy_profile_readings" 
     print(meter_number) 
-    print(profile_type) 
+    print(type)  
     print("Start Date:", start_date)  # Debug: Check if values are received
     print("End Date:", end_date)
-    
-    query = """
-    SELECT * FROM  energy_profile_readings
+    if type == "Calculated":  
+         table_name = "energy_profile_readings_calculated" 
+
+
+    query = f"""
+    SELECT * FROM  {table_name} 
     WHERE 1=1
     """
     params = []
@@ -54,7 +58,7 @@ async def search_energy_load_profile(
             "request": request,
             "readings": readings,
             "meter_number": meter_number,
-            "profile_type": profile_type,
+            "selected_type": type, 
             "start_date": start_date,
             "end_date": end_date,
         }

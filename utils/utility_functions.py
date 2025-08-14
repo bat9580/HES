@@ -57,6 +57,9 @@ def add_job(cronExpression, meter_number,invoke_target):
     elif invoke_target == "Voltage read": 
         id = f"{invoke_target}_{cronExpression}_{meter_number}"  
         add_cron_job(task_functions.schedule_voltage_read,cronExpression,meter_number,id)  
+    elif invoke_target == "Active Power read":  
+        id = f"{invoke_target}_{cronExpression}_{meter_number}"  
+        add_cron_job(task_functions.schedule_active_power_read,cronExpression,meter_number,id)   
     else: 
         print(f"{invoke_target} not available") 
 def add_system_task(meter_number): 
@@ -116,4 +119,16 @@ def edit_tasks_on_existing_meters(invoke_target_old,cron_expression_old,invoke_t
     print("task edited on all meters")
     
  
+def get_ratios(meter_number):
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    cursor.execute("""
+        SELECT CT_ratio, VT_ratio 
+        FROM installed_meters 
+        WHERE meter_number = ?
+    """, (meter_number,)) 
+
+    row = cursor.fetchone()
+    conn.close()  
+    return row   

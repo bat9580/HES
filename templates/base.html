@@ -27,24 +27,26 @@
   <button class="btn btn-outline-light toggle-btn" onclick="toggleSidebar()">
     <i class="bi bi-list"></i>
   </button>
+  <a href="/Dashboard" class="nav-link" data-bs-toggle="tooltip" title="Dashboard">
+      <i class="bi bi-speedometer"></i> <span class="label">Хяналтын самбар</span> 
+  </a> 
 
   <div>
     <a href="#" class="nav-link" onclick="toggleMenu('warehouse')" data-bs-toggle="tooltip" title="Warehouse">
-      <i class="bi bi-box-seam"></i> <span class="label">Warehouse</span>
+      <i class="bi bi-box-seam"></i> <span class="label">Бүртгэл</span>
     </a>
     <div class="submenu" id="warehouse">
-      <a href="/Dashboard" class="nav-link"><i class="bi bi-speedometer"></i> <span class="label">Dashboard</span></a>
-      <a href="/meter-management" class="nav-link"><i class="bi bi-speedometer2"></i> <span class="label">Meter Management</span></a>
-      <a href="/DCU-management" class="nav-link"><i class="bi bi-hdd-network"></i> <span class="label">DCU Management</span></a>
+      <a href="/meter-management" class="nav-link"><i class="bi bi-backpack4"></i> <span class="label">Тоолуурын бүртгэл</span></a>
+      <a href="/DCU-management" class="nav-link"><i class="bi bi-hdd-network"></i> <span class="label">DCU Бүртгэл</span></a>
       <a href="/line-management" class="nav-link"><i class="bi bi-bezier"></i> <span class="label">Шугамын мэдээлэл</span></a>
     </div>
 
     <a href="#" class="nav-link" onclick="toggleMenu('archive')" data-bs-toggle="tooltip" title="Archive">
-      <i class="bi bi-archive"></i> <span class="label">Archive</span>
+      <i class="bi bi-archive"></i> <span class="label">Суурилуулалт</span>
     </a>
     <div class="submenu" id="archive">
-      <a href="/meter-installation" class="nav-link"><i class="bi bi-lightning-charge"></i> <span class="label">Meter Installation</span></a>
-      <a href="/dcu-installation" class="nav-link"><i class="bi bi-pc-display-horizontal"></i> <span class="label">DCU Installation</span></a>
+      <a href="/meter-installation" class="nav-link"><i class="bi bi-lightning-charge"></i> <span class="label">Тоолуур суурилуулалт</span></a>
+      <a href="/dcu-installation" class="nav-link"><i class="bi bi-pc-display-horizontal"></i> <span class="label">DCU суурилуулалт</span></a>
     </div>
 
     <a href="/unregistered-device" class="nav-link" data-bs-toggle="tooltip" title="Unregistered Device">
@@ -52,21 +54,21 @@
     </a>
 
     <a href="#" class="nav-link" onclick="toggleMenu('terminal')" data-bs-toggle="tooltip" title="Terminal Management">
-      <i class="bi bi-terminal"></i> <span class="label">Terminal Management</span>
+      <i class="bi bi-book-half"></i> <span class="label">Бодит цагаар унших</span> 
     </a>
     <div class="submenu" id="terminal">
-      <a href="/read_DCU_parameter" class="nav-link"><i class="bi bi-hdd"></i> <span class="label">DCU Parameter</span></a>
-      <a href="/meter-parameter" class="nav-link"><i class="bi bi-plug"></i> <span class="label">Meter Parameter</span></a>
+      <a href="/read_DCU_parameter" class="nav-link"><i class="bi bi-hdd"></i> <span class="label">DCU параметр</span></a>
+      <a href="/meter-parameter" class="nav-link"><i class="bi bi-ui-checks-grid"></i> <span class="label">Тоолуурын параметр</span></a>
       <a href="/ondemand-reading" class="nav-link"><i class="bi bi-clock-history"></i> <span class="label">Нөхөж унших</span></a>  
     </div>
     <a href="/system-task" class="nav-link" data-bs-toggle="tooltip" title="System Task">
-      <i class="bi bi-card-checklist"></i> <span class="label">System Task</span>
+      <i class="bi bi-card-checklist"></i> <span class="label">Системийн хуваариуд</span>
     </a>
     <a href="#" class="nav-link" onclick="toggleMenu('data analysis')" data-bs-toggle="tooltip" title="Data analysis">
-      <i class="bi bi-database"></i> <span class="label">Data analysis</span>
+      <i class="bi bi-database"></i> <span class="label">Хадгалагдсан өгөгдлүүд</span>
     </a>
     <div class="submenu" id="data analysis">
-      <a href="/data-read" class="nav-link"><i class="bi bi-eyeglasses"></i> <span class="label">Data read</span></a>
+      <a href="/data-read" class="nav-link"><i class="bi bi-eyeglasses"></i> <span class="label">Дангаар унших</span></a>
       <a href="/energy-profile-read" class="nav-link"><i class="bi bi-hourglass"></i> <span class="label">Энергийн Профайл</span></a> 
       <a href="/instant-profile-read" class="nav-link"><i class="bi bi-hourglass"></i> <span class="label">Агшин зуурын Профайл</span></a> 
     </div> 

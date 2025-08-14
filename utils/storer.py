@@ -1,14 +1,14 @@
 from services.database import get_db_connection
 import sqlite3 
 
-def store_meter_reading_instant_profile(meter_number, reading_data):
+def store_meter_reading_instant_profile(meter_number, reading_data, table_name = "instantaneous_profile_readings"): 
     conn = get_db_connection()
     cursor = conn.cursor()
     for reading in reading_data:
         try:
             # First check if record exists
-            cursor.execute("""
-            SELECT 1 FROM instantaneous_profile_readings 
+            cursor.execute(f"""
+            SELECT 1 FROM {table_name}  
             WHERE meter_number = ? AND timestamp = ?
             """, (meter_number, reading['timestamp']))
             
@@ -17,8 +17,8 @@ def store_meter_reading_instant_profile(meter_number, reading_data):
                 return False
             
             # Insert new record
-            cursor.execute(""" 
-            INSERT INTO instantaneous_profile_readings(  
+            cursor.execute(f""" 
+            INSERT INTO {table_name}(   
                 meter_number,
                 timestamp,
                 voltage_A,
@@ -72,22 +72,22 @@ def store_meter_reading_instant_profile(meter_number, reading_data):
         finally:
             conn.close()
 
-def store_meter_reading_energy_profile(meter_number, reading_data):
+def store_meter_reading_energy_profile(meter_number, reading_data,table_name = "energy_profile_readings"): 
     conn = get_db_connection()
     cursor = conn.cursor()  
     for reading in reading_data:
         try:
             # First check if record exists
-            cursor.execute("""
-            SELECT 1 FROM energy_profile_readings 
+            cursor.execute(f"""
+            SELECT 1 FROM {table_name}  
             WHERE meter_number = ? AND timestamp = ?
             """, (meter_number, reading['timestamp']))
             
             if cursor.fetchone():
                 print(f"Duplicate reading skipped for meter {meter_number} at {reading['timestamp']}")
                 return False 
-            cursor.execute("""
-                INSERT INTO energy_profile_readings (
+            cursor.execute(f"""
+                INSERT INTO {table_name} (
                     meter_number,
                     timestamp,
                     import_total_active_energy,

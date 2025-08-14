@@ -3,7 +3,7 @@ import asyncio
 from services.state import connected_clients
 from utils import frames 
 
-async def send_frame_to_meter(meter_id, hex_frame,is_first,timeout=5):
+async def send_frame_to_meter(meter_id, hex_frame,is_first,timeout):
     if meter_id not in connected_clients:
         return {"error": "Meter not connected"}
 
@@ -32,12 +32,12 @@ async def send_frame_to_meter(meter_id, hex_frame,is_first,timeout=5):
             return {"response": response.hex().upper()}
         except asyncio.TimeoutError:
             print(f"❌ Timeout waiting for response from {meter_id}")
-            await result_queue.put({"error": "Timeout"}) 
-            return {"error": "Timeout"}
-
-async def read_meter_manual(meter_number,hex_frame,is_first,timeout=5):
+            await result_queue.put({"response": "Timeout"})  
+            return {"response": "Timeout"}
+ 
+async def read_meter_manual(meter_number,hex_frame,is_first,timeout=30):
     async def task():
-        await send_frame_to_meter(meter_number,hex_frame,is_first,timeout=5)
+        await send_frame_to_meter(meter_number,hex_frame,is_first,timeout=timeout) 
     # Put the task into the meter's queue
     task_queue = connected_clients[meter_number]['task_queue'] 
     await task_queue.put((0, task))

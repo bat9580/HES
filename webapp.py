@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -13,6 +14,7 @@ import asyncio
 import utils.frames as frames 
 import utils.utility_functions as utility_functions 
 from utils.parameters import meter_parameters 
+LOG_DIR = "meter_logs"  
 app = FastAPI()
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -88,16 +90,21 @@ async def handle_client(reader, writer):
     print("sent reply ")
 
     try:
+        os.makedirs(LOG_DIR, exist_ok=True) 
+        log_file_path = os.path.join(LOG_DIR, f"{meter_number}.log")  
         while True:
             
             # data = await reader.read(1024)
             # 10 minut huleegeed  
             try: 
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
                 data = await asyncio.wait_for(reader.read(1024), timeout=600.0) 
 
                 if not data:
                     break 
                 print(f"📥[meter_reader] From meter {meter_number}: {data.hex()}") 
+                with open(log_file_path, "a", encoding="utf-8") as f:
+                    f.write(f"{timestamp} | from METER:  {data.hex()}\n")   
                 if utility_functions.is_heartbeat_frame(data):  
                     await keep_connection_queue.put(data)     
                 else: 

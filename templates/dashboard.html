@@ -2,132 +2,106 @@
 
 {% block content %}
 <div class="container my-4">
-  <h2 class="mb-4">Smart Meter System Dashboard</h2>
+  <h2 class="mb-4">Хяналтын самбар</h2>
 
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card shadow-sm stat-card">
         <div class="card-body text-center">
-          <h6 class="text-muted">Total Installations</h6>
-          <h3 class="fw-bold">56</h3>
+          <h6 class="text-muted">Суурьлуулсан тоолуурууд</h6> 
+          <h3 class="fw-bold">{{ total_installations }}</h3> 
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card shadow-sm stat-card">
         <div class="card-body text-center">
-          <h6 class="text-muted">Collection Rate</h6>
-          <h3 class="fw-bold">87%</h3>
+          <h6 class="text-muted">Сүлжээнд холбоотой тоолуурууд</h6>  
+          <h3 class="fw-bold">{{ total_online_meter }}</h3> 
           <div class="progress mt-2" style="height: 8px;">
-            <div class="progress-bar bg-success" role="progressbar" 
-                 style="width: 87%;" aria-valuenow="{{ collection_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id = "online_rate" class="progress-bar bg-success" role="progressbar" 
+                 aria-valuenow="{{ total_online_meter }}" aria-valuemin="0" aria-valuemax="100"></div>
           </div>
         </div>
       </div>
     </div>
+    
     <div class="col-md-3">
-      <div class="card shadow-sm stat-card">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Total Consumption</h6>
-          <h3 class="fw-bold">89 kWh</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm stat-card">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Avg Collect Rate</h6>
-          <h3 class="fw-bold">56%</h3>
-        </div>
-      </div>
+      <div class="col-md-auto" style="width: 100%; min-height: 35px; height: auto;"> 
+                    <div class="dropdown" style="height: 35px;">
+                      <!-- Search Input + Dropdown Toggle Combined -->
+                      <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
+                        <input type="text" 
+                              class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                              placeholder="Бүлэг хайх"
+                              value="{{ Zone | default('') }}"
+                              style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+                  </div>   
     </div>
   </div>
 
   <!-- Charts -->
   <div class="row g-4">
-    <div class="col-md-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h6 class="card-title">Meter Installation</h6>
-          <canvas id="statusPieChartMeter" height="150"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h6 class="card-title">DCU Installation</h6>
-          <canvas id="statusPieChartDCU" height="150"></canvas>
-        </div>
-      </div>
-    </div>
+    
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h6 class="card-title">Monthly Consumption (kWh)</h6>
+          <h6 class="card-title">Нийт ачаалал (сүүлийн 6 цаг) (кВт)</h6> 
           <canvas id="consumptionLineChart" height="150"></canvas>
         </div>
       </div>
-    </div>
+    </div> 
   </div>
-  <div class="col-md-12">
+  
+
+
+
+  
+<div class="row g-4"> 
+<div class="col-md-6">
   <div class="card shadow-sm">
     <div class="card-body">
-      <h6 class="card-title">Monthly Collection Progress</h6>
-      <canvas id="progressBarChart" height="100"></canvas>
+      <h6 class="card-title">Сүүлийн 24 цагийн хэрэглээ</h6>
+                  
+        
+      <canvas id="consumptionBarChart24hour" height="100"></canvas>
     </div>
   </div>
 </div>
 
+<div class="col-md-6">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="card-title">Сүүлийн 30 хоногийн хэрэглээ</h6>
+      <canvas id="consumptionBarChart30day" height="100"></canvas>
+    </div>
+  </div>
+</div> 
+</div> 
+
 </div>
 <script> 
-    const statusPieChart = new Chart(document.getElementById("statusPieChartMeter"), {
-    type: 'pie',
-    data: {
-      labels: ['Installed', 'Archived', 'Pending'],
-      datasets: [{
-        data: [15, 12, 55], 
-        backgroundColor: ['#28a745', '#6c757d', '#ffc107'],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        }
-      }
-    }
-  });
-   const statusPieChart1 = new Chart(document.getElementById("statusPieChartDCU"), {
-    type: 'pie',
-    data: {
-      labels: ['Installed', 'Archived', 'Pending'],
-      datasets: [{
-        data: [15, 12, 55], 
-        backgroundColor: ['#28a745', '#6c757d', '#ffc107'],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        }
-      }
-    }
-  });
-  
-  const consumptionLineChart = new Chart(document.getElementById("consumptionLineChart"), {
+document.getElementById('online_rate').style.width = "{{ online_rate }}%";
+
+
+ 
+
+
+const consumptionLineChart = new Chart(document.getElementById("consumptionLineChart"), {
     type: 'line',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      labels: [],  
       datasets: [{
-        label: 'Consumption (kWh)',
-        data: [5200, 7300, 6800, 7100, 7650, 8200],
+        label: 'Active Power (kWh)',
+        data: [],
         fill: true,
         borderColor: '#007bff',
         backgroundColor: 'rgba(0,123,255,0.2)',
@@ -148,16 +122,17 @@
       }
     }
   });
-    const progressBarChart = new Chart(document.getElementById("progressBarChart"), {
+
+const consumptionBarChart24hour = new Chart(document.getElementById("consumptionBarChart24hour"), {
     type: 'bar',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr'],  // e.g. ['Jan', 'Feb', 'Mar', 'Apr']
+      labels: [],  // e.g. ['Jan', 'Feb', 'Mar', 'Apr']
       datasets: [{
-        label: 'Collection Rate (%)',
-        data: [85, 90, 80, 95],  // e.g. [85, 90, 80, 95]
+        label: 'Хэрэглээ (Kв.цаг)' ,
+        data: [],  // e.g. [85, 90, 80, 95]
         backgroundColor: '#28a745',
         borderRadius: 5,
-        barThickness: 25  // adjust bar width here
+        barThickness: 12  // adjust bar width here
       }]
     },
     options: {
@@ -170,20 +145,195 @@
       scales: {
         y: {
           beginAtZero: true,
-          max: 100,
           title: {
             display: true,
-            text: 'Percentage (%)'
+            text: 'Хэрэглээ (Kв.цаг)'  
           }
         },
         x: {
           title: {
             display: true,
-            text: 'Month'
+            text: 'Сүүлын 24 цаг' 
           }
         }
       }
     }
   });
+
+const consumptionBarChart30day = new Chart(document.getElementById("consumptionBarChart30day"), {
+    type: 'bar',
+    data: {
+      labels: [],  // e.g. ['Jan', 'Feb', 'Mar', 'Apr']
+      datasets: [{
+        label: 'Хэрэглээ (Kв.цаг)' ,
+        data: [],  // e.g. [85, 90, 80, 95]
+        backgroundColor: '#2b3eba',
+        borderRadius: 5,
+        barThickness: 12  // adjust bar width here
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Хэрэглээ (Kв.цаг)'  
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Сүүлын 24 цаг' 
+          }
+        }
+      }
+    }
+  });
+  
+  
+$(document).ready(function () {
+    $('#parentNodeDropdown').jstree({
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
+                stripes: true
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
+        $('#treeSearch').val(data.node.text); 
+
+        $('#parentNodeDropdown').hide();
+        const offsetMs = 8 * 60 * 60 * 1000; // UTC+8
+        const offset2Ms = 16 * 60 * 60 * 1000; // UTC+8
+         
+        
+
+    // tsag gargah
+    const endTime = new Date(Date.now() + offsetMs-offset2Ms);  
+    const startTime = new Date(endTime.getTime() - 6 * 60 * 60 * 1000); // minus 6 hours 
+    const isoEnd = endTime.toISOString().split('.')[0];
+    const isoStart = startTime.toISOString().split('.')[0]; 
+
+
+    // active power graph ogogdol avah 
+    $.getJSON(`/active-power-last6h`, {
+      line: data.node.text,
+      start: isoStart,
+      end: isoEnd
+    }, function(response) {
+      console.log(response)   
+      if (response && Array.isArray(response)) { 
+        const labels = response.map(item => item.timestamp);
+        const values = response.map(item => item.value); 
+        consumptionLineChart.data.labels = labels;  
+        consumptionLineChart.data.datasets[0].data = values; 
+        consumptionLineChart.update(); 
+        console.log("updated values")
+      } else {
+        consumptionLineChart.data.labels = [];  
+        consumptionLineChart.data.datasets[0].data = [];
+        consumptionLineChart.update();
+        alert('No data found for selected line and time range.');
+      }
+    }).fail(function() {
+      alert('Failed to fetch data from server.');
+    });
+
+    // 24 tsagin total consumption ogogdol avah 
+    const startTime_1 = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // minus 24 hours 
+    const isoEnd_1 = endTime.toISOString().split('.')[0];
+    const isoStart_1 = startTime_1.toISOString().split('.')[0]; 
+
+    $.getJSON(`/hourly-consumption-last24h`, {
+      line: data.node.text,
+      start: isoStart_1,
+      end: isoEnd_1
+    }, function(response) {
+      console.log(response)   
+      if (response && Array.isArray(response)) { 
+        const labels = response.map(item => item.timestamp);
+        const values = response.map(item => item.value); 
+        consumptionBarChart24hour.data.labels = labels;  
+        consumptionBarChart24hour.data.datasets[0].data = values; 
+        consumptionBarChart24hour.update(); 
+        console.log("updated values")
+      } else {
+        consumptionBarChart24hour.data.labels = [];  
+        consumptionBarChart24hour.data.datasets[0].data = [];
+        consumptionBarChart24hour.update();
+        alert('No data found for selected line and time range.');
+      }
+    }).fail(function() {
+      alert('Failed to fetch data from server.');
+    }); 
+
+    // 30 odriin total consumption ogogdol avah 
+    const startTime_2 = new Date(endTime.getTime() - 30 *24 * 60 * 60 * 1000); // minus 30 day  
+    const isoEnd_2 = endTime.toISOString().split('.')[0];
+    const isoStart_2 = startTime_2.toISOString().split('.')[0];  
+    
+    $.getJSON(`/daily-consumption-last30d`, { 
+      line: data.node.text,
+      start: isoStart_2,
+      end: isoEnd_2
+    }, function(response) {
+      console.log(response)   
+      if (response && Array.isArray(response)) { 
+        const labels = response.map(item => item.timestamp);
+        const values = response.map(item => item.value); 
+        consumptionBarChart30day.data.labels = labels;  
+        consumptionBarChart30day.data.datasets[0].data = values; 
+        consumptionBarChart30day.update(); 
+        console.log("updated values")
+      } else {
+        consumptionBarChart30day.data.labels = [];  
+        consumptionBarChart30day.data.datasets[0].data = [];
+        consumptionBarChart30day.update(); 
+        alert('No data found for selected line and time range.');
+      }
+    }).fail(function() {
+      alert('Failed to fetch data from server.');
+    }); 
+
+    });
+
+    // Simple toggle click to open/close tree dropdown
+    $('#parentNodeDropdown').css({
+    position: 'absolute',
+    zIndex: 99999,   // super high so it’s always on top
+    background: '#fff', // optional, so it doesn't inherit transparency
+    border: '1px solid #ccc' // optional for visual clarity
+}).hide();
+    $('<input type="text" id="treeSearch" class="form-control" placeholder="Шугам сонгох..." style="height: 33px; border-radius: 2px !important; padding-right: 30px;" >')
+        .insertBefore('#parentNodeDropdown')
+        .on('focus', function () {
+            $('#parentNodeDropdown').show();
+        })
+        .on('keyup', function () {
+            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        });
+
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
+            $('#parentNodeDropdown').hide();
+        }
+    });
+}); 
+   
 </script>
 {% endblock %}

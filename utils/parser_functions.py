@@ -2,6 +2,7 @@ import binascii
 from datetime import datetime
 from collections import defaultdict
 from utils.parameters import obis_scaling, obis_name_map, current_obis, voltage_obis, energy_obis 
+ 
 
 def parse_dlms_frame(hex_data,header_length=11):  # array eer irsen datag parse hiih 
     # Convert hex string to bytes
@@ -166,9 +167,7 @@ def map_meter_data(definition_list, data_list):
         mapped_readings.append(mapped_entry)
     return mapped_readings 
 
-def calculate_with_transformer_values(mapped_readings, meter_number):
-    CT_ratio = 1000
-    VT_ratio = 1000
+def calculate_with_transformer_values(mapped_readings,CT_ratio,VT_ratio):   
     for reading in mapped_readings:
         for obis, value in reading.items():
             if obis in current_obis:
@@ -178,6 +177,17 @@ def calculate_with_transformer_values(mapped_readings, meter_number):
             elif obis in energy_obis:
                 reading[obis] = value * CT_ratio * VT_ratio
     return mapped_readings 
+ 
+def calculate_value_with_ratio_single(value,obis,CT_ratio,VT_ratio): 
+    if obis in current_obis: 
+        value = float(value) * CT_ratio
+    elif obis in voltage_obis:
+        value = float(value) * VT_ratio
+    elif obis in energy_obis:
+        value = float(value) * CT_ratio * VT_ratio
+    else:
+        value = float(value)
+    return value
 
 
         

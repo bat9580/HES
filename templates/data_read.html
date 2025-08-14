@@ -28,56 +28,75 @@
         <input type="hidden" name="device_type" required>
       </div>
     </div>
-    <div class="col-md-auto  position-relative " style="width: 20%; min-height: 35px; height: auto;"> 
-          <select
-              name="obis_code" 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-                <option value="1.8.0">Total Import Active Energy (1.8.0)</option>  
-                <option value="1.8.1">Import Active Energy T1 (1.8.1)</option>
-                <option value="1.8.2">Import Active Energy T2 (1.8.2)</option>
-                <option value="1.8.3">Import Active Energy T2 (1.8.3)</option>
-                
-                <option value="2.8.0">Total Export Active Energy (2.8.0)</option>
-                <option value="2.8.1">Export Active Energy T1 (2.8.1)</option>
-                <option value="2.8.2">Export Active Energy T2 (2.8.2)</option>
-                <option value="2.8.3">Export Active Energy T3 (2.8.3)</option>
+    <div class="col-md-auto position-relative" style="width: 20%; min-height: 35px; height: auto;"> 
+  <select
+      name="obis_code" 
+      class="form-select dropdown-search-input dimmed-text hoverable-input"
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
 
-                <option value="3.8.0">Total Import Reactive Energy (3.8.0)</option>
-                <option value="3.8.1">Import Reactive Energy T1 (3.8.1)</option>
-                <option value="3.8.2">Import Reactive Energy T2 (3.8.2)</option>
-                <option value="3.8.3">Import Reactive Energy T3 (3.8.3)</option>
+    <option value="1.8.0" {% if selected_obis_code == "1.8.0" %}selected{% endif %}>Total Import Active Energy (1.8.0)</option>  
+    <option value="1.8.1" {% if selected_obis_code == "1.8.1" %}selected{% endif %}>Import Active Energy T1 (1.8.1)</option>
+    <option value="1.8.2" {% if selected_obis_code == "1.8.2" %}selected{% endif %}>Import Active Energy T2 (1.8.2)</option>
+    <option value="1.8.3" {% if selected_obis_code == "1.8.3" %}selected{% endif %}>Import Active Energy T2 (1.8.3)</option>
+    
+    <option value="2.8.0" {% if selected_obis_code == "2.8.0" %}selected{% endif %}>Total Export Active Energy (2.8.0)</option>
+    <option value="2.8.1" {% if selected_obis_code == "2.8.1" %}selected{% endif %}>Export Active Energy T1 (2.8.1)</option>
+    <option value="2.8.2" {% if selected_obis_code == "2.8.2" %}selected{% endif %}>Export Active Energy T2 (2.8.2)</option>
+    <option value="2.8.3" {% if selected_obis_code == "2.8.3" %}selected{% endif %}>Export Active Energy T3 (2.8.3)</option>
 
-                <option value="4.8.0">Total Export Reactive Energy (4.8.0)</option>
-                <option value="4.8.1">Export Reactive Energy T1 (4.8.1)</option>
-                <option value="4.8.2">Export Reactive Energy T2 (4.8.2)</option>
-                <option value="4.8.3">Export Reactive Energy T3 (4.8.3)</option> 
+    <option value="3.8.0" {% if selected_obis_code == "3.8.0" %}selected{% endif %}>Total Import Reactive Energy (3.8.0)</option>
+    <option value="3.8.1" {% if selected_obis_code == "3.8.1" %}selected{% endif %}>Import Reactive Energy T1 (3.8.1)</option>
+    <option value="3.8.2" {% if selected_obis_code == "3.8.2" %}selected{% endif %}>Import Reactive Energy T2 (3.8.2)</option>
+    <option value="3.8.3" {% if selected_obis_code == "3.8.3" %}selected{% endif %}>Import Reactive Energy T3 (3.8.3)</option>
 
+    <option value="4.8.0" {% if selected_obis_code == "4.8.0" %}selected{% endif %}>Total Export Reactive Energy (4.8.0)</option>
+    <option value="4.8.1" {% if selected_obis_code == "4.8.1" %}selected{% endif %}>Export Reactive Energy T1 (4.8.1)</option>
+    <option value="4.8.2" {% if selected_obis_code == "4.8.2" %}selected{% endif %}>Export Reactive Energy T2 (4.8.2)</option>
+    <option value="4.8.3" {% if selected_obis_code == "4.8.3" %}selected{% endif %}>Export Reactive Energy T3 (4.8.3)</option> 
 
-                <option value="32.7.0">A фазын хүчдэл (32.7.0)</option>
-                <option value="52.7.0">Б фазын хүчдэл (52.7.0)</option>
-                <option value="72.7.0">С фазын хүчдэл (72.7.0)</option>
+    <option value="32.7.0" {% if selected_obis_code == "32.7.0" %}selected{% endif %}>A фазын хүчдэл (32.7.0)</option>
+    <option value="52.7.0" {% if selected_obis_code == "52.7.0" %}selected{% endif %}>Б фазын хүчдэл (52.7.0)</option>
+    <option value="72.7.0" {% if selected_obis_code == "72.7.0" %}selected{% endif %}>С фазын хүчдэл (72.7.0)</option>
 
-                <option value="31.7.0">A фазын гүйдэл (31.7.0)</option>
-                <option value="51.7.0">Б фазын гүйдэл (51.7.0)</option>
-                <option value="71.7.0">С фазын гүйдэл (71.7.0)</option>
+    <option value="31.7.0" {% if selected_obis_code == "31.7.0" %}selected{% endif %}>A фазын гүйдэл (31.7.0)</option>
+    <option value="51.7.0" {% if selected_obis_code == "51.7.0" %}selected{% endif %}>Б фазын гүйдэл (51.7.0)</option>
+    <option value="71.7.0" {% if selected_obis_code == "71.7.0" %}selected{% endif %}>С фазын гүйдэл (71.7.0)</option>
 
-                <option value="15.7.0">Нийт актив чадал (15.7.0)</option>
-                <option value="21.7.0">A фазын актив чадал (21.7.0)</option>
-                <option value="41.7.0">Б фазын актив чадал (41.7.0)</option>
-                <option value="61.7.0">С фазын актив чадал (61.7.0)</option>
+    <option value="15.7.0" {% if selected_obis_code == "15.7.0" %}selected{% endif %}>Нийт актив чадал (15.7.0)</option>
+    <option value="21.7.0" {% if selected_obis_code == "21.7.0" %}selected{% endif %}>A фазын актив чадал (21.7.0)</option>
+    <option value="41.7.0" {% if selected_obis_code == "41.7.0" %}selected{% endif %}>Б фазын актив чадал (41.7.0)</option>
+    <option value="61.7.0" {% if selected_obis_code == "61.7.0" %}selected{% endif %}>С фазын актив чадал (61.7.0)</option>
 
-                <option value="3.7.0">Нийт реактив чадал (3.7.0)</option>
-                <option value="23.7.0">A фазын реактив чадал (23.7.0)</option>
-                <option value="43.7.0">Б фазын реактив чадал (43.7.0)</option>
-                <option value="63.7.0">С фазын реактив чадал (63.7.0)</option>
+    <option value="3.7.0" {% if selected_obis_code == "3.7.0" %}selected{% endif %}>Нийт реактив чадал (3.7.0)</option>
+    <option value="23.7.0" {% if selected_obis_code == "23.7.0" %}selected{% endif %}>A фазын реактив чадал (23.7.0)</option>
+    <option value="43.7.0" {% if selected_obis_code == "43.7.0" %}selected{% endif %}>Б фазын реактив чадал (43.7.0)</option>
+    <option value="63.7.0" {% if selected_obis_code == "63.7.0" %}selected{% endif %}>С фазын реактив чадал (63.7.0)</option>
 
-                <option value="14.7.0">Давтамж (14.7.0)</option>
-          </select>
-    </div>
+    <option value="14.7.0" {% if selected_obis_code == "14.7.0" %}selected{% endif %}>Давтамж (14.7.0)</option>
+  </select>
+</div>
     <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
     <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
-        <input type="text" id="daterange" class="form-control" style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
+  <input 
+    type="text" 
+    id="daterange" 
+    class="form-control" 
+    style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;"
+    readonly
+  >
+</div>
+
+<!-- Hidden inputs to submit dates -->
+<input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
+<input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
+    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
+          <select 
+              name = "type" 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+             <option value="Original" {% if selected_type == "Original" %}selected{% endif %}>Original</option>  
+            <option value="Calculated" {% if selected_type == "Calculated" %}selected{% endif %}>Calculated</option> 
+          </select>
     </div>
     
     <div class="col-md-auto" style="width: 4.166666%;">
@@ -125,21 +144,32 @@
 
 
 $(function() {
+  // Get the dates passed from backend, or empty strings if none
+  const startDateStr = "{{ start_date | default('') }}";
+  const endDateStr = "{{ end_date | default('') }}";
+
+  // Parse dates or fallback to current hour start/end
+  const startDate = startDateStr ? moment(startDateStr, 'YYYY-MM-DD[T]HH:mm:ss') : moment().startOf('hour');
+  const endDate = endDateStr ? moment(endDateStr, 'YYYY-MM-DD[T]HH:mm:ss') : moment().endOf('hour');
+
   $('#daterange').daterangepicker({
     timePicker: true,
     timePicker24Hour: true,
     timePickerSeconds: true,
     locale: {
-      format: 'YYYY-MM-DD[T]HH:mm:ss', // Match database format
-      separator: 'T' // Explicitly set the separator
+      format: 'YYYY-MM-DD[T]HH:mm:ss',
+      separator: 'T'
     },
-    startDate: moment().startOf('hour'),
-    endDate: moment().endOf('hour')
+    startDate: startDate,
+    endDate: endDate
   }, function(start, end) {
-    // Update hidden inputs
+    // Update hidden inputs on user change
     $('#start_date').val(start.format('YYYY-MM-DD[T]HH:mm:ss'));
     $('#end_date').val(end.format('YYYY-MM-DD[T]HH:mm:ss'));
   });
+
+  // Also set the input's visible value so user sees the current range
+  $('#daterange').val(startDate.format('YYYY-MM-DD[T]HH:mm:ss') + 'T' + endDate.format('YYYY-MM-DD[T]HH:mm:ss'));
 });
 
   document.addEventListener('DOMContentLoaded', function() {

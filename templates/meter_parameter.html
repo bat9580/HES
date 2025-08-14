@@ -88,12 +88,18 @@
       </div>
     </div>
     <div class="col-md-2">
-      <select class="form-select"
-      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-        <option>Status</option>
-        <option>Installed</option>
-        <option>Archived</option>
-      </select>
+      <div class="col-md-auto" style="width: 100%; min-height: 35px; height: auto;"> 
+        <div class="dropdown" style="height: 35px;">
+          <!-- Search Input + Dropdown Toggle Combined -->
+          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="col-md-2">
       <select class="form-select"
@@ -130,12 +136,11 @@
         <th><input type="checkbox" id="select-all-meters"></th>
         <th>#</th>
         <th>Meter No.</th>
-        <th>Comm Addr</th>
-        <th>Meter Type</th>
-        <th>Device Type</th>
+        <th>CT ratio</th>
+        <th>VT ratio</th> 
+        <th>Line</th> 
         <th>remarks</th>
-        <th>Create By</th>
-        <th>status</th> 
+        <th>Status</th>
         <th>result</th>
       </tr>
     </thead>
@@ -147,9 +152,9 @@
         </td>
         <td>{{ loop.index }}</td>
         <td>{{ meter['meter_number'] }}</td>
-        <td>{{ meter['com_address'] }}</td>
-        <td>{{ meter['type'] }}</td>
-        <td>{{ meter['device_type'] }}</td>
+        <td>{{ meter['CT_ratio'] }}</td>
+        <td>{{ meter['VT_ratio'] }}</td>
+        <td>{{ meter['line'] }}</td>
         <td>{{ meter['remarks'] or '-' }}</td>
         <td>
           {% if meter['meter_number']|int in connected_clients %}   
@@ -158,15 +163,7 @@
           <span class="badge bg-secondary">Offline</span>
           {% endif %}
         </td>
-        <td>
-          {% if meter['status'] == 'installed' %}
-            <span class="badge bg-success text-white">Installed</span>
-          {% elif meter['status'] == 'Archived' %}
-            <span class="badge bg-secondary">Archived</span>
-          {% else %}
-            <span class="badge bg-light text-muted">Unknown</span>
-          {% endif %}
-        </td>
+        
         <td>
           <!-- result will be displayed here  --> 
              <button class="btn btn-sm btn-outline-primary d-none result-button" 
@@ -183,7 +180,10 @@
   </table>
 </div>
 <!-- add button form for meter adding  -->
- <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+
+
+<!-- result button  -->
+ <!-- <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -191,15 +191,61 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modal-body-content">
-        <!-- Result details will be injected here -->
+        
+        
+      </div>
+    </div>
+  </div>
+</div> -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultModalLabel">Meter Reading Result</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <!-- Toggle Buttons -->
+      <div class="modal-header">
+        <button id="showOriginalBtn" class="btn btn-primary btn-sm me-2">Original</button>
+        <button id="showCalculatedBtn" class="btn btn-secondary btn-sm">Calculated</button>
+      </div>
+
+      <div class="modal-body" >
+        <!-- Original table -->
+        <div id="originalTableWrapper">
+          
+        </div>
+
+        <!-- Calculated table (hidden initially) -->
+        <div id="calculatedTableWrapper" style="display:none;">
+          
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-
  
   <script>
+document.getElementById('showOriginalBtn').addEventListener('click', function() {
+    document.getElementById('originalTableWrapper').style.display = 'block';
+    document.getElementById('calculatedTableWrapper').style.display = 'none';
+    this.classList.add('btn-primary');
+    this.classList.remove('btn-secondary');
+    document.getElementById('showCalculatedBtn').classList.add('btn-secondary');
+    document.getElementById('showCalculatedBtn').classList.remove('btn-primary');
+});
+document.getElementById('showCalculatedBtn').addEventListener('click', function() {
+    document.getElementById('originalTableWrapper').style.display = 'none';
+    document.getElementById('calculatedTableWrapper').style.display = 'block';
+    this.classList.add('btn-primary');
+    this.classList.remove('btn-secondary');
+    document.getElementById('showOriginalBtn').classList.add('btn-secondary');
+    document.getElementById('showOriginalBtn').classList.remove('btn-primary');
+});
+
+
 function formatResult(result) {
   if (typeof result === 'object') {
     return `<ul>` + Object.entries(result)
@@ -211,13 +257,15 @@ function formatResult(result) {
 
 // 🔹 Global object to store results per meter
 const resultMap = {};
-
+const resultMap_calculated = {};
 // 🔹 Modal trigger function
 function showResultModal(button) {
   const meterNumber = button.getAttribute("data-meter");
   const resultHtml = resultMap[meterNumber] || "No result found";
-  document.getElementById("modal-body-content").innerHTML = resultHtml;
-  new bootstrap.Modal(document.getElementById('resultModal')).show();
+  const resultHtml_calculated = resultMap_calculated[meterNumber] || "No result found";
+  document.getElementById("calculatedTableWrapper").innerHTML = resultHtml_calculated;
+  document.getElementById("originalTableWrapper").innerHTML = resultHtml; 
+  new bootstrap.Modal(document.getElementById('resultModal')).show(); 
 }
 document.getElementById('read-button').addEventListener('click', function () {
   const readBtn = this; // Reference to button
@@ -252,15 +300,33 @@ document.getElementById('read-button').addEventListener('click', function () {
       selected_parameters: selectedParameters
     })
   })
-  .then(response => response.json())
-  .then(data => {
-  data.forEach(item => {
-    const btn = document.getElementById(`result-${item.meter_number}`);
-    if (btn) {
-      btn.classList.remove("d-none");
-      resultMap[item.meter_number] = formatResult(item.result); // or item.result directly
+.then(async response => {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let partial = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    partial += decoder.decode(value, { stream: true });
+    
+    let lines = partial.split("\n");
+    partial = lines.pop(); // last part might be incomplete
+
+    for (let line of lines) {
+      if (!line.trim()) continue; // skip empty lines
+      const item = JSON.parse(line);
+      
+      const btn = document.getElementById(`result-${item.meter_number}`);
+      if (btn) {
+        btn.classList.remove("d-none");
+        resultMap[item.meter_number] = formatResult(item.result);
+        resultMap_calculated[item.meter_number] = formatResult(item.result_calculated);
+        console.log(resultMap_calculated);
+      }
     }
-  });
+  }
 })
   .catch(error => {
     console.error("Error:", error);
@@ -352,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
       e.preventDefault();
     }
-  });
+  }); 
 }
 
     // Chevron rotation
@@ -375,6 +441,52 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
+$(document).ready(function () {
+    $('#parentNodeDropdown').jstree({
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
+                stripes: true
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
+        $('#treeSearch').val(data.node.text); 
+
+        $('#parentNodeDropdown').hide();
+
+    });
+
+    // Simple toggle click to open/close tree dropdown
+    $('#parentNodeDropdown').css({
+    position: 'absolute',
+    zIndex: 99999,   // super high so it’s always on top
+    background: '#fff', // optional, so it doesn't inherit transparency
+    border: '1px solid #ccc' // optional for visual clarity
+}).hide();
+    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
+    .insertBefore('#parentNodeDropdown')
+        .on('focus', function () {
+            $('#parentNodeDropdown').show();
+        })
+        .on('keyup', function () {
+            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        });
+
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
+            $('#parentNodeDropdown').hide();
+        }
+    });
+});
+
 
 </script> 
 

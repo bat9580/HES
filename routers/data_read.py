@@ -19,16 +19,26 @@ async def Unregistered_device(request: Request, message: str=None):
 async def search_energy_load_profile(
     request: Request,
     meter_number: str = "", 
-    obis_code: str = "1.8.0",             
+    obis_code: str = "1.8.0",
+    type: str = "Original",              
     start_date: str = None,
     end_date: str = None, 
 ):
-    
+    print(type) 
+
     mapping = obis_to_column.get(obis_code) 
     if not mapping:
         raise ValueError(f"Unknown OBIS code: {obis_code}")
     
     table_name, column_name = mapping
+    
+
+    if type == "Calculated":
+        if table_name == "energy_profile_readings":
+            table_name = "energy_profile_readings_calculated" 
+        elif table_name == "instantaneous_profile_readings":
+            table_name = "instantaneous_profile_readings_calculated" 
+
     query = f"""
         SELECT meter_number, timestamp, {column_name} 
         FROM {table_name}
@@ -55,8 +65,9 @@ async def search_energy_load_profile(
             "request": request, 
             "readings": readings, 
             "meter_number": meter_number, 
-            "obis_code": obis_code,  
-            "start_date": start_date, 
+            "selected_obis_code": obis_code, 
+            "selected_type": type,   
+            "start_date": start_date,  
             "end_date": end_date, 
             "column" : column_name 
         }

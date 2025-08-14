@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<h2 class="mb-4">Профайл унших</h2>
+<h2 class="mb-4">Энергийн Профайл унших</h2>
 <form method="GET" action="/search-energy-profile" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+    <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
           <input type="text" 
@@ -30,20 +30,29 @@
     </div>
 
     
-    <div class="col-md-auto  position-relative " style="width: 20%; min-height: 35px; height: auto;"> 
+    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
           <select 
               class="form-select dropdown-search-input dimmed-text hoverable-input"
               style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
             <option>Энергийн Профайл</option> 
           </select>
     </div>
-    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
+    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 30%; min-height: 35px; height: auto;">
         <input type="text" id="daterange" class="form-control" 
               style="max-width: 400px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
         <!-- Hidden inputs to submit the dates -->
         <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
         <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
     </div>
+    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
+          <select 
+              name = "type" 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+             <option value="Original" {% if selected_type == "Original" %}selected{% endif %}>Original</option>  
+            <option value="Calculated" {% if selected_type == "Calculated" %}selected{% endif %}>Calculated</option> 
+          </select>
+    </div> 
 
     
     <div class="col-md-auto" style="width: 4.166666%;">
@@ -117,21 +126,31 @@
 <script>
 
 $(function() {
+  // Parse dates from server or fallback to current hour
+  const startDateStr = "{{ start_date | default('') }}";
+  const endDateStr = "{{ end_date | default('') }}";
+
+  const startDate = startDateStr ? moment(startDateStr, 'YYYY-MM-DD[T]HH:mm:ss') : moment().startOf('hour');
+  const endDate = endDateStr ? moment(endDateStr, 'YYYY-MM-DD[T]HH:mm:ss') : moment().endOf('hour');
+
   $('#daterange').daterangepicker({
     timePicker: true,
     timePicker24Hour: true,
     timePickerSeconds: true,
     locale: {
-      format: 'YYYY-MM-DD[T]HH:mm:ss', // Match database format
-      separator: 'T' // Explicitly set the separator
+      format: 'YYYY-MM-DD[T]HH:mm:ss',
+      separator: 'T'
     },
-    startDate: moment().startOf('hour'),
-    endDate: moment().endOf('hour')
+    startDate: startDate,
+    endDate: endDate
   }, function(start, end) {
-    // Update hidden inputs
+    // Update hidden inputs on user change
     $('#start_date').val(start.format('YYYY-MM-DD[T]HH:mm:ss'));
     $('#end_date').val(end.format('YYYY-MM-DD[T]HH:mm:ss'));
   });
+
+  // Also set the initial value in the visible input so the user sees it
+  $('#daterange').val(startDate.format('YYYY-MM-DD[T]HH:mm:ss') + 'T' + endDate.format('YYYY-MM-DD[T]HH:mm:ss'));
 });
 
 function exportTableToExcel(tableId) {

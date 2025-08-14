@@ -114,7 +114,7 @@
   </table>
 
 
-  <!-- result Modal --> 
+<!-- Result Modal -->
 <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
@@ -122,13 +122,41 @@
         <h5 class="modal-title" id="resultModalLabel">Meter Reading Result</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="modal-body-content">
-        <!-- Result details will be injected here -->
+      
+      <!-- Toggle Buttons -->
+      <div class="modal-header">
+        <button id="showOriginalBtn" class="btn btn-primary btn-sm me-2">Original</button>
+        <button id="showCalculatedBtn" class="btn btn-secondary btn-sm">Calculated</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Original table -->
+        <div id="originalTableWrapper">
+          <table class="table table-striped">
+            <thead>
+              <tr><th>Meter</th><th>Reading</th><th>Date</th></tr>
+            </thead>
+            <tbody id="originalTableBody">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Calculated table (hidden initially) -->
+        <div id="calculatedTableWrapper" style="display:none;">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Meter</th><th>Calculated Value</th><th>Unit</th></tr>
+            </thead>
+            <tbody id="calculatedTableBody">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
 
 
 <style>
@@ -138,6 +166,26 @@
 </style>
 
 <script>
+document.getElementById('showOriginalBtn').addEventListener('click', function() {
+    document.getElementById('originalTableWrapper').style.display = 'block';
+    document.getElementById('calculatedTableWrapper').style.display = 'none';
+    this.classList.add('btn-primary');
+    this.classList.remove('btn-secondary');
+    document.getElementById('showCalculatedBtn').classList.add('btn-secondary');
+    document.getElementById('showCalculatedBtn').classList.remove('btn-primary');
+});
+
+document.getElementById('showCalculatedBtn').addEventListener('click', function() {
+    document.getElementById('originalTableWrapper').style.display = 'none';
+    document.getElementById('calculatedTableWrapper').style.display = 'block';
+    this.classList.add('btn-primary');
+    this.classList.remove('btn-secondary');
+    document.getElementById('showOriginalBtn').classList.add('btn-secondary');
+    document.getElementById('showOriginalBtn').classList.remove('btn-primary');
+});
+
+
+
 function formatResult(result) {
   if (typeof result === 'object') {
     return `<ul>` + Object.entries(result)
@@ -149,46 +197,77 @@ function formatResult(result) {
 
 // 🔹 Global object to store results per meter
 const resultMap = {};
+const resultMap_calculated = {}; 
+
 
 // 🔹 Modal trigger function
 // үр дүнг хүснэгт хэлбэрээр харуулах 
 function showResultModal(button) {
   const meterNumber = button.getAttribute("data-meter");
   const data = resultMap[meterNumber];
-
+  const data_calculated = resultMap_calculated[meterNumber];  
+  console.log(data)  
   if (!data || data.length === 0) {
-    document.getElementById("modal-body-content").innerHTML = "<p>No result found</p>";
-  } else {
-    // Create table headers
-    let table = `<table class="table table-bordered table-sm">
+    document.getElementById("originalTableWrapper").innerHTML = "<p>No result found</p>";
+    document.getElementById("calculatedTableWrapper").innerHTML = "<p>No result found</p>";
+  }else if(data == "Error: meter is offline") {
+    document.getElementById("originalTableWrapper").innerHTML = "<p>meter is offline</p>";
+    document.getElementById("calculatedTableWrapper").innerHTML = "<p>meter is offline</p>";
+  }
+   else {
+    // ===== Original Table =====
+    let originalTable = `<table class="table table-bordered table-sm">
       <thead>
         <tr>
           <th>Timestamp</th>`;
     
-    // Get field names from first object (excluding timestamp)
     const fieldKeys = Object.keys(data[0]).filter(key => key !== 'timestamp');
     fieldKeys.forEach(key => {
-      table += `<th>${key}</th>`;
+      originalTable += `<th>${key}</th>`;
     });
 
-    table += `</tr></thead><tbody>`;
+    originalTable += `</tr></thead><tbody>`;
 
-    // Fill table rows
     data.forEach(entry => {
-      table += `<tr><td>${entry.timestamp}</td>`;
+      originalTable += `<tr><td>${entry.timestamp}</td>`;
       fieldKeys.forEach(key => {
-        table += `<td>${entry[key]}</td>`;
+        originalTable += `<td>${entry[key]}</td>`;
       });
-      table += `</tr>`;
+      originalTable += `</tr>`;
     });
 
-    table += `</tbody></table>`;
+    originalTable += `</tbody></table>`;
+    document.getElementById("originalTableWrapper").innerHTML = originalTable;
 
-    // Inject into modal
-    document.getElementById("modal-body-content").innerHTML = table;
+    // ===== Calculated Table =====
+    let calculatedTable = `<table class="table table-bordered table-sm">
+      <thead>
+        <tr>
+          <th>Timestamp</th>`; 
+    const fieldKeys_cal = Object.keys(data_calculated[0]).filter(key => key !== 'timestamp');
+    fieldKeys.forEach(key => {
+      calculatedTable += `<th>${key}</th>`;
+    });
+    calculatedTable += `</tr></thead><tbody>`;
+
+    data_calculated.forEach(entry => {
+      calculatedTable += `<tr><td>${entry.timestamp}</td>`;
+      fieldKeys_cal.forEach(key => {
+        calculatedTable += `<td>${entry[key]}</td>`;
+      });
+      calculatedTable += `</tr>`;
+    });
+
+    calculatedTable += `</tbody></table>`;
+    document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
   }
 
+  // Show modal
   new bootstrap.Modal(document.getElementById('resultModal')).show();
+
+  // Default view: Original table
+  document.getElementById('originalTableWrapper').style.display = 'block';
+  document.getElementById('calculatedTableWrapper').style.display = 'none';
 }
 
 
@@ -237,8 +316,8 @@ document.getElementById('read-button').addEventListener('click', function () {
     const btn = document.getElementById(`result-${item.meter_number}`);
     if (btn) {
       btn.classList.remove("d-none");
-      resultMap[item.meter_number] = item.result; 
-    //   console.log(resultMap);  
+      resultMap[item.meter_number] = item.result;
+      resultMap_calculated[item.meter_number]=item.result_calculated;      
     }
   });
 })

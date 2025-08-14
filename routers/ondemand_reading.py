@@ -13,6 +13,7 @@ from datetime import datetime
 
 from utils.parser_functions import map_meter_data, parse_dlms_frame, process_dlms_data, replace_obis_with_names,calculate_with_transformer_values
 from utils.reader_functions import read_meter_manual
+from utils.utility_functions import get_ratios 
 from utils.storer import store_meter_reading_energy_profile 
 templates = Jinja2Templates(directory="templates")
 
@@ -67,7 +68,7 @@ async def read_meter_ondemand_profile(request: Request):
         meter_id = int(meter) 
         if meter_id not in connected_clients:
             results.append({
-                "meter_number": meter, 
+                "meter_number": meter,  
                 "result": "Error: meter is offline" 
             })
             continue  # skip the rest 
@@ -75,12 +76,13 @@ async def read_meter_ondemand_profile(request: Request):
             result_queue = connected_clients[meter_id]['real_time_result'] 
             result_data = {
                 "meter_number": meter_id,
-                "result": {}
+                "result": {}, 
+                "result_calculated": {} 
             }
             is_first = True
+            ratios = get_ratios(str(meter_id))   
             connected_clients[meter_id]['pause_event'].clear() ## busad task zogsooh 
-
-
+            
             await read_meter_manual(meter_id, first_frame, is_first)     
             response = await asyncio.wait_for(result_queue.get(), timeout=30) 
             print(f"response:{response}") 
@@ -99,12 +101,15 @@ async def read_meter_ondemand_profile(request: Request):
             parsed_data  = parse_dlms_frame(data_bytes)     
             data_list = process_dlms_data(parsed_data) 
             print(data_list) 
-            mapped_data = map_meter_data(definition_list, data_list)
-            mapped_data = calculate_with_transformer_values(mapped_data,meter_id) 
-            renamed_data = replace_obis_with_names(mapped_data)   
+            mapped_data = map_meter_data(definition_list, data_list) 
+            renamed_data = replace_obis_with_names(mapped_data) 
             print(renamed_data)  
+            mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
+            renamed_data_calculated = replace_obis_with_names(mapped_data_calculated)    
             store_meter_reading_energy_profile(meter,mapped_data)  ## hadgalah 
-            result_data["result"] = renamed_data   
+            store_meter_reading_energy_profile(meter,mapped_data_calculated,"energy_profile_readings_calculated")  ## hadgalah  
+            result_data["result"] = renamed_data 
+            result_data["result_calculated"] = renamed_data_calculated 
             results.append(result_data)  
             connected_clients[meter_id]['pause_event'].set() 
         except asyncio.TimeoutError:
@@ -113,3 +118,5 @@ async def read_meter_ondemand_profile(request: Request):
                 "result": "Error: Timed out waiting for METER response" 
             })
     return JSONResponse(content=results)
+
+
