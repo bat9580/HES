@@ -4,6 +4,8 @@ from services.database import get_db_connection
 from services.state import connected_clients,scheduler 
 import utils.meter_task_functions as task_functions
 from apscheduler.triggers.cron import CronTrigger 
+import os
+from datetime import datetime 
 
 PRIORITY_HIGH = 0     # e.g., on-demand read 
 PRIORITY_MEDIUM = 5   # e.g., cron job 
@@ -132,3 +134,13 @@ def get_ratios(meter_number):
     row = cursor.fetchone()
     conn.close()  
     return row   
+
+
+
+LOG_DIR = "meter_logs"  
+def get_log_file_path(meter_number: str) -> str:
+    """Return the current daily log file path for a given meter."""
+    current_date_str = datetime.now().strftime("%m_%d")
+    daily_log_dir = os.path.join(LOG_DIR, current_date_str)
+    os.makedirs(daily_log_dir, exist_ok=True)
+    return os.path.join(daily_log_dir, f"{meter_number}.log") 

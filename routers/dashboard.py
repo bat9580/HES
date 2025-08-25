@@ -7,19 +7,39 @@ from fastapi.templating import Jinja2Templates
 from services.database import get_db_connection
 from services.state import connected_clients 
 
-router = APIRouter()
+router = APIRouter() 
 templates = Jinja2Templates(directory="templates")
 
-@router.get("/", response_class=HTMLResponse)
-async def home():
-    return RedirectResponse(url="/Dashboard")  
+# @router.get("/", response_class=HTMLResponse)
+# async def home(request: Request, message: str = None):
+#     return templates.TemplateResponse(
+#         "login.html",{"request": request} 
+#     ) 
+#     # return RedirectResponse(url="/Dashboard")  
+
 
 @router.get("/Dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, message: str = None):
     message = request.query_params.get("message")
     conn = get_db_connection()
-    installed_meters = conn.execute("SELECT * FROM installed_meters").fetchall()
+    installed_meters = conn.execute("SELECT * FROM installed_meters").fetchall() 
+    registered_meter_count = conn.execute("SELECT COUNT(*) FROM registered_meters").fetchone()[0]  
     total_installations_count = conn.execute("SELECT COUNT(*) FROM installed_meters").fetchone()[0] 
+    type_stats = conn.execute(
+        """
+        SELECT type, COUNT(*) as count
+        FROM installed_meters
+        WHERE type IN ('DDSY283SR', 'DTSD546', 'DTSD545S')
+        GROUP BY type
+        """
+    ).fetchall()
+    type_counts = {row["type"]: row["count"] for row in type_stats}
+
+    # Ensure missing types are set to 0
+    for t in ["DDSY283SR", "DTSD546", "DTSD545S"]:
+        type_counts.setdefault(t, 0)
+    print(type_counts)
+
     conn.close()
     return templates.TemplateResponse(
         "dashboard.html", 
@@ -27,9 +47,11 @@ async def dashboard(request: Request, message: str = None):
             "request": request,
             "message": message,
             "registered_meters": installed_meters, 
-            "total_installations": total_installations_count,  
+            "total_installations": total_installations_count, 
             "total_online_meter": len(connected_clients),
-            "online_rate":  len(connected_clients)/total_installations_count * 100
+            "online_rate":  len(connected_clients)/total_installations_count * 100, 
+            "type_counts": type_counts,
+            "registered_meter_count":registered_meter_count,
         }
     )
 
@@ -198,10 +220,9 @@ async def getConsumptionData30(
         readings = conn.execute(query, params).fetchall() 
         conn.close()
 
-        # Round timestamps to **day**
+        # 00:00:00 tsagiin zaaltuudiig shuuj avah
         readings_dict = {datetime.fromisoformat(r['timestamp']).replace(hour=0, minute=0, second=0, microsecond=0): 
                          r[f'{column_name}'] for r in readings} 
-        print(readings_dict) 
  
         meter_data[meter] = readings_dict 
         all_timestamps_sets.append(set(readings_dict.keys())) 

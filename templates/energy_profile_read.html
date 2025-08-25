@@ -66,28 +66,32 @@
       </button>
     </div>
 </form> 
+<div class="table-scroll-top">
+  <div class="table-scroll-x"></div>
+</div>
+<div class="table-scroll-main">
 <table id="my-table" class="table table-bordered table-hover table-striped align-middle text-center">
     <thead class="table-light">
       <tr>
         <th>#</th>
-        <th>Meter No.</th> 
-        <th>Time</th> 
-        <th>Total Import Active Energy (1.8.0)</th> 
-        <th>Import Active Energy T1 (1.8.1)</th> 
-        <th>Import Active Energy T2 (1.8.2)</th> 
-        <th>Import Active Energy T2 (1.8.3)</th> 
-        <th>Total Export Active Energy (2.8.0)</th> 
-        <th>Export Active Energy T1 (2.8.1)</th> 
-        <th>Export Active Energy T2 (2.8.2)</th> 
-        <th>Export Active Energy T3 (2.8.3)</th> 
-        <th>Total Import Reactive Energy (3.8.0)</th> 
-        <th>Import Reactive Energy T1 (3.8.1)</th> 
-        <th>Import Reactive Energy T2 (3.8.2)</th> 
-        <th>Import Reactive Energy T3 (3.8.3)</th> 
-        <th>Total Export Reactive Energy (4.8.0)</th> 
-        <th>Export Reactive Energy T1 (4.8.1)</th> 
-        <th>Export Reactive Energy T2 (4.8.2)</th>
-        <th>Export Reactive Energy T3 (4.8.3)</th>
+        <th>Тоолуурын дугаар</th>  
+        <th>Хугацаа</th>  
+        <th>Нийт импортын актив энерги (1.8.0)</th> 
+        <th>Импортын актив энерги T1 (1.8.1)</th> 
+        <th>Импортын актив энерги T2 (1.8.2)</th> 
+        <th>Импортын актив энерги T2 (1.8.3)</th> 
+        <th>Нийт экспортын актив энерги (2.8.0)</th> 
+        <th>Экспортын актив энерги T1 (2.8.1)</th> 
+        <th>Экспортын актив энерги T2 (2.8.2)</th> 
+        <th>Экспортын актив энерги T3 (2.8.3)</th> 
+        <th>Нийт импортын реактив энерги (3.8.0)</th> 
+        <th>Импортын реактив энерги T1 (3.8.1)</th> 
+        <th>Импортын реактив энерги T2 (3.8.2)</th> 
+        <th>Импортын реактив энерги T3 (3.8.3)</th> 
+        <th>Нийт экспортын реактив энерги (4.8.0)</th> 
+        <th>Экспортын реактив энерги T1 (4.8.1)</th> 
+        <th>Экспортын реактив энерги T2 (4.8.2)</th>
+        <th>Экспортын реактив энерги T3 (4.8.3)</th>
       </tr>
     </thead>
     <tbody id="device-table-body">
@@ -116,6 +120,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 
 <style>
   th, td { text-align: center; vertical-align: middle; }
@@ -255,6 +260,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
+document.addEventListener('DOMContentLoaded', function() {
+  const topScroll = document.querySelector('.table-scroll-top');
+  const mainScroll = document.querySelector('.table-scroll-main');
+  const table = document.getElementById('my-table');
+  const scrollX = document.querySelector('.table-scroll-x');
+
+  if (table && scrollX) {
+    scrollX.style.width = table.scrollWidth + 'px';
+  }
+
+  topScroll.addEventListener('scroll', function() {
+    mainScroll.scrollLeft = topScroll.scrollLeft;
+  });
+
+  mainScroll.addEventListener('scroll', function() {
+    topScroll.scrollLeft = mainScroll.scrollLeft;
+  });
+});
+
 
 </script>
 

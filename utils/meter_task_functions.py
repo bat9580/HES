@@ -175,20 +175,22 @@ async def meter_writer(meter_number):
     client = connected_clients[meter_number]
     queue = client['queue']
     writer = client['writer']
-    
-    os.makedirs(LOG_DIR, exist_ok=True) 
-    log_file_path = os.path.join(LOG_DIR, f"{meter_number}.log") 
 
     while True:
         try:
             frame = await queue.get()
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             hex_frame = frame.hex() 
+
             print(f"📤 [meter_writer] Sending to {meter_number}: {hex_frame}")
             writer.write(frame)
-            with open(log_file_path, "a", encoding="utf-8") as f:
-                f.write(f"{timestamp} | from server:  {hex_frame}\n")   
             await writer.drain()
+
+            # log in the same file
+            log_file_path = utility_functions.get_log_file_path(meter_number)
+            with open(log_file_path, "a", encoding="utf-8") as f:
+                f.write(f"{timestamp} | from SERVER: {hex_frame}\n")
+
         except Exception as e:
             print(f"⚠️ [meter_writer] Error sending meter {meter_number}: {e}")
             break

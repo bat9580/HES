@@ -57,6 +57,7 @@
             <option>type</option>
             <option>DDSY283</option>
             <option>DTSD545S</option>
+            <option>DTSD546</option> 
           </select>
         </div>
       </div>
@@ -78,14 +79,14 @@
     <thead class="table-light">
       <tr>
         <th>#</th>
-        <th>Meter No.</th>
-        <th>Comm Addr</th>
-        <th>Meter Type</th>
-        <th>Device Type</th>
-        <th>remarks</th>
-        <th>Create By</th>
-        <th>Status</th>
-        <th>Operation</th>
+        <th>Тоолуурын дугаар</th>
+        <th>Комм хаяг</th>
+        <th>Тоолуурын төрөл</th>
+        <th>Модулийн төрөл</th>
+        <th>Тайлбар</th>
+        <th>Бүртгэсэн</th>
+        <th>Бүртгэлийн төрөл</th>
+        <th>Үйлдэл</th> 
       </tr>
     </thead>
     <tbody>
@@ -138,10 +139,10 @@
  
 
 <div class="modal fade" id="addMeterModal" tabindex="-1" aria-labelledby="addMeterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog custom-modal modal-lg modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="addMeterModalLabel">Add Meter</h5>
+          <h5 class="modal-title" id="addMeterModalLabel">Тоолуур нэмэх</h5> 
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -149,10 +150,10 @@
           <!-- Nav tabs -->
           <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
             <li class="nav-item">
-              <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Detail</button>
+              <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Дэргэрэнгүй</button>
             </li>
             <li class="nav-item">
-              <button class="nav-link" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">Safety</button>
+              <button class="nav-link" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">Нууцлал</button>
             </li>
           </ul>
   
@@ -164,40 +165,40 @@
    
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Device Type</label>
+                    <label>Модулийн төрөл:</label>
                     <select class="form-select" name="device_type"  required> 
                       <option>GPRS Meter</option>
                       <option>PLC Meter</option>
                     </select>
                   </div>
                   <div class="col-md-6">
-                    <label>* Meter No.</label>
+                    <label>Тоолуурын дугаар:</label>
                     <input type="text" name="meter_number" class="form-control" required> 
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>* Comm Addr</label>
+                    <label>Комм хаяг:</label>
                     <input type="text" name="comm_address" class="form-control" required>
                   </div>
                   <div class="col-md-6">
-                    <label>* Type</label>
+                    <label>Тоолуурын төрөл:</label>
                     <select class="form-select" name="type" required> 
                       <option>DDSY283SR</option>
                       <option>DTSD545S</option> 
-                      
+                      <option>DTSD546</option> 
                     </select>
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Status</label>
+                    <label>Бүртгэлийн төлөв:</label>
                     <input type="text" name="status" class="form-control"  value="archived" readonly> 
                   </div>
                   <div class="col-md-6">
-                    <label>Remarks</label>
+                    <label>Тайлбар:</label>
                     <input type="text" name = "remarks" class="form-control">
                   </div>
                 </div>
@@ -207,7 +208,7 @@
             </div>
   
             <div class="tab-pane fade" id="safety" role="tabpanel">
-                <label>Password</label> 
+                <label>Нууц үг:</label> 
                 <input type="text" name="password" class="form-control" required>
             </div>
           </div>
@@ -215,8 +216,8 @@
   
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="addMeterForm" class="btn btn-primary">Submit</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
+          <button type="submit" form="addMeterForm" class="btn btn-primary">Нэмэх</button>
         </div>
       </div>
     </div>
@@ -226,10 +227,10 @@
 
   <!-- edit meter form for meter edit --> 
   <div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg custom-modal modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="addMeterModalLabel">Edit Meter</h5>
+          <h5 class="modal-title" id="addMeterModalLabel">Тоолуур өөрчлөх</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -238,10 +239,10 @@
           <!-- Nav tabs -->
           <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
             <li class="nav-item">
-              <button class="nav-link active" id="detail1-tab" data-bs-toggle="tab" data-bs-target="#detail1" type="button" role="tab">Detail</button>
+              <button class="nav-link active" id="detail1-tab" data-bs-toggle="tab" data-bs-target="#detail1" type="button" role="tab">Дэргэрэнгүй</button>
             </li>
             <li class="nav-item">
-              <button class="nav-link" id="safety1-tab" data-bs-toggle="tab" data-bs-target="#safety1" type="button" role="tab">Safety</button>
+              <button class="nav-link" id="safety1-tab" data-bs-toggle="tab" data-bs-target="#safety1" type="button" role="tab">Нууцлал</button>
             </li>
           </ul>
   
@@ -252,40 +253,40 @@
    
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Device Type</label>
+                    <label>Модулийн төрөл:</label>
                     <select class="form-select" name="device_type" id = "editDeviceType" required> 
                       <option>GPRS Meter</option>
                       <option>PLC Meter</option>
                     </select>
                   </div>
                   <div class="col-md-6">
-                    <label>* Meter No.</label>
+                    <label>Тоолуурын дугаар:</label>
                     <input type="text" name="meter_number" id = "editMeterNumber" class="form-control" required> 
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>* Comm Addr</label>
+                    <label>Комм хаяг:</label>
                     <input type="text" name="comm_address" id = "editCommAddress" class="form-control" required>
                   </div>
                   <div class="col-md-6">
-                    <label>* Type</label>
+                    <label>Тоолуурын төрөл:</label>
                     <select class="form-select" name="type" id = "editType" required> 
                       <option>DDSY283SR</option>
                       <option>DTSD545S</option> 
-                      
+                      <option>DTSD546</option> 
                     </select>
                   </div>
                 </div>
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Status</label>
+                    <label>Бүртгэлийн төлөв:</label>
                     <input type="text" name="status" class="form-control"  value="Archived" readonly> 
                   </div>
                   <div class="col-md-6">
-                    <label>Remarks</label>
+                    <label>Тайлбар:</label>
                     <input type="text" name = "remarks" id = "editRemarks" class="form-control">
                   </div>
                 </div>
@@ -295,7 +296,7 @@
             </div>
   
             <div class="tab-pane fade" id="safety1" role="tabpanel">
-                <label>Password</label> 
+                <label>Нууц үг:</label> 
                 <input type="text" name="password" id = "editPassword" class="form-control" required>
             </div>
           </div>
@@ -303,8 +304,8 @@
   
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="editMeterForm" class="btn btn-primary">Submit</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
+          <button type="submit" form="editMeterForm" class="btn btn-primary">Өөрчлөх</button>
         </div>
       </div>
     </div>

@@ -76,7 +76,7 @@ async def read_Meter_parameter(request: Request):
                     response = await asyncio.wait_for(result_queue.get(), timeout=30) 
                     is_first = False 
                     print(f"response:{response}")   
-                    data_bytes = response['response'] 
+                    data_bytes = response['response']
                     value =  get_real_value(data_bytes)
                     
                     value_calculated = calculate_value_with_ratio_single(value,parameter,ratios[0],ratios[1]) 

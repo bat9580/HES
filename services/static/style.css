@@ -86,7 +86,15 @@ body {
   .sidebar.collapsed .nav-link i {
     margin-right: 0;
   }
-
+  .tree ul {
+    list-style: none;
+    padding-left: 20px;
+  }
+  
+  .tree label {
+    margin-left: 5px;
+  }
+  
   .status-online {
     color: #28a745;
     font-weight: bold;
@@ -101,14 +109,29 @@ body {
     padding: 4px 8px;
     border-radius: 6px;
   } 
+  .tree ul {
+    list-style-type: none;
+    padding-left: 1rem;
+  }
+  .tree .nested {
+    display: none;
+  }
+  .tree .toggle {
+    cursor: pointer;
+    user-select: none;
+    margin-right: 6px;
+  }
+  .tree .active {
+    display: block;
+  } 
 /* Smooth dropdown effect */
 select.form-select {
   transition: all 0.3s ease;
 }
 
 select.form-select:focus {
-  box-shadow: 0 0 5px rgba(189, 159, 9, 0.3);
-  border-color: #e5b830;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  border-color: #80bdff;
 }
 
 /* Dim subtle placeholder */
@@ -166,8 +189,8 @@ input::placeholder {
 }
 
 .custom-select:focus {
-  border-color: #e5b930;
-  box-shadow: 0 0 0 0.25rem rgba(96, 92, 65, 0.25);
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 .custom-select:hover {
@@ -258,7 +281,7 @@ input::placeholder {
 }
 .dropdown-search-input:focus {
   outline: none;
-  box-shadow: 0 0 0 0.1rem rgba(229,185,47, 0.25);
+  box-shadow: 0 0 0 0.1rem rgba(214, 208, 226, 0.25);
 }
 
 .dropdown-chevron {
@@ -288,7 +311,7 @@ input::placeholder {
 /* Input hover effect */
 /* Hover Effects */
 .hoverable-input:hover {
-  border-color: #e5b830 !important;
+  border-color: #364b60 !important;
   background-color: #f8f9fa !important;
 }
 
@@ -381,6 +404,9 @@ input::placeholder {
     font-size: 28px;
     margin: 0;
   }
+  .custom-modal{
+     max-width: 1400px;
+  }
 .content {
   margin-left: 250px;
   padding: 20px;
@@ -409,162 +435,4 @@ input::placeholder {
 }
 #my-table {
   min-width: 2000px; /* түр томсгож турших */
-}
-
-/* modal style */ 
-.custom-modal .modal-content {
-  border-radius: 1rem;         /* rounder corners */
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2); /* soft shadow */
-  border: none;                /* remove default border */
-}
-
-.custom-modal .modal-header {
-  background: #e5b931;         /* Bootstrap primary color */
-  color: white;
-  border-top-left-radius: 1rem;
-  border-top-right-radius: 1rem;
-}
-
-.custom-modal .modal-title {
-  font-style: normal;  
-  font-weight: 605;
-  font-size: 1.25rem;
-}
-
-.custom-modal .btn-close {
-  filter: invert(1); /* make close button visible on dark header */
-}
-
-.custom-modal .modal-footer {
-  border-top: none;
-}
-#editLineForm .col-md-auto, 
-#addLineForm .col-md-auto,
-#uninstallMeterForm .col-md-6, 
-#editMeterForm .col-md-6, 
-#addMeterForm .col-md-6,
-#editTaskForm .col-md-auto, 
-#addTaskForm .col-md-auto {
-  margin-bottom: 1rem;   /* space between inputs */
-}
-#editLineForm label,
-#addLineForm label,
-#uninstallMeterForm label, 
-#editMeterForm label,
-#addMeterForm label,
-#editTaskForm label, 
-#addTaskForm label {
-  font-weight: 500;
-  margin-bottom: 0.3rem;
-}
-
-.custom-modal .btn-primary {
-  background: linear-gradient(135deg, #fecc32, #e5b931); 
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 1.2rem;
-}
-
-.custom-modal .btn-primary:hover {
-  background: linear-gradient(135deg, #3b535e, #e5b931);
-}
-
-.dropdown-search-input:focus {
-  box-shadow: 0 0 0 3px rgba(229,185,47, 0.25),  
-              0 4px 6px rgba(0, 0, 0, 0.15); /* highlight on focus */
-  outline: none;
-}
-.form-control:focus {
-  box-shadow: none;
-  outline: none;
-}
-.tree {
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #333;
-}
-
-/* Remove default list styles */
-.tree ul {
-  list-style: none;
-  margin: 0;
-  padding-left: 20px;
-}
-
-/* Each list item */
-.tree li {
-  margin: 6px 0;
-  position: relative;
-  padding-left: 8px;
-  transition: background 0.3s ease, padding-left 0.3s ease; 
-}
-
-/* Toggle arrow */
-.tree .toggle {
-  cursor: pointer;
-  font-size: 12px;
-  display: inline-block;
-  width: 16px;
-  text-align: center;
-  margin-right: 4px;
-  color: #555;
-  transition: transform 0.2s ease;
-}
-
-/* Rotate arrow when open */
-.tree .toggle.open {
-  transform: rotate(90deg);
-}
-
-/* Collapsible container */
-.tree .nested {
-  max-height: 0;
-  overflow: hidden;
-  margin-left: 20px;
-  border-left: 1px dashed #ccc;
-  padding-left: 12px;
-  opacity: 0;
-  transition: max-height 0.4s ease, opacity 0.3s ease;
-}
-
-/* Expanded state */
-.tree .nested.active {
-  max-height: 500px; /* enough to fit children */
-  opacity: 1;
-}
-
-/* Child items (animate in) */
-.tree .nested li {
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: background 0.3s ease, padding-left 0.3s ease; 
-}
-
-/* Animate children when parent expands */
-.tree .nested.active li {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-
-
-/* Checkboxes */
-.tree input[type="checkbox"] {
-  margin-right: 6px;
-  accent-color: #007bff; /* bootstrap blue */
-}
-
-/* Labels */
-.tree label {
-  cursor: pointer;
-  user-select: none;
-  margin-left: 5px;
-}
-
-/* Hover effect */
-.tree li:hover {
-  background: #f8f9fa;
-  border-radius: 4px;
-  padding-left: 6px; /* 👈 this will animate smoothly */
 }

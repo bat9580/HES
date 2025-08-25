@@ -7,13 +7,13 @@
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {% endif %} 
-<h2 class="mb-4">🔌 Task config</h2> 
+<h2 class="mb-4">Хуваариуд</h2> 
 <form method="GET" action="/search-task" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
           <input type="text" 
                  class="form-control dropdown-search-input dimmed-text hoverable-input" 
                  name="task_name"
-                 placeholder="таск хайх"
+                 placeholder="Хуваарь хайх"
                  value="{{ task_name | default('') }}"
                  style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
     </div>
@@ -31,7 +31,7 @@
     </div>
     <div class="col-md-auto" >
       <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-trash3"> Clear selected</i> 
+        <i class="bi bi-trash3"> Устгах</i> 
       </button>
     </div>
     
@@ -44,11 +44,11 @@
     <tr>
       <th><input type="checkbox" id="select-all"></th>
       <th>#</th>
-      <th>Task Name</th>
-      <th>Invoke Target</th>
-      <th>Cron Expression</th>
-      <th>Remarks</th>
-      <th>Actions</th>
+      <th>Хуваарийн нэр</th>
+      <th>Зорилтод параметр</th>
+      <th>Крон илэрхийлэл</th> 
+      <th>Тайлбар</th>
+      <th>Үйлдэлүүд</th>
     </tr>
   </thead>
   <tbody id="device-table-body">
@@ -81,29 +81,23 @@
   <div class="modal-dialog custom-modal modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addTaskModalLabel">Add task</h5>
+        <h5 class="modal-title" id="addTaskModalLabel">Хуваарь нэмэх</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="addTaskForm" method = "Post" action = "/add-task">     
         <!-- Nav tabs -->
-        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-          <li class="nav-item">
-            <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Detail</button>
-          </li>
-        </ul>
-
         <!-- Tab panes -->
         <div class="tab-content">
           <div class="tab-pane fade show active" id="detail" role="tabpanel">
                 
                 <div class="col-md-auto">
-                  <label>Task Name</label>
+                  <label>Хуваарийн нэр:</label>
                   <input type="text" name="task_name" class="form-control" required> 
                 </div>
 
                 <div class="col-md-auto">
-                  <label>Invoke_target</label>
+                  <label>Зорилтод параметр:</label>
                   <select class="form-select" name="invoke_target"  required> 
                     <option>Energy load profile</option>
                     <option>Instantanious load profile</option>
@@ -117,14 +111,14 @@
                   <input type="text" name="cron_expression" id="cron_expression_input"  class="form-control" required>
                 </div> -->
                 <div class="col-md-auto">
-                  <label>Cron Expression</label>
+                  <label>Крон илэрхийлэл:</label>
                   <input type="text" name="cron_expression" id="cron_expression_input" class="form-control" required>
                   <div id="error-message" style="color: red; display: none;">
-                    Invalid cron expression. Please enter a valid one.
+                    Буруу крон илэрхийлэл. Засна уу !!!
                   </div>
                 </div>
                 <div class="col-md-auto">
-                  <label>Remarks</label>
+                  <label>Тайлбар:</label>
                   <input type="text" name = "remarks" class="form-control">
                 </div>
           </div>
@@ -145,30 +139,26 @@
   <div class="modal-dialog custom-modal modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editTaskModalLabel">Edit task</h5>
+        <h5 class="modal-title" id="editTaskModalLabel">Хуваарь өөрчлөх</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="editTaskForm" method = "Post" action = "/edit-task">  
             <input type="hidden" name="original_task_name" id="OriginalTaskName">   
         <!-- Nav tabs -->
-        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-          <li class="nav-item">
-            <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Detail</button>
-          </li>
-        </ul>
+        
 
         <!-- Tab panes -->
         <div class="tab-content">
           <div class="tab-pane fade show active" id="detail" role="tabpanel">
                 
                 <div class="col-md-auto">
-                  <label>Task Name</label>
+                  <label>Хуваарийн нэр:</label>
                   <input type="text" name="task_name" id="editTaskName" class="form-control" required> 
                 </div>
 
                 <div class="col-md-auto">
-                  <label>Invoke_target</label>
+                  <label>Зорилтод параметр:</label> 
                   <select class="form-select" name="invoke_target" id="editInvokeTarget" required> 
                     <option>Energy load profile</option>
                     <option>Instantanious load profile</option>
@@ -182,15 +172,15 @@
                   <input type="text" name="cron_expression" id="editCronExpression"  class="form-control" required>
                 </div> -->
                 <div class="col-md-auto">
-                  <label>Cron Expression</label>
+                  <label>	Крон илэрхийлэл:</label>
                   <input type="text" name="cron_expression" id="edit_cron_expression_input" class="form-control" required>
                   <div id="error-message-edit" style="color: red; display: none;">
-                    Invalid cron expression. Please enter a valid one. 
+                    Буруу крон илэрхийлэл. Засна уу !!!.    
                   </div>
                 </div>
               
                 <div class="col-md-auto">
-                  <label>Remarks</label>
+                  <label>Тайлбар:</label>
                   <input type="text" name = "remarks" id="editRemarks" class="form-control">
                 </div>
           </div>

@@ -2,20 +2,32 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import dashboard, energy_profile_read,data_read, meter_management, DCU_management, read_DCU_parameter, unregistered_device, meter_installation, read_meter_parameter, system_task, ondemand_reading, line_management
+from routers import dashboard, energy_profile_read,data_read, meter_management, DCU_management, read_DCU_parameter, unregistered_device, meter_installation, read_meter_parameter, system_task, ondemand_reading, line_management, login, instant_profile_read 
 from services.state import connected_clients,scheduler
 from services.database import init_db, get_db_connection
 import os 
 import sys 
+import json 
 from pathlib import Path 
 
 from fastapi.requests import Request
 import asyncio
 import utils.frames as frames 
-import utils.utility_functions as utility_functions 
+import utils.utility_functions as utility_functions
+from starlette.middleware.sessions import SessionMiddleware  
 from utils.parameters import meter_parameters 
+CONFIG_FILE = "config.json" 
 LOG_DIR = "meter_logs"  
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key="mysecret")
+
+
+def load_config():
+    if not os.path.exists(CONFIG_FILE):
+        raise FileNotFoundError(f"Config file '{CONFIG_FILE}' not found.")
+    with open(CONFIG_FILE, "r") as f:
+        return json.load(f) 
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     if getattr(sys, 'frozen', False):
@@ -90,27 +102,41 @@ async def handle_client(reader, writer):
     print("sent reply ")
 
     try:
-        os.makedirs(LOG_DIR, exist_ok=True) 
-        log_file_path = os.path.join(LOG_DIR, f"{meter_number}.log")  
+        current_date_str = datetime.now().strftime("%m_%d")  # start date
+        daily_log_dir = os.path.join(LOG_DIR, current_date_str)
+        os.makedirs(daily_log_dir, exist_ok=True)  # create folder once at start  
+
         while True:
-            
-            # data = await reader.read(1024)
-            # 10 minut huleegeed  
             try: 
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+                now = datetime.now()
+                timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
                 data = await asyncio.wait_for(reader.read(1024), timeout=600.0) 
 
+                # check date rollover
+                date_str = now.strftime("%m_%d") 
+                if date_str != current_date_str:
+                    current_date_str = date_str
+                    daily_log_dir = os.path.join(LOG_DIR, current_date_str)
+                    os.makedirs(daily_log_dir, exist_ok=True) 
+
+                log_file_path = os.path.join(daily_log_dir, f"{meter_number}.log") 
+
                 if not data:
+                    # 👇 create empty log file anyway if it doesn't exist yet
+                    open(log_file_path, "a").close()
                     break 
+
                 print(f"📥[meter_reader] From meter {meter_number}: {data.hex()}") 
                 with open(log_file_path, "a", encoding="utf-8") as f:
                     f.write(f"{timestamp} | from METER:  {data.hex()}\n")   
+
                 if utility_functions.is_heartbeat_frame(data):  
                     await keep_connection_queue.put(data)     
                 else: 
                     await response_queue.put(data) 
+
             except asyncio.TimeoutError:
-                print(f"⏰ Timeout: No data received from meter {meter_number} in 10 seconds")
+                print(f"⏰ Timeout: No data received from meter {meter_number} in 10 minutes")
                 break 
 
     finally:
@@ -139,9 +165,11 @@ tcp_server_task = None
 async def start_tcp_server():
     global tcp_server
     global tcp_server_task
-    
-    tcp_server = await asyncio.start_server(handle_client, '0.0.0.0', 7777)
-    print("🚀 TCP Server listening on 7777...")
+    config = load_config() 
+    ip_address = config.get("ip_address", "0.0.0.0")
+    port = config.get("port", 7777) 
+    tcp_server = await asyncio.start_server(handle_client, ip_address, port) 
+    print(f"🚀 TCP Server listening on {ip_address}:{port}...")
     tcp_server_task = asyncio.create_task(tcp_server.serve_forever()) 
 
 
@@ -164,6 +192,10 @@ app.include_router(data_read.router)
 app.include_router(energy_profile_read.router) 
 app.include_router(ondemand_reading.router)  
 app.include_router(line_management.router)  
+app.include_router(login.router)   
+app.include_router(instant_profile_read.router)  
+ 
+ 
 
  
 

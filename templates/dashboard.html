@@ -2,74 +2,105 @@
 
 {% block content %}
 <div class="container my-4">
-  <h2 class="mb-4">Хяналтын самбар</h2>
+  <div class="row g-3 mb-4 align-items-center">
+        <div class="col d-flex align-items-center justify-content-between">
+            <h2 class="mb-0">Хяналтын самбар</h2>
+            <!-- Dropdown / search input next to title -->
+            <div style="width: 250px;">
+                <div class="dropdown" style="height: 35px;">
+                    <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown">
+                        <input type="text" class="form-control dropdown-search-input dimmed-text hoverable-input" placeholder="Бүлэг хайх" value="{{ Zone | default('') }}" style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card shadow-sm stat-card">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Суурьлуулсан тоолуурууд</h6> 
-          <h3 class="fw-bold">{{ total_installations }}</h3> 
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card shadow-sm stat-card">
-        <div class="card-body text-center">
-          <h6 class="text-muted">Сүлжээнд холбоотой тоолуурууд</h6>  
-          <h3 class="fw-bold">{{ total_online_meter }}</h3> 
-          <div class="progress mt-2" style="height: 8px;">
-            <div id = "online_rate" class="progress-bar bg-success" role="progressbar" 
-                 aria-valuenow="{{ total_online_meter }}" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-3">
-      <div class="col-md-auto" style="width: 100%; min-height: 35px; height: auto;"> 
-                    <div class="dropdown" style="height: 35px;">
-                      <!-- Search Input + Dropdown Toggle Combined -->
-                      <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
-                        <input type="text" 
-                              class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                              placeholder="Бүлэг хайх"
-                              value="{{ Zone | default('') }}"
-                              style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        </span>
-                      </div>
+    <div class="col-md-auto">
+            <div class="card shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Онлайн үзүүлэлт</h5>
+                    <canvas id="onlineChart" width="165" height="180"></canvas>
+                    <div class="d-flex justify-content-center mt-3 gap-3">
+                        <!-- Online -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:15px; height:15px; background-color:#ffcd32; border-radius:50%;"></span>
+                            <small>Online</small>
+                        </div>
+                        <!-- Offline -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:15px; height:15px; background-color:#e9ecef; border-radius:50%;"></span>
+                            <small>Offline</small>
+                        </div>
                     </div>
-                  </div>   
-    </div>
-  </div>
-
-  <!-- Charts -->
-  <div class="row g-4">
-    
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h6 class="card-title">Нийт ачаалал (сүүлийн 6 цаг) (кВт)</h6> 
-          <canvas id="consumptionLineChart" height="150"></canvas>
+                </div>
+            </div>
         </div>
-      </div>
-    </div> 
+        <div class="col-md-auto">
+            <div class="card shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Тоолуурын төрөл</h5>
+                    <canvas id="meterTypeChart" width="165" height="180"></canvas>
+                    <div class="d-flex justify-content-center mt-3 gap-3">
+                        <!-- Online -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:15px; height:15px; background-color:#ffcd32; border-radius:50%;"></span>
+                            <small>DDSY283</small> 
+                        </div>
+                        <!-- Offline -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:15px; height:15px; background-color:#39515c; border-radius:50%;"></span>
+                            <small>DTSD545S</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-auto">
+            <div class="card shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <h5 class="text-muted">Суурилуулалт</h5>
+                    <canvas id="installationsChart" width="165" height="180"></canvas>
+                    <div class="d-flex justify-content-center mt-3 gap-3">
+                        <!-- Online -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:15px; height:15px; background-color:#ffcd32; border-radius:50%;"></span>
+                            <small>installed</small> 
+                        </div>
+                        <!-- Offline -->
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block; width:15px; height:15px; background-color:#02396f; border-radius:50%;"></span>
+                            <small>archived</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-muted">Нийт ачаалал (сүүлийн 6 цаг) (кВт)</h5> 
+                    <canvas id="consumptionLineChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+
   </div>
-  
-
-
-
+  <!-- Charts -->
   
 <div class="row g-4"> 
 <div class="col-md-6">
   <div class="card shadow-sm">
     <div class="card-body">
-      <h6 class="card-title">Сүүлийн 24 цагийн хэрэглээ</h6>
+      <h5 class="text-muted">Сүүлийн 24 цагийн хэрэглээ</h5>
                   
         
       <canvas id="consumptionBarChart24hour" height="100"></canvas>
@@ -80,7 +111,7 @@
 <div class="col-md-6">
   <div class="card shadow-sm">
     <div class="card-body">
-      <h6 class="card-title">Сүүлийн 30 хоногийн хэрэглээ</h6>
+      <h5 class="text-muted">Сүүлийн 30 хоногийн хэрэглээ</h5>
       <canvas id="consumptionBarChart30day" height="100"></canvas>
     </div>
   </div>
@@ -88,10 +119,119 @@
 </div> 
 
 </div>
-<script> 
-document.getElementById('online_rate').style.width = "{{ online_rate }}%";
+<script>
+const centerTextPlugin = {
+    id: 'centerText',
+    beforeDraw(chart) {
+        const { ctx, width, height } = chart;
+        ctx.save();
+        const fontSize = (height / 5).toFixed(2);
+        ctx.font = fontSize + "px sans-serif";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#000";
+        const text = "{{ total_installations }}"; // Replace with your dynamic value if needed
+        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+        const textY = height / 2;
+        ctx.fillText(text, textX, textY);
+        ctx.restore();
+    }
+};
+const centerTextPlugin1 = {
+    id: 'centerText',
+    beforeDraw(chart) {
+        const { ctx, width, height } = chart;
+        ctx.save();
+        const fontSize = (height / 5).toFixed(2);
+        ctx.font = fontSize + "px sans-serif";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#000";
+        const text = "{{ total_installations }}"; // Replace with your dynamic value if needed
+        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+        const textY = height / 2;
+        ctx.fillText(text, textX, textY);
+        ctx.restore();
+    }
+};
+const centerTextPlugin2 = {
+    id: 'centerText',
+    beforeDraw(chart) {
+        const { ctx, width, height } = chart;
+        ctx.save();
+        const fontSize = (height / 5).toFixed(2);
+        ctx.font = fontSize + "px sans-serif";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#000";
+        const text = "{{ registered_meter_count }}"; // Replace with your dynamic value if needed
+        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+        const textY = height / 2;
+        ctx.fillText(text, textX, textY);
+        ctx.restore();
+    }
+};  
 
+const onlineChart = new Chart(document.getElementById('onlineChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Online', 'Offline'],
+        datasets: [{
+            data: [{{ total_online_meter }}, {{ total_installations - total_online_meter }}], 
+            backgroundColor: ['#ffcd32', '#e9ecef'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        cutout: '80%',
+        plugins: {
+            legend: { display: false }
+        },
+        responsive: false
+    },
+    plugins: [centerTextPlugin]
+});
 
+const meterTypeChart = new Chart(document.getElementById('meterTypeChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['DDSY283SR', 'DTSD545S', 'DTSD546'] ,
+        datasets: [{
+            data: [{{ type_counts["DDSY283SR"] }}, {{ type_counts["DTSD546"] }}, {{ type_counts["DTSD545S"] }}], 
+            backgroundColor: ['#ffcd32', '#37505b','#39515c'],  
+            borderWidth: 0
+        }]
+    },
+    options: {
+        cutout: '80%',
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        responsive: false
+    },
+    plugins: [centerTextPlugin] // register your custom plugin here
+});
+
+const installationsChart = new Chart(document.getElementById('installationsChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['installed', 'archived'],
+        datasets: [{ 
+            data: [{{ total_installations }}, {{ registered_meter_count - total_installations }}], 
+            backgroundColor: ['#ffcd32', '#02396f'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        cutout: '80%',
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        responsive: false
+    },
+    plugins: [centerTextPlugin2] // register your custom plugin here
+});
  
 
 
@@ -218,12 +358,12 @@ $(document).ready(function () {
 
         $('#parentNodeDropdown').hide();
         const offsetMs = 8 * 60 * 60 * 1000; // UTC+8
-        const offset2Ms = 16 * 60 * 60 * 1000; // UTC+8
          
         
 
     // tsag gargah
-    const endTime = new Date(Date.now() + offsetMs-offset2Ms);  
+    const endTime = new Date(Date.now() + offsetMs);  
+    console.log(endTime)   
     const startTime = new Date(endTime.getTime() - 6 * 60 * 60 * 1000); // minus 6 hours 
     const isoEnd = endTime.toISOString().split('.')[0];
     const isoStart = startTime.toISOString().split('.')[0]; 

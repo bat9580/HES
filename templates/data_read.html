@@ -28,31 +28,31 @@
         <input type="hidden" name="device_type" required>
       </div>
     </div>
-    <div class="col-md-auto position-relative" style="width: 20%; min-height: 35px; height: auto;"> 
+<div class="col-md-auto position-relative" style="width: 22%; min-height: 35px; height: auto;"> 
   <select
       name="obis_code" 
       class="form-select dropdown-search-input dimmed-text hoverable-input"
       style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
 
-    <option value="1.8.0" {% if selected_obis_code == "1.8.0" %}selected{% endif %}>Total Import Active Energy (1.8.0)</option>  
-    <option value="1.8.1" {% if selected_obis_code == "1.8.1" %}selected{% endif %}>Import Active Energy T1 (1.8.1)</option>
-    <option value="1.8.2" {% if selected_obis_code == "1.8.2" %}selected{% endif %}>Import Active Energy T2 (1.8.2)</option>
-    <option value="1.8.3" {% if selected_obis_code == "1.8.3" %}selected{% endif %}>Import Active Energy T2 (1.8.3)</option>
+    <option value="1.8.0" {% if selected_obis_code == "1.8.0" %}selected{% endif %}>Нийт импортын актив энерги (1.8.0)</option>  
+    <option value="1.8.1" {% if selected_obis_code == "1.8.1" %}selected{% endif %}>Импортын актив энерги T1 (1.8.1)</option>
+    <option value="1.8.2" {% if selected_obis_code == "1.8.2" %}selected{% endif %}>Импортын актив энерги T2 (1.8.2)</option>
+    <option value="1.8.3" {% if selected_obis_code == "1.8.3" %}selected{% endif %}>Импортын актив энерги T3 (1.8.3)</option>
     
-    <option value="2.8.0" {% if selected_obis_code == "2.8.0" %}selected{% endif %}>Total Export Active Energy (2.8.0)</option>
-    <option value="2.8.1" {% if selected_obis_code == "2.8.1" %}selected{% endif %}>Export Active Energy T1 (2.8.1)</option>
-    <option value="2.8.2" {% if selected_obis_code == "2.8.2" %}selected{% endif %}>Export Active Energy T2 (2.8.2)</option>
-    <option value="2.8.3" {% if selected_obis_code == "2.8.3" %}selected{% endif %}>Export Active Energy T3 (2.8.3)</option>
+    <option value="2.8.0" {% if selected_obis_code == "2.8.0" %}selected{% endif %}>Нийт экспортын актив энерги (2.8.0)</option>
+    <option value="2.8.1" {% if selected_obis_code == "2.8.1" %}selected{% endif %}>Экспортын актив энерги T1 (2.8.1)</option>
+    <option value="2.8.2" {% if selected_obis_code == "2.8.2" %}selected{% endif %}>Экспортын актив энерги T2 (2.8.2)</option>
+    <option value="2.8.3" {% if selected_obis_code == "2.8.3" %}selected{% endif %}>Экспортын актив энерги T3 (2.8.3)</option>
 
-    <option value="3.8.0" {% if selected_obis_code == "3.8.0" %}selected{% endif %}>Total Import Reactive Energy (3.8.0)</option>
-    <option value="3.8.1" {% if selected_obis_code == "3.8.1" %}selected{% endif %}>Import Reactive Energy T1 (3.8.1)</option>
-    <option value="3.8.2" {% if selected_obis_code == "3.8.2" %}selected{% endif %}>Import Reactive Energy T2 (3.8.2)</option>
-    <option value="3.8.3" {% if selected_obis_code == "3.8.3" %}selected{% endif %}>Import Reactive Energy T3 (3.8.3)</option>
+    <option value="3.8.0" {% if selected_obis_code == "3.8.0" %}selected{% endif %}>Нийт импортын реактив энерги (3.8.0)</option>
+    <option value="3.8.1" {% if selected_obis_code == "3.8.1" %}selected{% endif %}>Импортын реактив энерги T1 (3.8.1)</option>
+    <option value="3.8.2" {% if selected_obis_code == "3.8.2" %}selected{% endif %}>Импортын реактив энерги T2 (3.8.2)</option>
+    <option value="3.8.3" {% if selected_obis_code == "3.8.3" %}selected{% endif %}>Импортын реактив энерги T3 (3.8.3)</option>
 
-    <option value="4.8.0" {% if selected_obis_code == "4.8.0" %}selected{% endif %}>Total Export Reactive Energy (4.8.0)</option>
-    <option value="4.8.1" {% if selected_obis_code == "4.8.1" %}selected{% endif %}>Export Reactive Energy T1 (4.8.1)</option>
-    <option value="4.8.2" {% if selected_obis_code == "4.8.2" %}selected{% endif %}>Export Reactive Energy T2 (4.8.2)</option>
-    <option value="4.8.3" {% if selected_obis_code == "4.8.3" %}selected{% endif %}>Export Reactive Energy T3 (4.8.3)</option> 
+    <option value="4.8.0" {% if selected_obis_code == "4.8.0" %}selected{% endif %}>Нийт экспортын реактив энерги (4.8.0)</option>
+    <option value="4.8.1" {% if selected_obis_code == "4.8.1" %}selected{% endif %}>Экспортын реактив энерги T1 (4.8.1)</option>
+    <option value="4.8.2" {% if selected_obis_code == "4.8.2" %}selected{% endif %}>Экспортын реактив энерги T2 (4.8.2)</option>
+    <option value="4.8.3" {% if selected_obis_code == "4.8.3" %}selected{% endif %}>Экспортын реактив энерги T3 (4.8.3)</option> 
 
     <option value="32.7.0" {% if selected_obis_code == "32.7.0" %}selected{% endif %}>A фазын хүчдэл (32.7.0)</option>
     <option value="52.7.0" {% if selected_obis_code == "52.7.0" %}selected{% endif %}>Б фазын хүчдэл (52.7.0)</option>
@@ -111,9 +111,9 @@
   <thead class="table-light">
     <tr>
       <th>#</th>
-      <th>Meter No.</th>
-      <th>Time</th> 
-      <th>value</th>  
+        <th>Тоолуурын дугаар</th>  
+        <th>Хугацаа</th>  
+        <th>Утга</th>  
     </tr>
   </thead>
   <tbody id="device-table-body">

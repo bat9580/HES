@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from services.state import connected_clients, pending_requests
 import utils.frames as frames 
-
 from services.database import get_db_connection
 templates = Jinja2Templates(directory="templates")
 
