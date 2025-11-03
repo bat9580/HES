@@ -1,20 +1,21 @@
 import sqlite3
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from services.database import get_db_connection
+from utils.utility_functions import require_permission, template_response
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
 
 @router.get("/meter-management", response_class=HTMLResponse)
-async def meter_management(request:Request, message: str = None): 
+async def meter_management(request:Request, message: str = None,user: dict = Depends(require_permission("Warehouse"))):  
     message = request.query_params.get("message") 
     conn = get_db_connection()
     registered_meters = conn.execute("SELECT *FROM registered_meters ").fetchall()
     conn.close() 
-    return templates.TemplateResponse("meter_management.html", {"request": request, "message": message, "registered_meters": registered_meters})
+    return template_response(request, "meter_management.html", {"request": request, "message": message, "registered_meters": registered_meters})
 @router.post("/add-meter")
 async def add_meter(
     request: Request,
@@ -99,7 +100,7 @@ async def delete_meter( meter_number : str = Form(...)):
     return RedirectResponse(url=f"/meter-management?message={message}", status_code=303) 
 
 @router.get("/search-meter", response_class=HTMLResponse)
-async def search_meter(request:Request, meter_number: str = "", device_type: str = ""):  
+async def search_meter(request:Request, meter_number: str = "", device_type: str = "",user: dict = Depends(require_permission("Warehouse"))):  
     query = "SELECT * FROM registered_meters WHERE 1=1"  
     params = [] 
     if meter_number: 
@@ -115,7 +116,7 @@ async def search_meter(request:Request, meter_number: str = "", device_type: str
     conn.close() 
     print(device_type) 
  
-    return templates.TemplateResponse("meter_management.html",{  
+    return template_response(request,"meter_management.html",{  
         "request": request, 
         "registered_meters": searched_meters,
         "meter_number": meter_number

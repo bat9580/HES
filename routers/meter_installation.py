@@ -1,20 +1,21 @@
 import sqlite3
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional 
 
 from services.database import get_db_connection
+from utils.utility_functions import require_permission, template_response
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
 @router.get("/meter-installation",response_class=HTMLResponse)
-async def meter_installation(request: Request, message: str=None):
+async def meter_installation(request: Request, message: str=None, user: dict = Depends(require_permission("Archive"))): 
     status = "installed"   
     conn = get_db_connection()   
     installed_meters = conn.execute("SELECT *FROM installed_meters").fetchall()     
     conn.close
-    return templates.TemplateResponse("meter_installation.html", {"request": request, "installed_meters":installed_meters,"message":message}) 
+    return template_response(request,"meter_installation.html", {"request": request, "installed_meters":installed_meters,"message":message}) 
 @router.post('/install-meter')
 async def install_meter(
     request: Request, 
@@ -111,7 +112,7 @@ async def uninstall_meter(meter_number: str = Form(...)):
     message = f"✅ METER is successfully dismantled."     
     return RedirectResponse(url=f"/meter-installation?message={message}", status_code=303)
 @router.get("/search-meter-installation", response_class=HTMLResponse)
-async def search_meter_installation(request:Request, meter_number: str = "", DCU: str = "",Zone: str = "", station: str = ""):  
+async def search_meter_installation(request:Request, meter_number: str = "", DCU: str = "",Zone: str = "", station: str = "", user: dict = Depends(require_permission("Archive"))):  
     query = "SELECT * FROM installed_meters WHERE 1=1"  
     params = []
     if meter_number: 
@@ -131,7 +132,7 @@ async def search_meter_installation(request:Request, meter_number: str = "", DCU
     conn.close() 
     
  
-    return templates.TemplateResponse("meter_installation.html",{   
+    return template_response(request,"meter_installation.html",{   
         "request": request, 
         "installed_meters": searched_meters,
         "meter_number": meter_number,

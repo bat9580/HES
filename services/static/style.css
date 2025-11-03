@@ -24,6 +24,10 @@ body {
   transition: width 0.3s;
   overflow-y: auto;
   }
+ .nav-bar{
+  background: #343a40;
+
+ }
   
   .sidebar.collapsed {
     width: 70px;

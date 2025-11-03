@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wizard-steps">
+  <div class="active" data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
+  <div data-step="2">Баталгаажуулах</div>  
+</div>
+
+<div class="container">
+  <label for="deviceType">Төхөөрөмжийн төрөл</label>
+  <select id="deviceType">
+    <option value="Meter">Тоолуур</option> 
+  </select>
+
+  <label for="uploadFile">Файл оруулах</label> 
+  <input type="file" id="uploadFile" accept=".xls,.xlsx">
+  <small>Зөвхөн .xls эсвэл .xlsx форматын 10мб-аас ихгүй файлыг оруулна уу</small> 
+ 
+  <div class="buttons">
+    <a href="{{ url_for('next_step') }}" id="nextLink" class="btn btn-success">Дараах →</a>  
+    <button class="btn btn-secondary">Дахин эхлэх</button> 
+  </div>
+
+  <div class="downloads">
+    <strong>Загвар файл татах</strong>
+        <a href="{{ url_for('static', path='excel/Meter_format.xlsx') }}" download>
+        📥Meter Format    
+        </a> 
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let meterNumbers = []; 
+document.getElementById('uploadFile').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        // Get first sheet
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Convert to JSON
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        localStorage.setItem("excel_rows", JSON.stringify(rows));
+        meterNumbers = []; 
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i][0]) {  // Тоолуурын дугаар багана
+                meterNumbers.push(rows[i][0]);
+            }
+        } 
+        console.log("Extracted meter numbers:", meterNumbers);
+        // rows[0] -> headers (Тоолуурын дугаар, Ком м хаяг, ...)
+        // rows[1..] -> meter data
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+document.getElementById("nextLink").addEventListener("click", function (e) {
+    e.preventDefault(); // stop immediate navigation
+    console.log("medx"); 
+    if (meterNumbers.length === 0) {
+        alert("Excel файлаас тоолуурын дугаар ачаалаагүй байна!");
+        return;
+    }
+
+    fetch("/next_step", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meters: meterNumbers })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Server response:", data);
+        localStorage.setItem("meters", JSON.stringify(data)); 
+        // ✅ after saving, navigate to the page
+        window.location.href = this.href;
+    })
+    .catch(err => console.error("Error:", err));
+}); 
+</script> 
+{% endblock %}

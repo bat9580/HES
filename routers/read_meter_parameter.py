@@ -1,6 +1,7 @@
 import asyncio
 import sqlite3
-from fastapi import APIRouter, Form, Request
+from urllib import request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from services.state import connected_clients, pending_requests
@@ -8,7 +9,7 @@ from utils.parameters import obis_name_map
 from utils.generator_funcitons import generate_frame_from_obis 
 import utils.frames as frames 
 from utils.parser_functions import get_real_value,calculate_value_with_ratio_single  
-from utils.utility_functions import get_ratios  
+from utils.utility_functions import get_ratios, require_permission, template_response  
 
 from services.database import get_db_connection
 from utils.reader_functions import read_meter_manual
@@ -18,13 +19,13 @@ templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
 @router.get("/meter-parameter",response_class=HTMLResponse) # registered meters for now
-async def meter_parameter(request: Request, message: str=None): 
+async def meter_parameter(request: Request, message: str=None, user: dict = Depends(require_permission("Remote Maintain"))): 
     conn = get_db_connection() 
     installed_meters = conn.execute("SELECT *FROM installed_meters").fetchall()  
     conn.close()
-    return templates.TemplateResponse("meter_parameter.html", {"request": request, "installed_meters": installed_meters, "connected_clients": connected_clients, "message": message,})
+    return template_response(request,"meter_parameter.html", {"request": request, "installed_meters": installed_meters, "connected_clients": connected_clients, "message": message,})
 @router.get("/search-meter-parameter", response_class=HTMLResponse)
-async def search_meter(request:Request, meter_number: str = "",line: str= ""):  
+async def search_meter(request:Request, meter_number: str = "",line: str= "", user: dict = Depends(require_permission("Remote Maintain"))):  
     print(line) 
     query = "SELECT * FROM installed_meters WHERE 1=1"
     params = [] 
@@ -37,13 +38,14 @@ async def search_meter(request:Request, meter_number: str = "",line: str= ""):
     conn = get_db_connection()  
     searched_meters = conn.execute(query,params).fetchall() 
     conn.close() 
-    return templates.TemplateResponse("meter_parameter.html",{  
+    return template_response(request,"meter_parameter.html",{  
         "request": request, 
         "installed_meters": searched_meters,
         "meter_number": meter_number,
         "line": line,
         "connected_clients": connected_clients, 
     })
+
 @router.post("/read-meter-parameter")
 async def read_Meter_parameter(request: Request):
     data = await request.json()
@@ -77,6 +79,18 @@ async def read_Meter_parameter(request: Request):
                     is_first = False 
                     print(f"response:{response}")   
                     data_bytes = response['response']
+                    
+                    #RS485 aar holbogdson tooluurt zoriulsan heseg
+                    if data_bytes == "00000000": 
+                        yield json.dumps({ 
+                            "meter_number": meter,  
+                            "result": "Error: Timed out waiting for METER response" 
+                        }) + "\n"
+                        connected_clients[meter_id]['pause_event'].set()
+                        break  # stop reading more parameters for this meter
+                    #############################
+
+
                     value =  get_real_value(data_bytes)
                     
                     value_calculated = calculate_value_with_ratio_single(value,parameter,ratios[0],ratios[1]) 
@@ -90,6 +104,14 @@ async def read_Meter_parameter(request: Request):
                 connected_clients[meter_id]['pause_event'].set()
                 yield json.dumps(result_data) + "\n"  
             except asyncio.TimeoutError:
+                print("timeout") 
+                while True:
+                    try:
+                        result_queue.get_nowait()
+                        print("Clearing old response...")
+                    except asyncio.QueueEmpty:
+                        print("Queue is empty now.")
+                        break 
                 yield json.dumps({
                     "meter_number": meter,  
                     "result": "Error: Timed out waiting for METER response" 

@@ -1,15 +1,17 @@
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import dashboard, energy_profile_read,data_read, meter_management, DCU_management, read_DCU_parameter, unregistered_device, meter_installation, read_meter_parameter, system_task, ondemand_reading, line_management, login, instant_profile_read 
+from routers import dashboard, energy_profile_read,data_read, meter_management, DCU_management, read_DCU_parameter, unregistered_device, meter_installation, read_meter_parameter, system_task, ondemand_reading, line_management, login, instant_profile_read, batch_upload_meter,user_management, role_management 
+#from api_endpoints import meter_installation 
 from services.state import connected_clients,scheduler
+from fastapi import status
 from services.database import init_db, get_db_connection
 import os 
 import sys 
 import json 
 from pathlib import Path 
-
 from fastapi.requests import Request
 import asyncio
 import utils.frames as frames 
@@ -19,7 +21,7 @@ from utils.parameters import meter_parameters
 CONFIG_FILE = "config.json" 
 LOG_DIR = "meter_logs"  
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="mysecret")
+app.add_middleware(SessionMiddleware, secret_key="mysecret",max_age=120 * 60) # session lifetime = 120 minutes
 
 
 def load_config():
@@ -47,9 +49,20 @@ static_path = resource_path("static")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=static_path), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static") 
 
 # Set templates directory
 templates = Jinja2Templates(directory=template_path)
+
+@app.exception_handler(HTTPException)
+async def permission_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code == status.HTTP_303_SEE_OTHER and exc.detail == "redirect_login":
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    # fallback for other HTTPException
+    raise exc 
+
+
+
 
 
 init_db()
@@ -71,7 +84,6 @@ async def handle_client(reader, writer):
 
     if utility_functions.is_heartbeat_frame(data): #  daraa ni zasah  
         meter_number = int(data[-8:].decode('utf-8', errors='ignore').strip())
-        print()
     else: 
         print(f"unexpected frame, closing connection: {data}")  
         writer.close()
@@ -126,7 +138,7 @@ async def handle_client(reader, writer):
                     open(log_file_path, "a").close()
                     break 
 
-                print(f"📥[meter_reader] From meter {meter_number}: {data.hex()}") 
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 📥[meter_reader] From meter {meter_number}: {data.hex()}") 
                 with open(log_file_path, "a", encoding="utf-8") as f:
                     f.write(f"{timestamp} | from METER:  {data.hex()}\n")   
 
@@ -194,6 +206,9 @@ app.include_router(ondemand_reading.router)
 app.include_router(line_management.router)  
 app.include_router(login.router)   
 app.include_router(instant_profile_read.router)  
+app.include_router(batch_upload_meter.router)  
+app.include_router(user_management.router) 
+app.include_router(role_management.router) 
  
  
 

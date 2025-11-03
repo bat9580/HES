@@ -4,7 +4,7 @@
 
 <h2 class="mb-4">Энергийн Профайл унших</h2>
 <form method="GET" action="/search-energy-profile" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
-    <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;"> 
+    <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
           <input type="text" 
@@ -30,20 +30,32 @@
     </div>
 
     
-    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
+    <!-- <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
           <select 
               class="form-select dropdown-search-input dimmed-text hoverable-input"
               style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
             <option>Энергийн Профайл</option> 
           </select>
-    </div>
-    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 30%; min-height: 35px; height: auto;">
+    </div> -->
+    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
         <input type="text" id="daterange" class="form-control" 
-              style="max-width: 400px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
+              style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
         <!-- Hidden inputs to submit the dates -->
         <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
         <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
     </div>
+    <div class="col-md-auto" style="width: 12%; min-height: 35px; height: auto;"> 
+        <div class="dropdown" style="height: 35px;">
+          <!-- Search Input + Dropdown Toggle Combined -->
+          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
     <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
           <select 
               name = "type" 
@@ -71,55 +83,70 @@
 </div>
 <div class="table-scroll-main">
 <table id="my-table" class="table table-bordered table-hover table-striped align-middle text-center">
-    <thead class="table-light">
-      <tr>
-        <th>#</th>
-        <th>Тоолуурын дугаар</th>  
-        <th>Хугацаа</th>  
-        <th>Нийт импортын актив энерги (1.8.0)</th> 
-        <th>Импортын актив энерги T1 (1.8.1)</th> 
-        <th>Импортын актив энерги T2 (1.8.2)</th> 
-        <th>Импортын актив энерги T2 (1.8.3)</th> 
-        <th>Нийт экспортын актив энерги (2.8.0)</th> 
-        <th>Экспортын актив энерги T1 (2.8.1)</th> 
-        <th>Экспортын актив энерги T2 (2.8.2)</th> 
-        <th>Экспортын актив энерги T3 (2.8.3)</th> 
-        <th>Нийт импортын реактив энерги (3.8.0)</th> 
-        <th>Импортын реактив энерги T1 (3.8.1)</th> 
-        <th>Импортын реактив энерги T2 (3.8.2)</th> 
-        <th>Импортын реактив энерги T3 (3.8.3)</th> 
-        <th>Нийт экспортын реактив энерги (4.8.0)</th> 
-        <th>Экспортын реактив энерги T1 (4.8.1)</th> 
-        <th>Экспортын реактив энерги T2 (4.8.2)</th>
-        <th>Экспортын реактив энерги T3 (4.8.3)</th>
-      </tr>
-    </thead>
-    <tbody id="device-table-body">
-      {% for reading in readings %}  
-      <tr>
-        <td>{{ loop.index }}</td> 
-        <td>{{ reading['meter_number'] }}</td> 
-        <td>{{ reading['timestamp'] }}</td> 
-        <td>{{ reading['import_total_active_energy'] }}</td>  
-        <td>{{ reading['import_active_energy_T1'] }}</td> 
-        <td>{{ reading['import_active_energy_T2'] }}</td>
-        <td>{{ reading['import_active_energy_T3'] }}</td>
-        <td>{{ reading['export_total_active_energy'] }}</td>  
-        <td>{{ reading['export_active_energy_T1'] }}</td> 
-        <td>{{ reading['export_active_energy_T2'] }}</td>
-        <td>{{ reading['export_active_energy_T3'] }}</td>
-        <td>{{ reading['import_total_reactive_energy'] }}</td>  
-        <td>{{ reading['import_reactive_energy_T1'] }}</td> 
-        <td>{{ reading['import_reactive_energy_T2'] }}</td>
-        <td>{{ reading['import_reactive_energy_T3'] }}</td>
-        <td>{{ reading['export_total_reactive_energy'] }}</td>  
-        <td>{{ reading['export_reactive_energy_T1'] }}</td> 
-        <td>{{ reading['export_reactive_energy_T2'] }}</td>
-        <td>{{ reading['export_reactive_energy_T3'] }}</td>
-      </tr> 
-      {% endfor %}
-    </tbody>
-  </table>
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>Тоолуурын дугаар</th>  
+      <th>Хугацаа</th>  
+      <th>Нийт импортын актив энерги (1.8.0)</th> 
+      <th>Импортын актив энерги T1 (1.8.1)</th> 
+      <th>Импортын актив энерги T2 (1.8.2)</th> 
+      <th>Импортын актив энерги T3 (1.8.3)</th> 
+      <th>Нийт экспортын актив энерги (2.8.0)</th> 
+      <th>Экспортын актив энерги T1 (2.8.1)</th> 
+      <th>Экспортын актив энерги T2 (2.8.2)</th> 
+      <th>Экспортын актив энерги T3 (2.8.3)</th> 
+      <th>Нийт импортын реактив энерги (3.8.0)</th> 
+      <th>Импортын реактив энерги T1 (3.8.1)</th> 
+      <th>Импортын реактив энерги T2 (3.8.2)</th> 
+      <th>Импортын реактив энерги T3 (3.8.3)</th> 
+      <th>Нийт экспортын реактив энерги (4.8.0)</th> 
+      <th>Экспортын реактив энерги T1 (4.8.1)</th> 
+      <th>Экспортын реактив энерги T2 (4.8.2)</th>
+      <th>Экспортын реактив энерги T3 (4.8.3)</th>
+    </tr>
+  </thead>
+  <tbody id="device-table-body">
+    {% for reading in readings %}  
+    <tr>
+      <td>{{ loop.index + (page - 1) * 100 }}</td> 
+      <td>{{ reading['meter_number'] }}</td> 
+      <td>{{ reading['timestamp'] }}</td> 
+      <td>{{ reading['import_total_active_energy'] }}</td>  
+      <td>{{ reading['import_active_energy_T1'] }}</td> 
+      <td>{{ reading['import_active_energy_T2'] }}</td>
+      <td>{{ reading['import_active_energy_T3'] }}</td>
+      <td>{{ reading['export_total_active_energy'] }}</td>  
+      <td>{{ reading['export_active_energy_T1'] }}</td> 
+      <td>{{ reading['export_active_energy_T2'] }}</td>
+      <td>{{ reading['export_active_energy_T3'] }}</td>
+      <td>{{ reading['import_total_reactive_energy'] }}</td>  
+      <td>{{ reading['import_reactive_energy_T1'] }}</td> 
+      <td>{{ reading['import_reactive_energy_T2'] }}</td>
+      <td>{{ reading['import_reactive_energy_T3'] }}</td>
+      <td>{{ reading['export_total_reactive_energy'] }}</td>  
+      <td>{{ reading['export_reactive_energy_T1'] }}</td> 
+      <td>{{ reading['export_reactive_energy_T2'] }}</td>
+      <td>{{ reading['export_reactive_energy_T3'] }}</td>
+    </tr> 
+    {% endfor %}
+  </tbody>
+</table>
+<div class="d-flex justify-content-between align-items-center mt-3">
+  {% if page > 1 %}
+    <a href="?page={{ page - 1 }}" class="btn btn-outline-primary btn-sm">Previous</a>
+  {% else %}
+    <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
+  {% endif %}
+
+  <span>Page {{ page }} of {{ total_pages }}</span>
+
+  {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}" class="btn btn-outline-primary btn-sm">Next</a>
+  {% else %}
+    <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
+  {% endif %}
+</div> 
   </div>
 
 <style>
@@ -129,7 +156,51 @@
 </style>
 
 <script>
+$(document).ready(function () {
+    $('#parentNodeDropdown').jstree({
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
+                stripes: true
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
+        $('#treeSearch').val(data.node.text); 
 
+        $('#parentNodeDropdown').hide();
+
+    });
+
+    // Simple toggle click to open/close tree dropdown
+    $('#parentNodeDropdown').css({
+    position: 'absolute',
+    zIndex: 99999,   // super high so it’s always on top
+    background: '#fff', // optional, so it doesn't inherit transparency
+    border: '1px solid #ccc' // optional for visual clarity
+}).hide();
+    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
+    .insertBefore('#parentNodeDropdown')
+        .on('focus', function () {
+            $('#parentNodeDropdown').show();
+        })
+        .on('keyup', function () {
+            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        });
+
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
+            $('#parentNodeDropdown').hide();
+        }
+    });
+});
 $(function() {
   // Parse dates from server or fallback to current hour
   const startDateStr = "{{ start_date | default('') }}";
@@ -277,6 +348,41 @@ document.addEventListener('DOMContentLoaded', function() {
   mainScroll.addEventListener('scroll', function() {
     topScroll.scrollLeft = mainScroll.scrollLeft;
   });
+});
+
+
+
+$(document).ready(function () {
+    $('#my-table').DataTable({
+        processing: true,
+        serverSide: true,
+        pageLength: 50,  // how many rows per page
+        ajax: {
+            url: '/api/energy-profile',  // 👈 Your backend route
+            type: 'GET'
+        },
+        columns: [
+            { data: 'index' },
+            { data: 'meter_number' },
+            { data: 'timestamp' },
+            { data: 'import_total_active_energy' },
+            { data: 'import_active_energy_T1' },
+            { data: 'import_active_energy_T2' },
+            { data: 'import_active_energy_T3' },
+            { data: 'export_total_active_energy' },
+            { data: 'export_active_energy_T1' },
+            { data: 'export_active_energy_T2' },
+            { data: 'export_active_energy_T3' },
+            { data: 'import_total_reactive_energy' },
+            { data: 'import_reactive_energy_T1' },
+            { data: 'import_reactive_energy_T2' },
+            { data: 'import_reactive_energy_T3' },
+            { data: 'export_total_reactive_energy' },
+            { data: 'export_reactive_energy_T1' },
+            { data: 'export_reactive_energy_T2' },
+            { data: 'export_reactive_energy_T3' }
+        ]
+    });
 });
 
 

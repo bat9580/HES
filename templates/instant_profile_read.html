@@ -4,7 +4,7 @@
 
 <h2 class="mb-4">Агшин зуурын Профайл унших</h2>
 <form method="GET" action="/search-instant-profile" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
-    <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;"> 
+    <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
           <input type="text" 
@@ -30,13 +30,13 @@
     </div>
 
     
-    <div class="col-md-auto  position-relative " style="width: 17%; min-height: 35px; height: auto;"> 
+    <!-- <div class="col-md-auto  position-relative " style="width: 17%; min-height: 35px; height: auto;"> 
           <select 
               class="form-select dropdown-search-input dimmed-text hoverable-input"
               style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
             <option>Агшин зуурын Профайл</option> 
           </select>
-    </div>
+    </div> --> 
     <div class="col-md-auto position-relative d-flex align-items-center" style="width: 30%; min-height: 35px; height: auto;">
         <input type="text" id="daterange" class="form-control" 
               style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
@@ -44,6 +44,18 @@
         <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
         <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
     </div>
+        <div class="col-md-auto" style="width: 12%; min-height: 35px; height: auto;"> 
+        <div class="dropdown" style="height: 35px;">
+          <!-- Search Input + Dropdown Toggle Combined -->
+          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
     <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
           <select 
               name = "type" 
@@ -71,51 +83,68 @@
 </div>
 <div class="table-scroll-main">
 <table id="my-table" class="table table-bordered table-hover table-striped align-middle text-center">
-    <thead class="table-light">
-      <tr>
-        <th>#</th>
-        <th>Тоолуурын дугаар</th>  
-        <th>Хугацаа</th> 
-        <th>A фазын хүчдэл (32.7.0)</th> 
-        <th>Б фазын хүчдэл (52.7.0)</th> 
-        <th>С фазын хүчдэл (72.7.0)</th> 
-        <th>A фазын гүйдэл (31.7.0)</th> 
-        <th>Б фазын гүйдэл (51.7.0)</th> 
-        <th>С фазын гүйдэл (71.7.0)</th>  
-        <th>Нийт актив чадал (15.7.0)</th> 
-        <th>Нийт реактив чадал (3.7.0)</th> 
-        <th>Нийт бүрэн чадал (9.7.0)</th> 
-        <th>Чадлын фактор (13.7.0)</th>  
-        <th>Дундаж A фазын актив чадал (15.4.0)</th> 
-        <th>Дундаж A фазын реактив чадал (23.4.0)</th> 
-        <th>Дундаж Б фазын реактив чадал (9.4.0)</th> 
-        <th>Дундаж С фазын реактив чадал (13.4.0)</th>  
-      </tr>
-    </thead>
-    <tbody id="device-table-body">
-      {% for reading in readings %}  
-      <tr>
-        <td>{{ loop.index }}</td> 
-        <td>{{ reading['meter_number'] }}</td> 
-        <td>{{ reading['timestamp'] }}</td> 
-        <td>{{ reading['voltage_A'] }}</td>  
-        <td>{{ reading['voltage_B'] }}</td> 
-        <td>{{ reading['voltage_C'] }}</td>
-        <td>{{ reading['current_A'] }}</td>
-        <td>{{ reading['current_B'] }}</td>  
-        <td>{{ reading['current_C'] }}</td> 
-        <td>{{ reading['total_active_power'] }}</td>
-        <td>{{ reading['total_reactive_power'] }}</td>
-        <td>{{ reading['total_apparent_power'] }}</td>  
-        <td>{{ reading['total_power_factor'] }}</td> 
-        <td>{{ reading['total_active_power_A_avg'] }}</td>
-        <td>{{ reading['total_reactive_power_A_avg'] }}</td>
-        <td>{{ reading['total_reactive_power_B_avg'] }}</td>  
-        <td>{{ reading['total_reactive_power_C_avg'] }}</td> 
-      </tr> 
-      {% endfor %}
-    </tbody>
-  </table>
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>Тоолуурын дугаар</th>  
+      <th>Хугацаа</th> 
+      <th>A фазын хүчдэл (32.7.0)</th> 
+      <th>Б фазын хүчдэл (52.7.0)</th> 
+      <th>С фазын хүчдэл (72.7.0)</th> 
+      <th>A фазын гүйдэл (31.7.0)</th> 
+      <th>Б фазын гүйдэл (51.7.0)</th> 
+      <th>С фазын гүйдэл (71.7.0)</th>  
+      <th>Нийт актив чадал (15.7.0)</th> 
+      <th>Нийт реактив чадал (3.7.0)</th> 
+      <th>Нийт бүрэн чадал (9.7.0)</th> 
+      <th>Чадлын фактор (13.7.0)</th>  
+      <th>Дундаж A фазын актив чадал (15.4.0)</th> 
+      <th>Дундаж A фазын реактив чадал (23.4.0)</th> 
+      <th>Дундаж Б фазын реактив чадал (9.4.0)</th> 
+      <th>Дундаж С фазын реактив чадал (13.4.0)</th>  
+    </tr>
+  </thead>
+  <tbody id="device-table-body">
+    {% for reading in readings %}
+    <tr>
+      <td>{{ loop.index + (page - 1) * 100 }}</td> 
+      <td>{{ reading['meter_number'] }}</td> 
+      <td>{{ reading['timestamp'] }}</td> 
+      <td>{{ reading['voltage_A'] }}</td>  
+      <td>{{ reading['voltage_B'] }}</td> 
+      <td>{{ reading['voltage_C'] }}</td>
+      <td>{{ reading['current_A'] }}</td>
+      <td>{{ reading['current_B'] }}</td>  
+      <td>{{ reading['current_C'] }}</td> 
+      <td>{{ reading['total_active_power'] }}</td>
+      <td>{{ reading['total_reactive_power'] }}</td>
+      <td>{{ reading['total_apparent_power'] }}</td>  
+      <td>{{ reading['total_power_factor'] }}</td> 
+      <td>{{ reading['total_active_power_A_avg'] }}</td>
+      <td>{{ reading['total_reactive_power_A_avg'] }}</td>
+      <td>{{ reading['total_reactive_power_B_avg'] }}</td>  
+      <td>{{ reading['total_reactive_power_C_avg'] }}</td> 
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- 📌 Pagination Controls -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+  {% if page > 1 %}
+    <a href="?page={{ page - 1 }}" class="btn btn-outline-primary btn-sm">Previous</a>
+  {% else %}
+    <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
+  {% endif %}
+
+  <span>Page {{ page }} of {{ total_pages }}</span>
+
+  {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}" class="btn btn-outline-primary btn-sm">Next</a>
+  {% else %}
+    <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
+  {% endif %}
+</div>
   </div>
 
 <style>
@@ -125,7 +154,51 @@
 </style>
 
 <script>
+$(document).ready(function () {
+    $('#parentNodeDropdown').jstree({
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
+                stripes: true
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
+        $('#treeSearch').val(data.node.text); 
 
+        $('#parentNodeDropdown').hide();
+
+    });
+
+    // Simple toggle click to open/close tree dropdown
+    $('#parentNodeDropdown').css({
+    position: 'absolute',
+    zIndex: 99999,   // super high so it’s always on top
+    background: '#fff', // optional, so it doesn't inherit transparency
+    border: '1px solid #ccc' // optional for visual clarity
+}).hide();
+    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
+    .insertBefore('#parentNodeDropdown')
+        .on('focus', function () {
+            $('#parentNodeDropdown').show();
+        })
+        .on('keyup', function () {
+            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        });
+
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
+            $('#parentNodeDropdown').hide();
+        }
+    });
+}); 
 $(function() {
   // Parse dates from server or fallback to current hour
   const startDateStr = "{{ start_date | default('') }}";

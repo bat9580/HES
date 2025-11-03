@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% block content %}
+{% if message %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  {{ message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %} 
+<div class="p-4">
+  <h4 class="mb-3">Бүртгэсэн тоолуурууд</h4> 
+
+  <form method = "GET" action = "/search-meter" class="row g-2 mb-3">
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Тоолуур хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        </div>
+      </div>
+    </div>
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>Status</option>
+            <option>Installed</option>
+            <option>Archived</option>
+          </select>
+        </div>
+      </div>
+    </div>
+        <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>Device type</option>
+            <option>GPRS meter</option>
+            <option>PLC meter</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <select 
+              class="form-select dropdown-search-input dimmed-text hoverable-input"
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
+            <option>type</option>
+            <option>DDSY283</option>
+            <option>DTSD545S</option>
+            <option>DTSD546</option> 
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
+    </div>
+
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+    </div>
+  </form>
+
+  <table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Тоолуурын дугаар</th>
+        <th>Комм хаяг</th>
+        <th>Тоолуурын төрөл</th>
+        <th>Модулийн төрөл</th>
+        <th>Тайлбар</th>
+        <th>Бүртгэсэн</th>
+        <th>Бүртгэлийн төрөл</th>
+        <th>Үйлдэл</th> 
+      </tr>
+    </thead>
+    <tbody>
+      {% for meter in registered_meters %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ meter['meter_number'] }}</td>
+        <td>{{ meter['com_address'] }}</td>
+        <td>{{ meter['type'] }}</td>
+        <td>{{ meter['device_type'] }}</td>
+        <td>{{ meter['remarks'] or '-' }}</td>
+        <td>{{ meter['created_by'] }}</td>
+        <td>
+          {% if meter['status'] == 'installed' %} 
+            <span class="badge bg-success text-white">Installed</span>
+          {% elif meter['status'] == 'archived' %}
+            <span class="badge bg-secondary">Archived</span>
+          {% else %}
+            <span class="badge bg-light text-muted">Unknown</span>
+          {% endif %}
+        </td>
+        <td>
+          <button class="btn btn-sm btn-secondary"  
+                  data-bs-toggle="modal" 
+                  data-bs-target="#editMeterModal" 
+                  data-original-meter-number="{{meter['meter_number']}}"  
+                  data-meter-number="{{meter['meter_number']}}"
+                  data-comm-address="{{ meter['com_address'] }}"
+                  data-device-type="{{ meter['device_type'] }}"
+                  data-type="{{ meter['type'] }}"
+                  data-password="{{ meter['password'] }}"
+                  data-remarks="{{ meter['remarks'] }}"
+                  data-status="{{ meter['status'] }}"> 
+              <i class="bi bi-pencil-square"> Edit</i>
+          </button> 
+          <!-- <button class="btn btn-sm btn-danger">🗑️ Delete</button> -->
+          <form method="POST" action="/delete-meter" style="display:inline;" onsubmit="return confirmDelete();">  
+            <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}"> 
+            <button type="submit" class="btn btn-sm btn-danger">
+              <i class="bi bi-trash"> Delete</i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<!-- add button form for meter adding  -->
+ 
+
+<div class="modal fade" id="addMeterModal" tabindex="-1" aria-labelledby="addMeterModalLabel" aria-hidden="true">
+    <div class="modal-dialog custom-modal modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addMeterModalLabel">Тоолуур нэмэх</h5> 
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addMeterForm" method = "Post" action = "/add-meter">  
+          <!-- Nav tabs -->
+          <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item">
+              <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Дэргэрэнгүй</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">Нууцлал</button>
+            </li>
+          </ul>
+  
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="detail" role="tabpanel">
+              
+                
+   
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>Модулийн төрөл:</label>
+                    <select class="form-select" name="device_type"  required> 
+                      <option>GPRS Meter</option>
+                      <option>PLC Meter</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label>Тоолуурын дугаар:</label>
+                    <input type="text" name="meter_number" class="form-control" required> 
+                  </div>
+                </div>
+  
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>Комм хаяг:</label>
+                    <input type="text" name="comm_address" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label>Тоолуурын төрөл:</label>
+                    <select class="form-select" name="type" required> 
+                      <option>DDSY283SR</option>
+                      <option>DTSD545S</option> 
+                      <option>DTSD546</option> 
+                    </select>
+                  </div>
+                </div>
+  
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>Бүртгэлийн төлөв:</label>
+                    <input type="text" name="status" class="form-control"  value="archived" readonly> 
+                  </div>
+                  <div class="col-md-6">
+                    <label>Тайлбар:</label>
+                    <input type="text" name = "remarks" class="form-control">
+                  </div>
+                </div>
+  
+  
+              
+            </div>
+  
+            <div class="tab-pane fade" id="safety" role="tabpanel">
+                <label>Нууц үг:</label> 
+                <input type="text" name="password" class="form-control" required>
+            </div>
+          </div>
+        </form>
+  
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
+          <button type="submit" form="addMeterForm" class="btn btn-primary">Нэмэх</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- edit meter form for meter edit --> 
+  <div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg custom-modal modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addMeterModalLabel">Тоолуур өөрчлөх</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editMeterForm" method = "Post" action = "/edit-meter">   
+            <input type="hidden" name="original_meter_number" id="OriginalMeterNumber">  
+          <!-- Nav tabs -->
+          <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item">
+              <button class="nav-link active" id="detail1-tab" data-bs-toggle="tab" data-bs-target="#detail1" type="button" role="tab">Дэргэрэнгүй</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" id="safety1-tab" data-bs-toggle="tab" data-bs-target="#safety1" type="button" role="tab">Нууцлал</button>
+            </li>
+          </ul>
+  
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="detail1" role="tabpanel">
+              
+   
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>Модулийн төрөл:</label>
+                    <select class="form-select" name="device_type" id = "editDeviceType" required> 
+                      <option>GPRS Meter</option>
+                      <option>PLC Meter</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label>Тоолуурын дугаар:</label>
+                    <input type="text" name="meter_number" id = "editMeterNumber" class="form-control" required> 
+                  </div>
+                </div>
+  
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>Комм хаяг:</label>
+                    <input type="text" name="comm_address" id = "editCommAddress" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label>Тоолуурын төрөл:</label>
+                    <select class="form-select" name="type" id = "editType" required> 
+                      <option>DDSY283SR</option>
+                      <option>DTSD545S</option> 
+                      <option>DTSD546</option> 
+                    </select>
+                  </div>
+                </div>
+  
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label>Бүртгэлийн төлөв:</label>
+                    <input type="text" name="status" class="form-control"  value="Archived" readonly> 
+                  </div>
+                  <div class="col-md-6">
+                    <label>Тайлбар:</label>
+                    <input type="text" name = "remarks" id = "editRemarks" class="form-control">
+                  </div>
+                </div>
+  
+  
+              
+            </div>
+  
+            <div class="tab-pane fade" id="safety1" role="tabpanel">
+                <label>Нууц үг:</label> 
+                <input type="text" name="password" id = "editPassword" class="form-control" required>
+            </div>
+          </div>
+        </form>
+  
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
+          <button type="submit" form="editMeterForm" class="btn btn-primary">Өөрчлөх</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <script>
+    const editModal = document.getElementById('editMeterModal');
+    editModal.addEventListener('show.bs.modal', event => {
+      const button = event.relatedTarget;
+
+      document.getElementById('OriginalMeterNumber').value = button.getAttribute('data-meter-number'); 
+      document.getElementById('editMeterNumber').value = button.getAttribute('data-meter-number');
+      document.getElementById('editCommAddress').value = button.getAttribute('data-comm-address');
+      document.getElementById('editDeviceType').value = button.getAttribute('data-device-type');
+      document.getElementById('editType').value = button.getAttribute('data-type');
+      document.getElementById('editPassword').value = button.getAttribute('data-password');
+      document.getElementById('editRemarks').value = button.getAttribute('data-remarks');
+    });
+    function confirmDelete(){
+      return confirm("⚠️ Are you sure you want to delete this meter?");
+    }
+  </script>
+
+
+{% endblock %}

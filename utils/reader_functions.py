@@ -32,7 +32,7 @@ async def send_frame_to_meter(meter_id, hex_frame,is_first,timeout):
             return {"response": response.hex().upper()}
         except asyncio.TimeoutError:
             print(f"❌ Timeout waiting for response from {meter_id}")
-            await result_queue.put({"response": "Timeout"})  
+            #await result_queue.put({"response": "Timeout"})  
             return {"response": "Timeout"}
  
 async def read_meter_manual(meter_number,hex_frame,is_first,timeout=30):

@@ -24,6 +24,9 @@ body {
   transition: width 0.3s;
   overflow-y: auto;
   }
+  .navbar {
+  background-color: #343a40 !important;  /* your custom color */
+}  
   
   .sidebar.collapsed {
     width: 70px;
@@ -568,3 +571,144 @@ input::placeholder {
   border-radius: 4px;
   padding-left: 6px; /* 👈 this will animate smoothly */
 }
+
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+.wizard-steps div {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.wizard-steps div:before {
+  content: attr(data-step);
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #000;
+  color: #000;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.wizard-steps .active:before {
+  background: #e5b931;
+  color: #fff;
+  border-color: #e5b931;
+} 
+.container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-width: 700px;
+  margin: auto;
+}
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 15px;
+}
+
+small {
+  display: block;
+  margin-top: 6px;
+  color: #555;
+}
+.buttons {
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+ .downloads {
+  margin-top: 20px;
+}
+
+.downloads a {
+  display: block;
+  color: #e5b931;
+  text-decoration: none;
+  margin-top: 6px;
+}
+
+.downloads a:hover {
+  text-decoration: underline;
+}
+.stepper {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+
+
+
+.status {
+    margin: 15px 0;
+    font-size: 16px;
+}
+
+.status .add { color: green; margin-right: 15px; }
+.status .update { color: gray; margin-right: 15px; }
+.status .failed { color: red; margin-right: 15px; }
+.status .total { color: navy; font-weight: bold; }
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.result-table th,
+.result-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.result-table th {
+    background-color: #f8f8f8;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.btn {
+    padding: 8px 18px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-prev {
+    background: #003366;
+    color: white;
+}
+
+.btn-submit {
+    background: #e5b931; 
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+.btn-batch {
+    background: #e5b931; 
+    color: white;
+}
+
+

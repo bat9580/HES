@@ -1,11 +1,16 @@
 import asyncio
 import sqlite3
+
+from fastapi import HTTPException, Request, Depends, status 
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 from services.database import get_db_connection
 from services.state import connected_clients,scheduler 
 import utils.meter_task_functions as task_functions
 from apscheduler.triggers.cron import CronTrigger 
 import os
 from datetime import datetime 
+templates = Jinja2Templates(directory="templates")  
 
 PRIORITY_HIGH = 0     # e.g., on-demand read 
 PRIORITY_MEDIUM = 5   # e.g., cron job 
@@ -144,3 +149,47 @@ def get_log_file_path(meter_number: str) -> str:
     daily_log_dir = os.path.join(LOG_DIR, current_date_str)
     os.makedirs(daily_log_dir, exist_ok=True)
     return os.path.join(daily_log_dir, f"{meter_number}.log") 
+
+
+def template_response(request: Request, template_name: str, context: dict = {}):
+    user = request.session.get("user")
+    default_context = {
+        "request": request,
+        "user": user,
+        "permissions": user.get("permissions", []) if user else []
+    }
+    default_context.update(context)
+    return templates.TemplateResponse(template_name, default_context)
+
+
+def require_permission(permission: str):
+    def checker(request: Request):
+        user = request.session.get("user")
+        if not user or permission not in user.get("permissions", []):
+            print("🚨 No session or no permission — redirecting to login")
+            # raise an HTTPException with special status
+            raise HTTPException(
+                status_code=status.HTTP_303_SEE_OTHER,
+                detail="redirect_login"
+            )
+        return user
+    return checker 
+
+def get_meters_by_line(line): 
+    query = "SELECT meter_number FROM installed_meters WHERE 1=1" 
+    params = [] 
+
+    if line:
+        query += " AND line LIKE ?"
+        params.append(f"%{line}%") 
+
+    conn = get_db_connection() 
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    rows = cursor.fetchall()   # returns list of Row objects
+
+    # Extract just the meter_number values
+    meter_numbers = [row[0] for row in rows]
+    print(meter_numbers) 
+    conn.close()
+    return meter_numbers  

@@ -1,21 +1,22 @@
 import sqlite3
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from services.state import connected_clients
 
 from services.database import get_db_connection
-from utils.utility_functions import add_task_to_existing_meters, remove_task_from_exsisting_meters,edit_tasks_on_existing_meters
+from utils.utility_functions import add_task_to_existing_meters, remove_task_from_exsisting_meters,edit_tasks_on_existing_meters, require_permission, template_response
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter() 
 @router.get("/system-task",response_class=HTMLResponse) 
-async def system_task(request: Request, message: str=None): 
+async def system_task(request: Request, message: str=None, user: dict = Depends(require_permission("System Task"))):  
     conn = get_db_connection()   
     tasks = conn.execute("SELECT *FROM tasks").fetchall()    
     print(tasks)    
     conn.close()
-    return templates.TemplateResponse("system_task.html", {"request": request, "tasks":tasks,"message":message})
+    return template_response(request,"system_task.html", {"request": request, "tasks":tasks,"message":message}) 
+
 @router.post("/add-task")  
 async def add_task(
     request: Request,
@@ -126,7 +127,7 @@ async def clear_selected_task(request:Request):
     message = f"✅ tasks are successfully deleted."  
     return RedirectResponse(url=f"/system-task?message={message}", status_code=303) 
 @router.get("/search-task", response_class=HTMLResponse)
-async def search_task(request:Request, task_name: str = ""):  
+async def search_task(request:Request, task_name: str = "",user: dict = Depends(require_permission("System Task"))):  
     query = "SELECT * FROM tasks WHERE 1=1"  
     params = [] 
     if task_name: 
@@ -136,8 +137,9 @@ async def search_task(request:Request, task_name: str = ""):
     searched_tasks = conn.execute(query, params).fetchall() 
     conn.close() 
  
-    return templates.TemplateResponse("system_task.html",{  
+    return template_response(request,"system_task.html",{  
         "request": request, 
         "tasks": searched_tasks,
         "task_name": task_name
     })
+ 

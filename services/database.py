@@ -240,8 +240,37 @@ CREATE TABLE IF NOT EXISTS regular_task_readings (
     total_reactive_power_C_avg REAL,     -- 13.4.0                   
     FOREIGN KEY (meter_number) REFERENCES installed_meters(meter_number)
 )
-""") 
-    
+""")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users( 
+            user_name TEXT PRIMARY KEY, 
+            nick_name TEXT,   
+            password TEXT, 
+            phone_number TEXT, 
+            email TEXT, 
+            role_name TEXT,
+            status TEXT 
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS roles( 
+            role_name TEXT PRIMARY KEY, 
+            remark TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS permissions( 
+            permission_name TEXT PRIMARY KEY
+        )
+    """) 
+    cursor.execute("""    
+        CREATE TABLE IF NOT EXISTS role_permissions(   
+            role_name TEXT REFERENCES roles(role_name), 
+            permission_name TEXT REFERENCES permissions(permission_name), 
+            PRIMARY KEY (role_name, permission_name) 
+        )
+    """)
+
     conn.commit()
     conn.close()
 

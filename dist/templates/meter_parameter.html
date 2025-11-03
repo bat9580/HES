@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+{% block content %}
+{% if message %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  {{ message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %} 
+
+
+<!-- Parameters Section -->
+<div class="card p-3 mb-4">
+  <h2 class="mb-4">Тоолуураас шууд унших</h2>  
+  <div class="tree">
+    <ul>
+      <li>
+        <span class="toggle" onclick="toggleChildren(this)">▶</span>
+        <label>Энергийн утга унших</label> 
+        <ul class="nested">
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.0"> <label>Нийт импортын актив энерги (1.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.1"> <label>Импортын актив энерги T1 (1.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.2"> <label>Импортын актив энерги T2 (1.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="1.8.3"> <label>Импортын актив энерги T3 (1.8.3)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.0"> <label>Нийт экспортын актив энерги (2.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.1"> <label>Экспортын актив энерги T1 (2.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.2"> <label>Экспортын актив энерги T2 (2.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="2.8.3"> <label>Экспортын актив энерги T3 (2.8.3)</label></li> 
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.0"> <label>Нийт импортын реактив энерги (3.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.1"> <label>Импортын реактив энерги T1 (3.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.2"> <label>Импортын реактив энерги T2 (3.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="3.8.3"> <label>Импортын реактив энерги T3 (3.8.3)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.0"> <label>Нийт экспортын реактив энерги (4.8.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.1"> <label>Экспортын реактив энерги T1 (4.8.1)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.2"> <label>Экспортын реактив энерги T2 (4.8.2)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="4.8.3"> <label>Экспортын реактив энерги T3 (4.8.3)</label></li>   
+        </ul>
+      </li>
+      <li>
+        <span class="toggle" onclick="toggleChildren(this)">▶</span>
+        <label>Агшин зуурын утга унших</label>
+        <ul class="nested">
+          <li><input type="checkbox" class="parameter-checkbox" value="32.7.0"> <label>A фазын хүчдэл(32.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="52.7.0"> <label>Б фазын хүчдэл(52.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="72.7.0"> <label>С фазын хүчдэл(72.7.0)</label></li> 
+          <li><input type="checkbox" class="parameter-checkbox" value="31.7.0"> <label>A фазын гүйдэл(31.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="51.7.0"> <label>Б фазын гүйдэл(51.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="71.7.0"> <label>С фазын гүйдэл(71.7.0)</label></li> 
+          <li><input type="checkbox" class="parameter-checkbox" value="15.7.0"> <label>Нийт актив чадал(15.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="21.7.0"> <label>A фазын актив чадал(21.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="41.7.0"> <label>Б фазын актив чадал(41.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="61.7.0"> <label>С фазын актив чадал(61.7.0)</label></li>  
+          <li><input type="checkbox" class="parameter-checkbox" value="3.7.0"> <label>Нийт реактив чадал(3.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="23.7.0"> <label>A фазын реактив чадал(23.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="43.7.0"> <label>Б фазын реактив чадал(43.7.0)</label></li>
+          <li><input type="checkbox" class="parameter-checkbox" value="63.7.0"> <label>С фазын реактив чадал(63.7.0)</label></li>  
+          <li><input type="checkbox" class="parameter-checkbox" value="14.7.0"> <label>Давтамж (14.7.0)</label></li> 
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+<div class="p-4">
+
+  <form method = "GET" action = "/search-meter-parameter" class="row g-2 mb-3">
+    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="meter_number"
+                 placeholder="Тоолуур хайх"
+                 value="{{ meter_number | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="installed-meter-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="deviceDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+        </ul>
+        <input type="hidden" name="device_type" required>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="col-md-auto" style="width: 100%; min-height: 35px; height: auto;"> 
+        <div class="dropdown" style="height: 35px;">
+          <!-- Search Input + Dropdown Toggle Combined -->
+          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="col-md-2">
+      <select class="form-select"
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        <option value="">type</option>
+        <option value="DTS545S">DTS545S</option> 
+        <option value="DDSY283SR">DDSY283SR</option>   
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="device_type" 
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+        <option value="">Device type</option> 
+        <option value="GPRS Meter">GPRS Meter</option>
+        <option value="PLC Meter">PLC Meter</option>
+      </select>
+    </div> -->
+    <div class="col-md-auto" style="width: 4.166666%;">
+      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
+        <i class="bi bi-search"></i> 
+      </button>
+    </div>
+
+    <div class="col-md-auto" style="width: 4.166666%;"> 
+        <button type="button" id="read-button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
+          <i class="bi bi-book"></i>
+        </button>
+    </div>
+  </form>
+
+  <table class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th><input type="checkbox" id="select-all-meters"></th>
+        <th>#</th>
+        <th>Тоолуурын дугаар</th>
+        <th>CT харьцаа</th>
+        <th>VT харьцаа</th> 
+        <th>Шугам</th> 
+        <th>Тайлбар</th>
+        <th>Төлөв</th>
+        <th>Үр дүн</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for meter in installed_meters %}
+      <tr>
+        <td>
+            <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
+        </td>
+        <td>{{ loop.index }}</td>
+        <td>{{ meter['meter_number'] }}</td>
+        <td>{{ meter['CT_ratio'] }}</td>
+        <td>{{ meter['VT_ratio'] }}</td>
+        <td>{{ meter['line'] }}</td>
+        <td>{{ meter['remarks'] or '-' }}</td>
+        <td>
+          {% if meter['meter_number']|int in connected_clients %}   
+          <span class="badge bg-success">Online</span> 
+          {% else %}
+          <span class="badge bg-secondary">Offline</span>
+          {% endif %}
+        </td>
+        
+        <td>
+          <!-- result will be displayed here  --> 
+             <button class="btn btn-sm btn-outline-primary d-none result-button" 
+          id="result-{{ meter['meter_number'] }}" 
+          data-meter="{{ meter['meter_number'] }}" 
+          onclick="showResultModal(this)">
+             Result
+           </button>
+           <span id="result-{{meter['meter_number']}}" ></span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<!-- add button form for meter adding  -->
+
+
+<!-- result button  -->
+ <!-- <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultModalLabel">Meter Reading Result</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        
+        
+      </div>
+    </div>
+  </div>
+</div> -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultModalLabel">Уншилтын үр дүн</h5>  
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <!-- Toggle Buttons -->
+      <div class="modal-header">
+        <button id="showOriginalBtn" class="btn btn-primary btn-sm me-2">Original</button>
+        <button id="showCalculatedBtn" class="btn btn-secondary btn-sm">Calculated</button>
+      </div>
+
+      <div class="modal-body" >
+        <!-- Original table -->
+        <div id="originalTableWrapper">
+          
+        </div>
+
+        <!-- Calculated table (hidden initially) -->
+        <div id="calculatedTableWrapper" style="display:none;">
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
+  <script>
+document.getElementById('showOriginalBtn').addEventListener('click', function() {
+    document.getElementById('originalTableWrapper').style.display = 'block';
+    document.getElementById('calculatedTableWrapper').style.display = 'none';
+    this.classList.add('btn-primary');
+    this.classList.remove('btn-secondary');
+    document.getElementById('showCalculatedBtn').classList.add('btn-secondary');
+    document.getElementById('showCalculatedBtn').classList.remove('btn-primary');
+});
+document.getElementById('showCalculatedBtn').addEventListener('click', function() {
+    document.getElementById('originalTableWrapper').style.display = 'none';
+    document.getElementById('calculatedTableWrapper').style.display = 'block';
+    this.classList.add('btn-primary');
+    this.classList.remove('btn-secondary');
+    document.getElementById('showOriginalBtn').classList.add('btn-secondary');
+    document.getElementById('showOriginalBtn').classList.remove('btn-primary');
+});
+
+
+function formatResult(result) {
+  if (typeof result === 'object') {
+    return `<ul>` + Object.entries(result)
+      .map(([key, val]) => `<li><strong>${key}</strong>: ${val}</li>`)
+      .join("") + `</ul>`;
+  }
+  return result;
+}
+
+// 🔹 Global object to store results per meter
+const resultMap = {};
+const resultMap_calculated = {};
+// 🔹 Modal trigger function
+function showResultModal(button) {
+  const meterNumber = button.getAttribute("data-meter");
+  const resultHtml = resultMap[meterNumber] || "No result found";
+  const resultHtml_calculated = resultMap_calculated[meterNumber] || "No result found";
+  document.getElementById("calculatedTableWrapper").innerHTML = resultHtml_calculated;
+  document.getElementById("originalTableWrapper").innerHTML = resultHtml; 
+  new bootstrap.Modal(document.getElementById('resultModal')).show(); 
+}
+document.getElementById('read-button').addEventListener('click', function () {
+  const readBtn = this; // Reference to button
+  const originalContent = readBtn.innerHTML; // Store original text
+
+  // Show spinner and disable button
+  readBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+  readBtn.disabled = true; 
+
+
+  const selectedMeters = Array.from(document.querySelectorAll('.meter-checkbox:checked')).map(cb => cb.value);
+  const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value); 
+
+  if (selectedMeters.length === 0) {
+    alert("Please select at least one meter.");
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false; 
+    return;
+  }
+  if (selectedParameters.length === 0) {
+    alert("Please select at least one parameter.");
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false;
+    return;
+  }
+
+  fetch('/read-meter-parameter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selected_meters: selectedMeters, 
+      selected_parameters: selectedParameters
+    })
+  })
+.then(async response => {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let partial = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    partial += decoder.decode(value, { stream: true });
+    
+    let lines = partial.split("\n");
+    partial = lines.pop(); // last part might be incomplete
+
+    for (let line of lines) {
+      if (!line.trim()) continue; // skip empty lines
+      const item = JSON.parse(line);
+      
+      const btn = document.getElementById(`result-${item.meter_number}`);
+      if (btn) {
+        btn.classList.remove("d-none");
+        resultMap[item.meter_number] = formatResult(item.result);
+        resultMap_calculated[item.meter_number] = formatResult(item.result_calculated);
+        console.log(resultMap_calculated);
+      }
+    }
+  }
+})
+  .catch(error => {
+    console.error("Error:", error);
+    alert("Failed to send read command.");
+   // show error in all selected result fields
+  selectedMeters.forEach(meter => {
+    const resultField = document.getElementById(`result-${meter}`);
+    if (resultField) {
+      resultField.textContent = `Error: ${error.message}`; 
+    }
+  }); 
+  })
+  .finally(() => {
+    // Restore original button state
+    readBtn.innerHTML = originalContent;
+    readBtn.disabled = false;
+  });
+});
+
+
+
+document.getElementById("select-all-meters").addEventListener("change", function () {
+  const checkboxes = document.querySelectorAll(".meter-checkbox");
+  checkboxes.forEach(cb => cb.checked = this.checked);
+});
+    function toggleChildren(element) {
+    const nestedList = element.parentElement.querySelector(".nested");
+    if (nestedList) {
+      nestedList.classList.toggle("active");
+      element.textContent = nestedList.classList.contains("active") ? "▼" : "▶";
+    }
+  }
+document.addEventListener('DOMContentLoaded', function() {
+  const dropdowns = document.querySelectorAll('.dropdown');  
+  dropdowns.forEach(function(dropdown) {
+    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
+    const chevron = dropdown.querySelector('.dropdown-chevron');
+    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
+    
+
+    dropdown.addEventListener('mouseenter', function() {
+      if (!dropdown.classList.contains('show')) {
+        dropdown.classList.add('hover-show');
+      }
+    });
+
+    if (searchInput) {
+  const list = dropdown.querySelector('.dropdown-menu'); 
+   
+  // Fetch meters when input is focused
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '/get-installed-meters';   
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
+  });
+
+  // Real-time filtering — delegate to input
+  searchInput.addEventListener('input', function () {
+    const term = this.value.toLowerCase();
+    const dropdownItems = list.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
+    });
+  });
+
+  // Item selection — event delegation
+  list.addEventListener('click', function (e) {
+    if (e.target && e.target.matches('.dropdown-item')) {
+      if (searchInput) searchInput.value = e.target.textContent;
+      dropdown.classList.remove('show');
+      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      e.preventDefault();
+    }
+  }); 
+}
+
+    // Chevron rotation
+    if (chevron) {
+      chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    dropdown.addEventListener('show.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+    });
+    dropdown.addEventListener('hide.bs.dropdown', () => {
+      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+  });
+});
+$(document).ready(function () {
+    $('#parentNodeDropdown').jstree({
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
+                stripes: true
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
+        $('#treeSearch').val(data.node.text); 
+
+        $('#parentNodeDropdown').hide();
+
+    });
+
+    // Simple toggle click to open/close tree dropdown
+    $('#parentNodeDropdown').css({
+    position: 'absolute',
+    zIndex: 99999,   // super high so it’s always on top
+    background: '#fff', // optional, so it doesn't inherit transparency
+    border: '1px solid #ccc' // optional for visual clarity
+}).hide();
+    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
+    .insertBefore('#parentNodeDropdown')
+        .on('focus', function () {
+            $('#parentNodeDropdown').show();
+        })
+        .on('keyup', function () {
+            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        });
+
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
+            $('#parentNodeDropdown').hide();
+        }
+    });
+});
+
+function toggleChildren(el) {
+  el.classList.toggle("open");
+  const nested = el.parentElement.querySelector(".nested");
+  if (nested) nested.classList.toggle("active");
+}
+</script> 
+
+{% endblock %}

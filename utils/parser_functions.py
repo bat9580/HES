@@ -121,29 +121,30 @@ def parse_dlms_frame(hex_data,header_length=11):  # array eer irsen datag parse 
                 pos += 2 + length
                 structure.append({"type": "unknown", "tag": tag})
         result["pdu"]["data"].append(structure)
-    
+    print(result) 
     return result
 
 def process_dlms_data(parsed_data):
-    """Process the parsed data into a more readable format"""
     if "error" in parsed_data:
         return parsed_data
-    
+
     processed = []
-    
+
     for structure in parsed_data["pdu"]["data"]:
         item = {}
         for i, field in enumerate(structure):
             if field["type"] == "timestamp":
                 item["timestamp"] = field["value"]
             else:
-                # Use generic field names if we don't know their meaning
                 field_name = f"field_{i}"
                 if field["type"] == "octet_string":
                     field_name = "raw_data"
-                item[field_name] = field["value"]
+
+                # ✅ Use .get() to avoid KeyError
+                item[field_name] = field.get("value", field.get("tag", None))
+
         processed.append(item)
-    
+
     return processed
 def map_meter_data(definition_list, data_list):
     mapped_readings = []

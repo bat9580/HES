@@ -1,20 +1,21 @@
 import sqlite3
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from services.database import get_db_connection
-from utils.parameters import obis_to_column 
+from utils.parameters import obis_to_column
+from utils.utility_functions import require_permission, template_response 
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter() 
 @router.get("/line-management",response_class=HTMLResponse) 
-async def line_management(request: Request, message: str=None): 
+async def line_management(request: Request, message: str=None,user: dict = Depends(require_permission("Warehouse"))):     
     conn = get_db_connection()   
     lines = conn.execute("SELECT *FROM lines").fetchall()  
     print(lines)     
     conn.close()
-    return templates.TemplateResponse("line_management.html", {"request": request, "lines":lines,"message":message})
+    return template_response(request,"line_management.html", {"request": request, "lines":lines,"message":message})
 @router.post("/add-line") 
 async def add_line( 
     line_name: str = Form(...),

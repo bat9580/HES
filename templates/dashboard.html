@@ -1,25 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <div class="container my-4">
   <div class="row g-3 mb-4 align-items-center">
-        <div class="col d-flex align-items-center justify-content-between">
-            <h2 class="mb-0">Хяналтын самбар</h2>
-            <!-- Dropdown / search input next to title -->
-            <div style="width: 250px;">
-                <div class="dropdown" style="height: 35px;">
-                    <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown">
-                        <input type="text" class="form-control dropdown-search-input dimmed-text hoverable-input" placeholder="Бүлэг хайх" value="{{ Zone | default('') }}" style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </span>
-                    </div>
-                </div>
-            </div>
+  <div class="col d-flex align-items-center justify-content-between">
+    <!-- Left: Title -->
+    <h2 class="mb-0">Хяналтын самбар</h2>
+
+    <!-- Right: Search + Export button -->
+    <div class="d-flex align-items-center gap-2"> 
+      <div style="width: 170px;">
+        <div class="dropdown" style="height: 35px;">
+          <div class="dropdown-toggle-wrapper position-relative"> 
+            <input 
+                type="date" 
+                id="selected_date" 
+                name="selected_date" 
+                value="{{ selected_date | default('') }}" 
+                class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                style="height: 33px; border-radius: 2px !important; padding-right: 30px;" 
+            > 
+          </div>
         </div>
+      </div>   
+      
+      <!-- Search dropdown -->
+      <div style="width: 250px;">
+        <div class="dropdown" style="height: 35px;">
+          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown">  
+            <input type="text" 
+                   class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                   placeholder="Бүлэг хайх" 
+                   value="{{ Zone | default('') }}" 
+                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export button -->
+      <button type="button" 
+              onclick="exportTableToExcel()"  
+              class="btn btn-light border dimmed-text d-flex align-items-center justify-content-center"
+              style="height: 33px; width: 40px; border-radius: 2px;">
+        <i class="bi bi-upload"></i>
+      </button>
     </div>
+  </div>
+</div>
+
 
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
@@ -474,6 +508,33 @@ $(document).ready(function () {
         }
     });
 }); 
-   
+
+function exportTableToExcel() {
+  const selectedDate = document.getElementById('selected_date').value;
+  if (!selectedDate) {
+    alert('Please select a date first!');
+    return;
+  }
+
+  const url = `/export-Excel-24H-consumpsion?selected_date=${encodeURIComponent(selectedDate)}`;
+
+  fetch(url, {
+    method: 'GET'
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to download file');
+      return response.blob();
+    })
+    .then(blob => {
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `export_24H_${selectedDate}.xlsx`; 
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    })
+    .catch(err => console.error(err));
+}
 </script>
 {% endblock %}

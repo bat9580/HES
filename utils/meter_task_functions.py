@@ -123,7 +123,9 @@ async def loadProfileTask(meter_number):
 async def get_profile_data_and_parse(first_frame, second_frame, sender_queue, response_queue):
     await sender_queue.put(bytes.fromhex(first_frame))       
     response = await asyncio.wait_for(response_queue.get(),timeout=10) 
-    parsed_data  = parse_dlms_frame(response)  
+    parsed_data  = parse_dlms_frame(response)
+    print(response) 
+    print(parsed_data)   
     definition_list = process_dlms_data(parsed_data)  
     date_now = datetime.now(tz).replace(minute=0, second=0,microsecond=0).replace(tzinfo=None)     
     time_frame = generator_funcitons.time_frame_generate(second_frame,date_now, date_now)  
@@ -181,8 +183,7 @@ async def meter_writer(meter_number):
             frame = await queue.get()
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             hex_frame = frame.hex() 
-
-            print(f"📤 [meter_writer] Sending to {meter_number}: {hex_frame}")
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 📤 [meter_writer] Sending to {meter_number}: {hex_frame}")
             writer.write(frame)
             await writer.drain()
 
@@ -215,7 +216,7 @@ async def keep_connection(meter_number):
                 print(connected_clients[meter_number])  
         except Exception as e:
             print("timed out")
-            print(f"⚠️ Error reading  from meter {meter_number}: {e}")    
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ⚠️ [meter_writer] Error sending meter {meter_number}: {e}")    
 
 
 

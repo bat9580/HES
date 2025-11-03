@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wizard-steps">
+  <div  data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
+  <div class="active" data-step="2">Баталгаажуулах</div> 
+</div>
+
+<!-- Status Summary -->
+<div class="status"> <span class="add">Шинээр нэмэх: {{ add_success }}</span> <span class="update">Шинэчлэх тоолуур: {{ update_success }}</span> <span class="failed">Бүтэлгүйтсэн: {{ failed }}</span> <span class="total">Нийт: {{ total }}</span> </div>
+
+<!-- Current Exist Meter -->
+<h3 class="mt-4">Системд аль хэдийн бүртгэгдсэн тоолуурууд</h3> 
+<table class="table table-bordered table-striped text-center result-table">
+    <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>Тоолуурын дугаар</th> 
+        </tr>
+    </thead>
+    <tbody id="installed-body"></tbody> 
+</table>
+
+<!-- Current Exist DCU -->
+<h3 class="mt-4">Системд бүртгэгдээгүй тоолуурууд</h3>
+<table class="table table-bordered table-striped text-center result-table">
+    <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>Тоолуурын дугаар</th> 
+        </tr>
+    </thead>
+    <tbody id="not-installed-body"></tbody> 
+</table>
+
+<!-- Actions -->
+<p id="serverMessage" style="margin-top:10px; color:blue;"></p>  
+<div class="d-flex justify-content-between mt-4">
+    <a href="{{ url_for('previous_step') }}" class="btn btn-secondary">← Өмнөх</a>
+    <button id = "submit_meters" type="submit" class="btn btn-success">Илгээх</button>
+</div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const savedData = localStorage.getItem("meters");
+    if (!savedData) return;
+
+    const data = JSON.parse(savedData);
+    console.log("Loaded from storage:", data);
+
+    const installedBody = document.getElementById("installed-body");
+    const notInstalledBody = document.getElementById("not-installed-body");
+
+    // Fill installed meters
+    if (data.already_installed && data.already_installed.length > 0) {
+        data.already_installed.forEach((m, idx) => {
+            installedBody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${m}</td>
+                </tr>
+            `);
+        });
+    } else {
+        installedBody.innerHTML = `<tr><td colspan="2">No Data</td></tr>`;
+    }
+
+    // Fill not installed meters
+    if (data.new_meters && data.new_meters.length > 0) {
+        data.new_meters.forEach((m, idx) => {
+            notInstalledBody.insertAdjacentHTML("beforeend", `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${m}</td>
+                </tr>
+            `);
+        });
+    } else {
+        notInstalledBody.innerHTML = `<tr><td colspan="2">No Data</td></tr>`;
+    }
+
+    // Fill summary
+    document.querySelector(".add").textContent = `Шинээр нэмэх: ${data.new_meters.length}`;
+    document.querySelector(".update").textContent = `Шинэчлэх тоолуур: ${data.already_installed.length}`;
+    document.querySelector(".failed").textContent = `Бүтэлгүйтсэн: 0`;
+    document.querySelector(".total").textContent = `Нийт: ${data.total_uploaded}`; 
+});
+document.getElementById("submit_meters").addEventListener('click',function(e){
+    let meter_info = localStorage.getItem("excel_rows");
+    console.log(meter_info); 
+    fetch("/install_meters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meters: meter_info })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msgEl = document.getElementById("serverMessage");
+        msgEl.innerText = data.message || "No response from server"; 
+
+        // optional: set color depending on success or fail
+        msgEl.style.color = data.success ? "green" : "yellow";     
+        console.log("Server response:", data); 
+    })
+    .catch(err => console.error("Error:", err)); 
+    
+} )
+</script> 
+{% endblock %}

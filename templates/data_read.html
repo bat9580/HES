@@ -4,12 +4,12 @@
 
 <h2 class="mb-4">Татсан өгөгдөл унших</h2>
 <form method="GET" action="/search-one-reading" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
+    <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
           <input type="text" 
                  class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="meter_number"
+                 name="meter_number" 
                  placeholder="Тоолуур хайх"
                  value="{{ meter_number | default('') }}"
                  style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
@@ -28,7 +28,7 @@
         <input type="hidden" name="device_type" required>
       </div>
     </div>
-<div class="col-md-auto position-relative" style="width: 22%; min-height: 35px; height: auto;"> 
+<div class="col-md-auto position-relative" style="width: 20%; min-height: 35px; height: auto;"> 
   <select
       name="obis_code" 
       class="form-select dropdown-search-input dimmed-text hoverable-input"
@@ -76,7 +76,7 @@
   </select>
 </div>
     <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
-    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
+<div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
   <input 
     type="text" 
     id="daterange" 
@@ -84,12 +84,25 @@
     style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;"
     readonly
   >
-</div>
+</div> 
+      <div class="col-md-auto" style="width: 12%; min-height: 35px; height: auto;"> 
+        <div class="dropdown" style="height: 35px;">
+          <!-- Search Input + Dropdown Toggle Combined -->
+          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    
 
 <!-- Hidden inputs to submit dates -->
 <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
 <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
-    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
+    <div class="col-md-auto  position-relative " style="width: 8%; min-height: 35px; height: auto;"> 
           <select 
               name = "type" 
               class="form-select dropdown-search-input dimmed-text hoverable-input"
@@ -140,7 +153,51 @@
 </style>
 
 <script>
+$(document).ready(function () {
+    $('#parentNodeDropdown').jstree({
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
+                stripes: true
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
+        $('#treeSearch').val(data.node.text); 
 
+        $('#parentNodeDropdown').hide();
+
+    });
+
+    // Simple toggle click to open/close tree dropdown
+    $('#parentNodeDropdown').css({
+    position: 'absolute',
+    zIndex: 99999,   // super high so it’s always on top
+    background: '#fff', // optional, so it doesn't inherit transparency
+    border: '1px solid #ccc' // optional for visual clarity
+}).hide();
+    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
+    .insertBefore('#parentNodeDropdown')
+        .on('focus', function () {
+            $('#parentNodeDropdown').show();
+        })
+        .on('keyup', function () {
+            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        });
+
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
+            $('#parentNodeDropdown').hide();
+        }
+    });
+});
 
 
 $(function() {
