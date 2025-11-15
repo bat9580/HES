@@ -105,13 +105,11 @@ async def read_meter_ondemand_profile(request: Request):
             data_bytes = bytes.fromhex(data) 
             parsed_data  = parse_dlms_frame(data_bytes)     
             data_list = process_dlms_data(parsed_data) 
-            print(data_list) 
             mapped_data = map_meter_data(definition_list, data_list) 
             renamed_data = replace_obis_with_names(mapped_data) 
-            print(renamed_data)  
-            mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
-            renamed_data_calculated = replace_obis_with_names(mapped_data_calculated)    
             store_meter_reading_energy_profile(meter,mapped_data)  ## hadgalah 
+            mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
+            renamed_data_calculated = replace_obis_with_names(mapped_data_calculated)     
             store_meter_reading_energy_profile(meter,mapped_data_calculated,"energy_profile_readings_calculated")  ## hadgalah  
             result_data["result"] = renamed_data 
             result_data["result_calculated"] = renamed_data_calculated 

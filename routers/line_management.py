@@ -13,7 +13,6 @@ router = APIRouter()
 async def line_management(request: Request, message: str=None,user: dict = Depends(require_permission("Warehouse"))):     
     conn = get_db_connection()   
     lines = conn.execute("SELECT *FROM lines").fetchall()  
-    print(lines)     
     conn.close()
     return template_response(request,"line_management.html", {"request": request, "lines":lines,"message":message})
 @router.post("/add-line") 

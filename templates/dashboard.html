@@ -43,6 +43,14 @@
         </div>
       </div>
 
+      <!-- Switch button -->
+      <div class="form-check form-switch d-flex align-items-center" style="height: 33px; min-width: 120px;">
+        <input class="form-check-input" type="checkbox" role="switch" id="dashboardSwitch" style="cursor: pointer;">
+        <label class="form-check-label ms-2 dimmed-text mb-0" for="dashboardSwitch" style="cursor: pointer; font-size: 14px; min-width: 80px; display: inline-block;">
+          <span id="switchLabel" style="display: inline-block; width: 80px; text-align: left;">Original</span>
+        </label>
+      </div>
+
       <!-- Export button -->
       <button type="button" 
               onclick="exportTableToExcel()"  
@@ -371,7 +379,9 @@ const consumptionBarChart30day = new Chart(document.getElementById("consumptionB
     }
   });
   
-  
+// Store current data type (Original/Calculated) - declared globally
+let currentDataType = 'Original';
+
 $(document).ready(function () {
     $('#parentNodeDropdown').jstree({
         core: {
@@ -435,7 +445,8 @@ $(document).ready(function () {
     $.getJSON(`/hourly-consumption-last24h`, {
       line: data.node.text,
       start: isoStart_1,
-      end: isoEnd_1
+      end: isoEnd_1,
+      type: currentDataType
     }, function(response) {
       console.log(response)   
       if (response && Array.isArray(response)) { 
@@ -463,7 +474,8 @@ $(document).ready(function () {
     $.getJSON(`/daily-consumption-last30d`, { 
       line: data.node.text,
       start: isoStart_2,
-      end: isoEnd_2
+      end: isoEnd_2,
+      type: currentDataType
     }, function(response) {
       console.log(response)   
       if (response && Array.isArray(response)) { 
@@ -508,6 +520,97 @@ $(document).ready(function () {
         }
     });
 }); 
+
+// Function to refresh all charts based on current switch state
+function refreshAllCharts() {
+  const line = $('#treeSearch').val();
+  if (!line) {
+    return; // No line selected, can't refresh
+  }
+
+  const offsetMs = 8 * 60 * 60 * 1000; // UTC+8
+  const endTime = new Date(Date.now() + offsetMs);
+  
+  // Active power (last 6 hours) - uses regular_task_readings (no calculated version)
+  const startTime = new Date(endTime.getTime() - 6 * 60 * 60 * 1000);
+  const isoEnd = endTime.toISOString().split('.')[0];
+  const isoStart = startTime.toISOString().split('.')[0];
+
+  $.getJSON(`/active-power-last6h`, {
+    line: line,
+    start: isoStart,
+    end: isoEnd
+  }, function(response) {
+    if (response && Array.isArray(response)) {
+      const labels = response.map(item => item.timestamp);
+      const values = response.map(item => item.value);
+      consumptionLineChart.data.labels = labels;
+      consumptionLineChart.data.datasets[0].data = values;
+      consumptionLineChart.update();
+    }
+  });
+
+  // Hourly consumption (last 24 hours)
+  const startTime_1 = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+  const isoEnd_1 = endTime.toISOString().split('.')[0];
+  const isoStart_1 = startTime_1.toISOString().split('.')[0];
+
+  $.getJSON(`/hourly-consumption-last24h`, {
+    line: line,
+    start: isoStart_1,
+    end: isoEnd_1,
+    type: currentDataType
+  }, function(response) {
+    if (response && Array.isArray(response)) {
+      const labels = response.map(item => item.timestamp);
+      const values = response.map(item => item.value);
+      consumptionBarChart24hour.data.labels = labels;
+      consumptionBarChart24hour.data.datasets[0].data = values;
+      consumptionBarChart24hour.update();
+    }
+  });
+
+  // Daily consumption (last 30 days)
+  const startTime_2 = new Date(endTime.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const isoEnd_2 = endTime.toISOString().split('.')[0];
+  const isoStart_2 = startTime_2.toISOString().split('.')[0];
+
+  $.getJSON(`/daily-consumption-last30d`, {
+    line: line,
+    start: isoStart_2,
+    end: isoEnd_2,
+    type: currentDataType
+  }, function(response) {
+    if (response && Array.isArray(response)) {
+      const labels = response.map(item => item.timestamp);
+      const values = response.map(item => item.value);
+      consumptionBarChart30day.data.labels = labels;
+      consumptionBarChart30day.data.datasets[0].data = values;
+      consumptionBarChart30day.update();
+    }
+  });
+}
+
+// Switch button functionality
+$(document).ready(function() {
+  $('#dashboardSwitch').on('change', function() {
+    const isChecked = $(this).is(':checked');
+    const label = $('#switchLabel');
+    
+    if (isChecked) {
+      label.text('Calculated');
+      currentDataType = 'Calculated';
+      console.log('Switch is ON - Calculated mode enabled');
+    } else {
+      label.text('Original');
+      currentDataType = 'Original';
+      console.log('Switch is OFF - Original mode enabled');
+    }
+    
+    // Refresh all charts with new data type
+    refreshAllCharts();
+  });
+});
 
 function exportTableToExcel() {
   const selectedDate = document.getElementById('selected_date').value;

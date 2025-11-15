@@ -172,8 +172,9 @@ def map_meter_data(definition_list, data_list):
         mapped_readings.append(mapped_entry)
     return mapped_readings 
 
-def calculate_with_transformer_values(mapped_readings,CT_ratio,VT_ratio):   
-    for reading in mapped_readings:
+def calculate_with_transformer_values(mapped_readings,CT_ratio,VT_ratio): 
+    mapped_data = mapped_readings  
+    for reading in mapped_data:
         for obis, value in reading.items():
             if obis in current_obis:
                 reading[obis] = value * CT_ratio
@@ -181,7 +182,7 @@ def calculate_with_transformer_values(mapped_readings,CT_ratio,VT_ratio):
                 reading[obis] = value * VT_ratio
             elif obis in energy_obis:
                 reading[obis] = value * CT_ratio * VT_ratio
-    return mapped_readings 
+    return mapped_data  
  
 def calculate_value_with_ratio_single(value,obis,CT_ratio,VT_ratio): 
 

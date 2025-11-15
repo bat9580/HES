@@ -530,6 +530,7 @@ imported by:
  &#8226;   <a href="#starlette.formparsers">starlette.formparsers</a>
  &#8226;   <a href="#starlette.middleware">starlette.middleware</a>
  &#8226;   <a href="#starlette.middleware.base">starlette.middleware.base</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.middleware.exceptions">starlette.middleware.exceptions</a>
  &#8226;   <a href="#starlette.requests">starlette.requests</a>
  &#8226;   <a href="#starlette.responses">starlette.responses</a>
@@ -1909,6 +1910,7 @@ imported by:
  &#8226;   <a href="#starlette.formparsers">starlette.formparsers</a>
  &#8226;   <a href="#starlette.middleware">starlette.middleware</a>
  &#8226;   <a href="#starlette.middleware.base">starlette.middleware.base</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.middleware.errors">starlette.middleware.errors</a>
  &#8226;   <a href="#starlette.middleware.exceptions">starlette.middleware.exceptions</a>
  &#8226;   <a href="#starlette.middleware.sessions">starlette.middleware.sessions</a>
@@ -4957,6 +4959,198 @@ imported by:
  &#8226;   <a href="#starlette.concurrency">starlette.concurrency</a>
  &#8226;   <a href="#starlette.responses">starlette.responses</a>
  &#8226;   <a href="#starlette.staticfiles">starlette.staticfiles</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/__init__.py" type="text/plain"><tt>api_endpoints</tt></a>
+<span class="moduletype">Package</span>  <div class="import">
+imports:
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meter_installation_api">api_endpoints.meter_installation_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meter_installation_api">api_endpoints.meter_installation_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.auth_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/auth_api.py" type="text/plain"><tt>api_endpoints.auth_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#fastapi.security">fastapi.security</a>
+ &#8226;   <a href="#hashlib">hashlib</a>
+ &#8226;   <a href="#pydantic">pydantic</a>
+ &#8226;   <a href="#pydantic.BaseModel">pydantic.BaseModel</a>
+ &#8226;   <a href="#secrets">secrets</a>
+ &#8226;   <a href="#services.database">services.database</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.dashboard_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/dashboard_api.py" type="text/plain"><tt>api_endpoints.dashboard_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#services.database">services.database</a>
+ &#8226;   <a href="#services.state">services.state</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.dcu_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/dcu_api.py" type="text/plain"><tt>api_endpoints.dcu_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#pydantic">pydantic</a>
+ &#8226;   <a href="#pydantic.BaseModel">pydantic.BaseModel</a>
+ &#8226;   <a href="#services.database">services.database</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.meter_installation_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/meter_installation_api.py" type="text/plain"><tt>api_endpoints.meter_installation_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#services.database">services.database</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.meters_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/meters_api.py" type="text/plain"><tt>api_endpoints.meters_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#pydantic">pydantic</a>
+ &#8226;   <a href="#pydantic.BaseModel">pydantic.BaseModel</a>
+ &#8226;   <a href="#services.database">services.database</a>
+ &#8226;   <a href="#services.state">services.state</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.readings_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/readings_api.py" type="text/plain"><tt>api_endpoints.readings_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#services.database">services.database</a>
+ &#8226;   <a href="#typing">typing</a>
+ &#8226;   <a href="#utils.utility_functions">utils.utility_functions</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="api_endpoints.system_api"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/api_endpoints/system_api.py" type="text/plain"><tt>api_endpoints.system_api</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
+ &#8226;   <a href="#services.database">services.database</a>
+ &#8226;   <a href="#services.state">services.state</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#webapp">webapp</a>
 
   </div>
 
@@ -9109,6 +9303,10 @@ imports:
 imported by:
     <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#annotated_types">annotated_types</a>
+ &#8226;   <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
  &#8226;   <a href="#apscheduler.executors.base">apscheduler.executors.base</a>
  &#8226;   <a href="#apscheduler.jobstores.etcd">apscheduler.jobstores.etcd</a>
  &#8226;   <a href="#apscheduler.jobstores.redis">apscheduler.jobstores.redis</a>
@@ -13070,7 +13268,14 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#fastapi._compat">fastapi._compat</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meter_installation_api">api_endpoints.meter_installation_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+ &#8226;   <a href="#fastapi._compat">fastapi._compat</a>
  &#8226;   <a href="#fastapi.applications">fastapi.applications</a>
  &#8226;   <a href="#fastapi.background">fastapi.background</a>
  &#8226;   <a href="#fastapi.concurrency">fastapi.concurrency</a>
@@ -13081,6 +13286,7 @@ imported by:
  &#8226;   <a href="#fastapi.exception_handlers">fastapi.exception_handlers</a>
  &#8226;   <a href="#fastapi.exceptions">fastapi.exceptions</a>
  &#8226;   <a href="#fastapi.logger">fastapi.logger</a>
+ &#8226;   <a href="#fastapi.middleware">fastapi.middleware</a>
  &#8226;   <a href="#fastapi.openapi">fastapi.openapi</a>
  &#8226;   <a href="#fastapi.openapi.utils">fastapi.openapi.utils</a>
  &#8226;   <a href="#fastapi.param_functions">fastapi.param_functions</a>
@@ -13471,6 +13677,40 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="fastapi.middleware"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/.venv/Lib/site-packages/fastapi/middleware/__init__.py" type="text/plain"><tt>fastapi.middleware</tt></a>
+<span class="moduletype">Package</span>  <div class="import">
+imports:
+    <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#starlette.middleware">starlette.middleware</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#fastapi.middleware.cors">fastapi.middleware.cors</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="fastapi.middleware.cors"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/.venv/Lib/site-packages/fastapi/middleware/cors.py" type="text/plain"><tt>fastapi.middleware.cors</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#fastapi.middleware">fastapi.middleware</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#webapp">webapp</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="fastapi.openapi"></a>
   <a target="code" href="///C:/Users/User/Desktop/HES/.venv/Lib/site-packages/fastapi/openapi/__init__.py" type="text/plain"><tt>fastapi.openapi</tt></a>
 <span class="moduletype">Package</span>  <div class="import">
@@ -13680,7 +13920,14 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#fastapi">fastapi</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meter_installation_api">api_endpoints.meter_installation_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+ &#8226;   <a href="#fastapi">fastapi</a>
  &#8226;   <a href="#fastapi.openapi.utils">fastapi.openapi.utils</a>
  &#8226;   <a href="#routers.DCU_management">routers.DCU_management</a>
  &#8226;   <a href="#routers.batch_upload_meter">routers.batch_upload_meter</a>
@@ -13767,7 +14014,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#fastapi.security.api_key">fastapi.security.api_key</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#fastapi.security.api_key">fastapi.security.api_key</a>
  &#8226;   <a href="#fastapi.security.base">fastapi.security.base</a>
  &#8226;   <a href="#fastapi.security.http">fastapi.security.http</a>
  &#8226;   <a href="#fastapi.security.oauth2">fastapi.security.oauth2</a>
@@ -14385,6 +14633,7 @@ imported by:
  &#8226;   <a href="#six">six</a>
  &#8226;   <a href="#starlette._utils">starlette._utils</a>
  &#8226;   <a href="#starlette.concurrency">starlette.concurrency</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.responses">starlette.responses</a>
  &#8226;   <a href="#starlette.routing">starlette.routing</a>
  &#8226;   <a href="#statistics">statistics</a>
@@ -14912,7 +15161,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#hmac">hmac</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#hmac">hmac</a>
  &#8226;   <a href="#itsdangerous.signer">itsdangerous.signer</a>
  &#8226;   <a href="#jinja2.bccache">jinja2.bccache</a>
  &#8226;   <a href="#jinja2.loaders">jinja2.loaders</a>
@@ -44449,7 +44699,10 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#fastapi._compat">fastapi._compat</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#fastapi._compat">fastapi._compat</a>
  &#8226;   <a href="#fastapi.dependencies.utils">fastapi.dependencies.utils</a>
  &#8226;   <a href="#fastapi.encoders">fastapi.encoders</a>
  &#8226;   <a href="#fastapi.exceptions">fastapi.exceptions</a>
@@ -44518,7 +44771,10 @@ imported by:
   <a target="code" href="" type="text/plain"><tt>pydantic.BaseModel</tt></a>
 <span class="moduletype">MissingModule</span>  <div class="import">
 imported by:
-    <a href="#fastapi._compat">fastapi._compat</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#fastapi._compat">fastapi._compat</a>
  &#8226;   <a href="#fastapi.dependencies.utils">fastapi.dependencies.utils</a>
  &#8226;   <a href="#fastapi.encoders">fastapi.encoders</a>
  &#8226;   <a href="#fastapi.exceptions">fastapi.exceptions</a>
@@ -48801,6 +49057,7 @@ imported by:
  &#8226;   <a href="#sre_compile">sre_compile</a>
  &#8226;   <a href="#sre_constants">sre_constants</a>
  &#8226;   <a href="#sre_parse">sre_parse</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.responses">starlette.responses</a>
  &#8226;   <a href="#starlette.routing">starlette.routing</a>
  &#8226;   <a href="#string">string</a>
@@ -49546,7 +49803,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#multiprocessing.shared_memory">multiprocessing.shared_memory</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#multiprocessing.shared_memory">multiprocessing.shared_memory</a>
  &#8226;   <a href="#starlette.responses">starlette.responses</a>
 
   </div>
@@ -49621,7 +49879,14 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#routers.DCU_management">routers.DCU_management</a>
+    <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meter_installation_api">api_endpoints.meter_installation_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+ &#8226;   <a href="#routers.DCU_management">routers.DCU_management</a>
  &#8226;   <a href="#routers.batch_upload_meter">routers.batch_upload_meter</a>
  &#8226;   <a href="#routers.dashboard">routers.dashboard</a>
  &#8226;   <a href="#routers.data_read">routers.data_read</a>
@@ -49657,7 +49922,10 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#routers.dashboard">routers.dashboard</a>
+    <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+ &#8226;   <a href="#routers.dashboard">routers.dashboard</a>
  &#8226;   <a href="#routers.ondemand_reading">routers.ondemand_reading</a>
  &#8226;   <a href="#routers.read_DCU_parameter">routers.read_DCU_parameter</a>
  &#8226;   <a href="#routers.read_meter_parameter">routers.read_meter_parameter</a>
@@ -54698,6 +54966,7 @@ imported by:
  &#8226;   <a href="#fastapi.dependencies.utils">fastapi.dependencies.utils</a>
  &#8226;   <a href="#starlette.applications">starlette.applications</a>
  &#8226;   <a href="#starlette.formparsers">starlette.formparsers</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.middleware.sessions">starlette.middleware.sessions</a>
  &#8226;   <a href="#starlette.requests">starlette.requests</a>
  &#8226;   <a href="#starlette.responses">starlette.responses</a>
@@ -54783,8 +55052,10 @@ imports:
   <div class="import">
 imported by:
     <a href="#fastapi.applications">fastapi.applications</a>
+ &#8226;   <a href="#fastapi.middleware">fastapi.middleware</a>
  &#8226;   <a href="#starlette.applications">starlette.applications</a>
  &#8226;   <a href="#starlette.middleware.base">starlette.middleware.base</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.middleware.errors">starlette.middleware.errors</a>
  &#8226;   <a href="#starlette.middleware.exceptions">starlette.middleware.exceptions</a>
  &#8226;   <a href="#starlette.middleware.sessions">starlette.middleware.sessions</a>
@@ -54814,6 +55085,29 @@ imports:
 imported by:
     <a href="#fastapi.applications">fastapi.applications</a>
  &#8226;   <a href="#starlette.applications">starlette.applications</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="starlette.middleware.cors"></a>
+  <a target="code" href="///C:/Users/User/Desktop/HES/.venv/Lib/site-packages/starlette/middleware/cors.py" type="text/plain"><tt>starlette.middleware.cors</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#'collections.abc'">'collections.abc'</a>
+ &#8226;   <a href="#__future__">__future__</a>
+ &#8226;   <a href="#functools">functools</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#starlette.datastructures">starlette.datastructures</a>
+ &#8226;   <a href="#starlette.middleware">starlette.middleware</a>
+ &#8226;   <a href="#starlette.responses">starlette.responses</a>
+ &#8226;   <a href="#starlette.types">starlette.types</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#fastapi.middleware.cors">fastapi.middleware.cors</a>
 
   </div>
 
@@ -54990,6 +55284,7 @@ imported by:
  &#8226;   <a href="#fastapi.routing">fastapi.routing</a>
  &#8226;   <a href="#starlette.applications">starlette.applications</a>
  &#8226;   <a href="#starlette.middleware.base">starlette.middleware.base</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.middleware.errors">starlette.middleware.errors</a>
  &#8226;   <a href="#starlette.middleware.exceptions">starlette.middleware.exceptions</a>
  &#8226;   <a href="#starlette.routing">starlette.routing</a>
@@ -55149,6 +55444,7 @@ imported by:
  &#8226;   <a href="#starlette.datastructures">starlette.datastructures</a>
  &#8226;   <a href="#starlette.middleware">starlette.middleware</a>
  &#8226;   <a href="#starlette.middleware.base">starlette.middleware.base</a>
+ &#8226;   <a href="#starlette.middleware.cors">starlette.middleware.cors</a>
  &#8226;   <a href="#starlette.middleware.errors">starlette.middleware.errors</a>
  &#8226;   <a href="#starlette.middleware.exceptions">starlette.middleware.exceptions</a>
  &#8226;   <a href="#starlette.middleware.sessions">starlette.middleware.sessions</a>
@@ -56712,6 +57008,12 @@ imported by:
  &#8226;   <a href="#anyio.streams.stapled">anyio.streams.stapled</a>
  &#8226;   <a href="#anyio.streams.tls">anyio.streams.tls</a>
  &#8226;   <a href="#anyio.to_thread">anyio.to_thread</a>
+ &#8226;   <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
  &#8226;   <a href="#apscheduler.triggers.calendarinterval">apscheduler.triggers.calendarinterval</a>
  &#8226;   <a href="#asyncio.timeouts">asyncio.timeouts</a>
  &#8226;   <a href="#click._compat">click._compat</a>
@@ -58761,7 +59063,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#routers.batch_upload_meter">routers.batch_upload_meter</a>
+    <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#routers.batch_upload_meter">routers.batch_upload_meter</a>
  &#8226;   <a href="#routers.dashboard">routers.dashboard</a>
  &#8226;   <a href="#routers.data_read">routers.data_read</a>
  &#8226;   <a href="#routers.energy_profile_read">routers.energy_profile_read</a>
@@ -60314,9 +60617,18 @@ imported by:
   <a target="code" href="///C:/Users/User/Desktop/HES/webapp.py" type="text/plain"><tt>webapp</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#asyncio">asyncio</a>
+    <a href="#api_endpoints">api_endpoints</a>
+ &#8226;   <a href="#api_endpoints.auth_api">api_endpoints.auth_api</a>
+ &#8226;   <a href="#api_endpoints.dashboard_api">api_endpoints.dashboard_api</a>
+ &#8226;   <a href="#api_endpoints.dcu_api">api_endpoints.dcu_api</a>
+ &#8226;   <a href="#api_endpoints.meter_installation_api">api_endpoints.meter_installation_api</a>
+ &#8226;   <a href="#api_endpoints.meters_api">api_endpoints.meters_api</a>
+ &#8226;   <a href="#api_endpoints.readings_api">api_endpoints.readings_api</a>
+ &#8226;   <a href="#api_endpoints.system_api">api_endpoints.system_api</a>
+ &#8226;   <a href="#asyncio">asyncio</a>
  &#8226;   <a href="#datetime">datetime</a>
  &#8226;   <a href="#fastapi">fastapi</a>
+ &#8226;   <a href="#fastapi.middleware.cors">fastapi.middleware.cors</a>
  &#8226;   <a href="#fastapi.requests">fastapi.requests</a>
  &#8226;   <a href="#fastapi.responses">fastapi.responses</a>
  &#8226;   <a href="#fastapi.staticfiles">fastapi.staticfiles</a>

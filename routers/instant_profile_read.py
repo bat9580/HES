@@ -61,8 +61,9 @@ async def search_instant_profile(
     filter_params = []
 
     # ✅ Line or meter number filter
-    meter_numbers_line = get_meters_by_line(line)
-    if meter_numbers_line:
+    
+    if line:  
+        meter_numbers_line = get_meters_by_line(line)
         placeholders = ",".join("?" for _ in meter_numbers_line)
         base_query += f" AND meter_number IN ({placeholders})"
         filter_params.extend(meter_numbers_line)

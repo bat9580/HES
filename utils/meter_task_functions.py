@@ -106,15 +106,16 @@ async def loadProfileTask(meter_number):
         response = await asyncio.wait_for(response_queue.get(),timeout=10) 
         mapped_data = await get_profile_data_and_parse(frames.METER_ENERGY_LOAD_PROFILE_1,frames.METER_ENERGY_LOAD_PROFILE_2_HEADER, sender_queue, response_queue) 
         print(mapped_data) 
-        mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
+
         store_meter_reading_energy_profile(meter_number,mapped_data) 
+        mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1])  
         store_meter_reading_energy_profile(meter_number,mapped_data_calculated,"energy_profile_readings_calculated")  ## hadgalah  
 
     except Exception as e:
         mapped_data = await get_profile_data_and_parse(frames.METER_ENERGY_LOAD_PROFILE_1,frames.METER_ENERGY_LOAD_PROFILE_2_HEADER, sender_queue, response_queue) 
         print(mapped_data)
-        mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
         store_meter_reading_energy_profile(meter_number,mapped_data) 
+        mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1])
         store_meter_reading_energy_profile(meter_number,mapped_data_calculated,"energy_profile_readings_calculated")  ## hadgalah  
  
          
@@ -161,15 +162,15 @@ async def instantanousProfileTask(meter_number):
         response = await asyncio.wait_for(response_queue.get(),timeout=10) 
         mapped_data = await get_profile_data_and_parse(frames.METER_INSTANT_LOAD_PROFILE_1,frames.METER_INSTANT_LOAD_PROFILE_2_HEADER, sender_queue, response_queue) 
         print(mapped_data)  
-        mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
         store_meter_reading_instant_profile(meter_number,mapped_data)
+        mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
         store_meter_reading_instant_profile(meter_number,mapped_data_calculated,"instantaneous_profile_readings_calculated")  ## hadgalah    
  
     except Exception as e:
             mapped_data = await get_profile_data_and_parse(frames.METER_INSTANT_LOAD_PROFILE_1,frames.METER_INSTANT_LOAD_PROFILE_2_HEADER, sender_queue, response_queue) 
             print(mapped_data)  
-            mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
             store_meter_reading_instant_profile(meter_number,mapped_data)
+            mapped_data_calculated = calculate_with_transformer_values(mapped_data,ratios[0],ratios[1]) 
             store_meter_reading_instant_profile(meter_number,mapped_data_calculated,"instantaneous_profile_readings_calculated")  ## hadgalah    
 
             

@@ -75,6 +75,8 @@ def store_meter_reading_instant_profile(meter_number, reading_data, table_name =
 def store_meter_reading_energy_profile(meter_number, reading_data,table_name = "energy_profile_readings"): 
     conn = get_db_connection()
     cursor = conn.cursor()  
+    print("storing_table:",table_name) 
+    print("storing_data:",reading_data) 
     for reading in reading_data:
         try:
             # First check if record exists
@@ -135,7 +137,8 @@ def store_meter_reading_energy_profile(meter_number, reading_data,table_name = "
                     reading.get('4.8.3'),  # export_reactive_energy_T3
                     reading.get('4.8.4')   # export_reactive_energy_T4
                 ))
-            conn.commit() 
+            conn.commit()
+             
             return True
         except sqlite3.IntegrityError as e:
             print(f"Duplicate entry prevented: {e}")

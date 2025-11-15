@@ -131,10 +131,11 @@ async def getActivePowerdata(request: Request,
 async def getConsumptionData24(request: Request,
                     line: str = "", 
                     start: str = "", 
-                    end: str = ""  
+                    end: str = "",
+                    type: str = "Calculated"
                     ):
     column_name = "import_total_active_energy"  
-    table_name = "energy_profile_readings_calculated"  
+    table_name = "energy_profile_readings_calculated" if type == "Calculated" else "energy_profile_readings"  
     
     query = f"""
         SELECT meter_number, timestamp, {column_name}  
@@ -204,10 +205,11 @@ async def getConsumptionData30(
     request: Request,
     line: str = "", 
     start: str = "", 
-    end: str = ""
+    end: str = "",
+    type: str = "Calculated"
 ):
     column_name = "import_total_active_energy"  
-    table_name = "energy_profile_readings_calculated"   
+    table_name = "energy_profile_readings_calculated" if type == "Calculated" else "energy_profile_readings"   
     print(start) 
     print(end) 
     # If no date range is provided, default to last 30 days

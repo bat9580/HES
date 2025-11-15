@@ -8,12 +8,6 @@ from utils.utility_functions import get_meters_by_line, require_permission, temp
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter() 
-# @router.get("/energy-profile-read",response_class=HTMLResponse) 
-# async def profile_read(request: Request, message: str=None,user: dict = Depends(require_permission("Data analysis"))): 
-#     conn = get_db_connection()   
-#     readings = conn.execute("SELECT *FROM energy_profile_readings").fetchall()
-#     conn.close()
-#     return template_response(request, "energy_profile_read.html", {"request": request, "readings":readings,"message":message})   
 @router.get("/energy-profile-read", response_class=HTMLResponse)
 async def profile_read(
     request: Request,
@@ -71,14 +65,17 @@ async def search_energy_load_profile(
     count_params = []
 
     # ✅ Filter by line or meter number
-    meter_numbers_line = get_meters_by_line(line)
-    if meter_numbers_line:
+    print(meter_number) 
+    
+    if line:
+        meter_numbers_line = get_meters_by_line(line) 
         placeholders = ",".join("?" for _ in meter_numbers_line)
         query += f" AND meter_number IN ({placeholders})"
         count_query += f" AND meter_number IN ({placeholders})"
         params.extend(meter_numbers_line)
         count_params.extend(meter_numbers_line)
     elif meter_number:
+        print("meter_number:", meter_number)
         query += " AND meter_number LIKE ?"
         count_query += " AND meter_number LIKE ?"
         params.append(f"%{meter_number}%")

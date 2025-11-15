@@ -4,7 +4,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from routers import dashboard, energy_profile_read,data_read, meter_management, DCU_management, read_DCU_parameter, unregistered_device, meter_installation, read_meter_parameter, system_task, ondemand_reading, line_management, login, instant_profile_read, batch_upload_meter,user_management, role_management 
-#from api_endpoints import meter_installation 
+from api_endpoints import meters_api, readings_api, dcu_api, system_api, meter_installation_api, auth_api
+from api_endpoints import dashboard_api
 from services.state import connected_clients,scheduler
 from fastapi import status
 from services.database import init_db, get_db_connection
@@ -18,11 +19,22 @@ import utils.frames as frames
 import utils.utility_functions as utility_functions
 from starlette.middleware.sessions import SessionMiddleware  
 from utils.parameters import meter_parameters 
+from fastapi.middleware.cors import CORSMiddleware 
+
 CONFIG_FILE = "config.json" 
 LOG_DIR = "meter_logs"  
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="mysecret",max_age=120 * 60) # session lifetime = 120 minutes
+# for apis 
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow any origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+ 
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -192,6 +204,7 @@ async def start_tcp_server_background():
     await start_tcp_server()
     scheduler.start()
 
+# Web UI Routers
 app.include_router(meter_management.router)
 app.include_router(DCU_management.router) 
 app.include_router(read_DCU_parameter.router)
@@ -208,7 +221,16 @@ app.include_router(login.router)
 app.include_router(instant_profile_read.router)  
 app.include_router(batch_upload_meter.router)  
 app.include_router(user_management.router) 
-app.include_router(role_management.router) 
+app.include_router(role_management.router)
+
+# REST API Endpoints
+app.include_router(auth_api.router)  # Authentication endpoints
+app.include_router(meters_api.router)
+app.include_router(readings_api.router)
+app.include_router(dcu_api.router)
+app.include_router(system_api.router)
+app.include_router(meter_installation_api.router)  # Legacy endpoint 
+app.include_router(dashboard_api.router)
  
  
 

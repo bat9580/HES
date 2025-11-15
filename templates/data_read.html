@@ -4,6 +4,7 @@
 
 <h2 class="mb-4">Татсан өгөгдөл унших</h2>
 <form method="GET" action="/search-one-reading" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+<input type="hidden" name="page" value="1">
     <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
@@ -11,6 +12,7 @@
                  class="form-control dropdown-search-input dimmed-text hoverable-input" 
                  name="meter_number" 
                  placeholder="Тоолуур хайх"
+                 autocomplete="off" 
                  value="{{ meter_number | default('') }}"
                  style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
           <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
@@ -143,6 +145,68 @@
     <!-- dynamic rows here -->
   </tbody>
 </table>
+<div class="d-flex justify-content-between align-items-center mt-3">
+  {% if page > 1 %}
+    <a href="?page={{ page - 1 }}" class="btn btn-outline-primary btn-sm">Previous</a>
+  {% else %}
+    <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
+  {% endif %}
+
+  <span>Page {{ page }} of {{ total_pages }}</span>
+
+  {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}" class="btn btn-outline-primary btn-sm">Next</a>
+  {% else %}
+    <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
+  {% endif %}
+</div>  
+
+<!-- {% set current_page = page | default(1) %}
+{% set total_pages_val = total_pages | default(0) %}
+{% set limit_val = limit | default(100) %}
+{% set total_rows_val = total_rows | default(0) %}
+{% set showing_start = ((current_page - 1) * limit_val) + 1 if total_rows_val else 0 %}
+{% set showing_end = [current_page * limit_val, total_rows_val]|min %}
+
+{% if total_pages_val > 0 %}
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+  <div class="text-muted">
+    {% if total_rows_val > 0 %}
+      {{ showing_start }} - {{ showing_end }} / {{ total_rows_val }} бичлэг
+    {% else %}
+      Илэрц алга
+    {% endif %}
+  </div>
+  <div class="btn-group">
+    <form method="GET" action="/search-one-reading" class="d-inline">
+      <input type="hidden" name="meter_number" value="{{ meter_number | default('') }}">
+      <input type="hidden" name="obis_code" value="{{ selected_obis_code | default('1.8.0') }}">
+      <input type="hidden" name="type" value="{{ selected_type | default('Original') }}">
+      <input type="hidden" name="start_date" value="{{ start_date | default('') }}">
+      <input type="hidden" name="end_date" value="{{ end_date | default('') }}">
+      <input type="hidden" name="line" value="{{ line | default('') }}">
+      <input type="hidden" name="page" value="{{ current_page - 1 }}">
+      <button type="submit" class="btn btn-outline-secondary" {% if current_page <= 1 %}disabled{% endif %}>
+        Өмнөх
+      </button>
+    </form>
+    <form method="GET" action="/search-one-reading" class="d-inline">
+      <input type="hidden" name="meter_number" value="{{ meter_number | default('') }}">
+      <input type="hidden" name="obis_code" value="{{ selected_obis_code | default('1.8.0') }}">
+      <input type="hidden" name="type" value="{{ selected_type | default('Original') }}">
+      <input type="hidden" name="start_date" value="{{ start_date | default('') }}">
+      <input type="hidden" name="end_date" value="{{ end_date | default('') }}">
+      <input type="hidden" name="line" value="{{ line | default('') }}">
+      <input type="hidden" name="page" value="{{ current_page + 1 }}">
+      <button type="submit" class="btn btn-outline-secondary" {% if current_page >= total_pages_val %}disabled{% endif %}>
+        Дараах
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endif %} -->
+
 
 
 
@@ -324,6 +388,38 @@ $(function() {
     });
   });
 });
+$(document).ready(function () {
+    $('#my-table').DataTable({
+        processing: true,
+        serverSide: true,
+        pageLength: 50,  // how many rows per page
+        ajax: {
+            url: '/api/energy-profile',  // 👈 Your backend route
+            type: 'GET'
+        },
+        columns: [
+            { data: 'index' },
+            { data: 'meter_number' },
+            { data: 'timestamp' },
+            { data: 'import_total_active_energy' },
+            { data: 'import_active_energy_T1' },
+            { data: 'import_active_energy_T2' },
+            { data: 'import_active_energy_T3' },
+            { data: 'export_total_active_energy' },
+            { data: 'export_active_energy_T1' },
+            { data: 'export_active_energy_T2' },
+            { data: 'export_active_energy_T3' },
+            { data: 'import_total_reactive_energy' },
+            { data: 'import_reactive_energy_T1' },
+            { data: 'import_reactive_energy_T2' },
+            { data: 'import_reactive_energy_T3' },
+            { data: 'export_total_reactive_energy' },
+            { data: 'export_reactive_energy_T1' },
+            { data: 'export_reactive_energy_T2' },
+            { data: 'export_reactive_energy_T3' }
+        ]
+    });
+}); 
 </script>
 
 {% endblock %} 
