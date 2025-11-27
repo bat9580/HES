@@ -8,6 +8,7 @@ from services.database import get_db_connection
 from services.state import connected_clients,scheduler 
 import utils.meter_task_functions as task_functions
 from apscheduler.triggers.cron import CronTrigger 
+from utils import frames 
 import os
 from datetime import datetime 
 templates = Jinja2Templates(directory="templates")  
@@ -25,12 +26,108 @@ def is_meter_installed(meter_number):
     conn.close()
     return result is not None
 
+def is_DCU_installed(DCU_number):
+    conn = get_db_connection()   
+    result = conn.execute(
+        "SELECT 1 FROM registered_dcus WHERE dcu_number = ?", (str(DCU_number),)
+    ).fetchone()
+    conn.close()
+    return result is not None
 def is_heartbeat_frame(data):
     if len(data) == 26:
         return True 
     else:
         return False    
 
+def is_heartbeat_frame_DCU(data):
+    if len(data) == 10: 
+        return True 
+    else:
+        return False 
+async def get_DCU_number(reader, writer, timeout: float = 5.0) -> int:
+    """
+    Retrieve DCU number from a connected DCU device.
+    
+    Args:
+        reader: StreamReader for reading data from DCU
+        writer: StreamWriter for writing data to DCU
+        timeout: Timeout in seconds for each read operation (default: 5.0)
+    
+    Returns:
+        int: The DCU number extracted from the response
+    
+    Raises:
+        asyncio.TimeoutError: If read operation times out
+        ValueError: If DCU number cannot be extracted from response
+        ConnectionError: If communication with DCU fails
+    """
+    try:
+        # Send DCU ACK
+        writer.write(bytes.fromhex(frames.DCU_ACK))
+        await writer.drain()
+        
+        # Send DCU AARQ (Association Request)
+        writer.write(bytes.fromhex(frames.DCU_AARQ))
+        await writer.drain()
+        
+        # Read response with timeout
+        try:
+            data = await asyncio.wait_for(reader.read(1024), timeout=timeout)
+        except asyncio.TimeoutError:
+            raise ConnectionError("Timeout waiting for DCU ACK/AARQ response")
+        
+        if not data:
+            raise ConnectionError("No data received from DCU after ACK/AARQ")
+        
+        print(f"📥 From DCU (ACK/AARQ response): {data.hex()}")
+        
+        # Send GET_DCU_NAME request
+        writer.write(bytes.fromhex(frames.GET_DCU_NAME))
+        await writer.drain()
+        
+        # Read DCU name response with timeout
+        try:
+            data = await asyncio.wait_for(reader.read(1024), timeout=timeout)
+        except asyncio.TimeoutError:
+            raise ConnectionError("Timeout waiting for DCU name response")
+        
+        if not data:
+            raise ConnectionError("No data received from DCU after GET_DCU_NAME")
+        
+        print(f"📥 From DCU (DCU name response): {data.hex()}")
+        
+        # Extract DCU number from the last 8 bytes
+        if len(data) < 8:
+            raise ValueError(f"Response too short to contain DCU number. Received {len(data)} bytes, expected at least 8")
+        
+        # Try to decode the last 8 bytes as UTF-8
+        dcu_bytes = data[-8:]
+        try:
+            dcu_str = dcu_bytes.decode('utf-8', errors='strict').strip()
+        except UnicodeDecodeError:
+            # Fallback: try with error handling
+            dcu_str = dcu_bytes.decode('utf-8', errors='ignore').strip()
+            if not dcu_str:
+                raise ValueError(f"Could not decode DCU number from bytes: {dcu_bytes.hex()}")
+        
+        # Validate and convert to integer
+        if not dcu_str.isdigit():
+            raise ValueError(f"DCU number is not numeric: '{dcu_str}'")
+        
+        dcu_number = int(dcu_str)
+        
+        if dcu_number <= 0:
+            raise ValueError(f"Invalid DCU number: {dcu_number} (must be positive)")
+        
+        print(f"✅ Successfully retrieved DCU number: {dcu_number}")
+        return dcu_number
+        
+    except (ValueError, ConnectionError) as e:
+        print(f"❌ Error retrieving DCU number: {e}")
+        raise
+    except Exception as e:
+        print(f"❌ Unexpected error in get_DCU_number: {e}")
+        raise ConnectionError(f"Failed to retrieve DCU number: {str(e)}")
 def add_meter_to_connected_clients(meter_number,addr, access_time,reader,writer): 
     connected_clients[meter_number] = { 
                 'addr' : addr,  
@@ -44,7 +141,21 @@ def add_meter_to_connected_clients(meter_number,addr, access_time,reader,writer)
                 'scheduled_jobs': [],
                 'pause_event': asyncio.Event(),
                 'task_queue': asyncio.PriorityQueue(),
-            } 
+            }
+def add_DCU_to_connected_clients(DCU_number,addr, access_time,reader,writer):
+    connected_clients[DCU_number] = { 
+                'addr' : addr,  
+                'access_time': access_time,
+                'queue': asyncio.Queue(), 
+                'response_queue': asyncio.Queue(),
+                'keep_connection_queue': asyncio.Queue(), 
+                'real_time_result': asyncio.Queue(), 
+                'reader': reader, 
+                'writer': writer,
+                'scheduled_jobs': [],
+                'pause_event': asyncio.Event(),
+                'task_queue': asyncio.PriorityQueue(),
+            }
 def add_cron_job(task_function, cronExpression, meter_number,ID):
     scheduler.add_job(
             task_function,   

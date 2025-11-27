@@ -1,15 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-{% if message %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endif %} 
 <div class="p-4">
-  <h4 class="mb-3">Бүртгэсэн тоолуурууд</h4> 
+  <h2 class="page-title mb-4">Бүртгэсэн тоолуурууд</h2> 
 
-  <form method = "GET" action = "/search-meter" class="row g-2 mb-3">
+  <div class="filter-bar-container">
+    <form method = "GET" action = "/search-meter" class="filter-bar">
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
@@ -26,41 +21,80 @@
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
-          <select 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-            <option>Status</option>
-            <option>Installed</option>
-            <option>Archived</option>
-          </select>
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="status"
+                 placeholder="Status"
+                 autocomplete="off"
+                 value="{{ status | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
         </div>
+        
+        <ul id="status-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="statusDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="Installed">Installed</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="Archived">Archived</a></li>
+        </ul>
       </div>
     </div>
         <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
-          <select 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-            <option>Device type</option>
-            <option>GPRS meter</option>
-            <option>PLC meter</option>
-          </select>
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="device_type"
+                 placeholder="Device type"
+                 autocomplete="off"
+                 value="{{ device_type | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
         </div>
+        
+        <ul id="device-type-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="deviceTypeDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS meter">GPRS meter</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC meter">PLC meter</a></li>
+        </ul>
       </div>
     </div>
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
-          <select 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-            <option>type</option>
-            <option>DDSY283</option>
-            <option>DTSD545S</option>
-            <option>DTSD546</option> 
-          </select>
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 name="type"
+                 placeholder="type"
+                 autocomplete="off"
+                 value="{{ type | default('') }}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
         </div>
+        
+        <ul id="type-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="typeDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+        </ul>
       </div>
     </div>
     <div class="col-md-auto" style="width: 4.166666%;">
@@ -74,7 +108,8 @@
           <i class="bi bi-plus-lg"></i>
         </button>
     </div>
-  </form>
+    </form>
+  </div>
 
   <table class="table table-bordered">
     <thead class="table-light">
@@ -85,7 +120,7 @@
         <th>Тоолуурын төрөл</th>
         <th>Модулийн төрөл</th>
         <th>Тайлбар</th>
-        <th>Бүртгэсэн</th>
+        <!-- <th>Бүртгэсэн</th> -->
         <th>Бүртгэлийн төрөл</th>
         <th>Үйлдэл</th> 
       </tr>
@@ -99,11 +134,11 @@
         <td>{{ meter['type'] }}</td>
         <td>{{ meter['device_type'] }}</td>
         <td>{{ meter['remarks'] or '-' }}</td>
-        <td>{{ meter['created_by'] }}</td>
+        <!-- <td>{{ meter['created_by'] }}</td> -->
         <td>
           {% if meter['status'] == 'installed' %} 
             <span class="badge bg-success text-white">Installed</span>
-          {% elif meter['status'] == 'archived' %}
+          {% elif meter['status'] == 'Archived' %}
             <span class="badge bg-secondary">Archived</span>
           {% else %}
             <span class="badge bg-light text-muted">Unknown</span>
@@ -121,13 +156,13 @@
                   data-password="{{ meter['password'] }}"
                   data-remarks="{{ meter['remarks'] }}"
                   data-status="{{ meter['status'] }}"> 
-              <i class="bi bi-pencil-square"> Edit</i>
+                <i class="bi bi-pencil-square"></i>
           </button> 
           <!-- <button class="btn btn-sm btn-danger">🗑️ Delete</button> -->
           <form method="POST" action="/delete-meter" style="display:inline;" onsubmit="return confirmDelete();">  
             <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}"> 
             <button type="submit" class="btn btn-sm btn-danger">
-              <i class="bi bi-trash"> Delete</i>
+                <i class="bi bi-trash"></i>
             </button>
           </form>
         </td>
@@ -167,17 +202,36 @@
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Модулийн төрөл:</label>
-                    <select class="form-select" name="device_type"  required> 
-                      <option>GPRS Meter</option>
-                      <option>PLC Meter</option>
-                    </select>
+                    <div class="dropdown">
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <input type="text"
+                               name="device_type"
+                               id="addDeviceType"
+                               class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                               placeholder="Модулийн төрөл сонгох"
+                               autocomplete="off"
+                               value="GPRS Meter"
+                               required>
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                      <ul id="add-device-type-list" 
+                          class="dropdown-menu w-100"
+                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                      </ul>
+                    </div>
                   </div>
                   <div class="col-md-6">
                     <label>Тоолуурын дугаар:</label>
                     <input type="text" name="meter_number" class="form-control" required> 
                   </div>
                 </div>
-  
+
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Комм хаяг:</label>
@@ -185,11 +239,30 @@
                   </div>
                   <div class="col-md-6">
                     <label>Тоолуурын төрөл:</label>
-                    <select class="form-select" name="type" required> 
-                      <option>DDSY283SR</option>
-                      <option>DTSD545S</option> 
-                      <option>DTSD546</option> 
-                    </select>
+                    <div class="dropdown">
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <input type="text"
+                               name="type"
+                               id="addType"
+                               class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                               placeholder="Тоолуурын төрөл сонгох"
+                               autocomplete="off"
+                               value="DDSY283SR"
+                               required>
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                      <ul id="add-type-list" 
+                          class="dropdown-menu w-100"
+                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
   
@@ -255,17 +328,35 @@
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Модулийн төрөл:</label>
-                    <select class="form-select" name="device_type" id = "editDeviceType" required> 
-                      <option>GPRS Meter</option>
-                      <option>PLC Meter</option>
-                    </select>
+                    <div class="dropdown">
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <input type="text"
+                               name="device_type"
+                               id="editDeviceType"
+                               class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                               placeholder="Модулийн төрөл сонгох"
+                               autocomplete="off"
+                               required>
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                      <ul id="edit-device-type-list" 
+                          class="dropdown-menu w-100"
+                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                      </ul>
+                    </div>
                   </div>
                   <div class="col-md-6">
                     <label>Тоолуурын дугаар:</label>
                     <input type="text" name="meter_number" id = "editMeterNumber" class="form-control" required> 
                   </div>
                 </div>
-  
+
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Комм хаяг:</label>
@@ -273,11 +364,29 @@
                   </div>
                   <div class="col-md-6">
                     <label>Тоолуурын төрөл:</label>
-                    <select class="form-select" name="type" id = "editType" required> 
-                      <option>DDSY283SR</option>
-                      <option>DTSD545S</option> 
-                      <option>DTSD546</option> 
-                    </select>
+                    <div class="dropdown">
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <input type="text"
+                               name="type"
+                               id="editType"
+                               class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                               placeholder="Тоолуурын төрөл сонгох"
+                               autocomplete="off"
+                               required>
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                      <ul id="edit-type-list" 
+                          class="dropdown-menu w-100"
+                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
   
@@ -328,6 +437,74 @@
     function confirmDelete(){
       return confirm("⚠️ Are you sure you want to delete this meter?");
     }
+
+    // Custom dropdown handlers for all selectors
+    document.addEventListener('DOMContentLoaded', function() {
+      // Generic function to initialize a dropdown
+      function initDropdown(dropdownId, inputName) {
+        const dropdown = document.querySelector(`#${dropdownId}`).closest('.dropdown');
+        const input = dropdown.querySelector(`input[name="${inputName}"]`);
+        const list = document.getElementById(dropdownId);
+        const chevron = dropdown.querySelector('.dropdown-chevron');
+
+        if (!input || !list) return;
+
+        // Open dropdown on focus
+        input.addEventListener('focus', function() {
+          dropdown.classList.add('show');
+          if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+        });
+
+        // Filter items on input
+        input.addEventListener('input', function() {
+          const term = this.value.toLowerCase();
+          const items = list.querySelectorAll('.dropdown-item');
+          items.forEach(item => {
+            item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+          });
+        });
+
+        // Select item
+        list.addEventListener('click', function(e) {
+          if (e.target && e.target.matches('.dropdown-item')) {
+            input.value = e.target.textContent;
+            dropdown.classList.remove('show');
+            if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+            e.preventDefault();
+          }
+        });
+      }
+
+      // Initialize all dropdowns
+      initDropdown('status-list', 'status');
+      initDropdown('device-type-list', 'device_type');
+      initDropdown('type-list', 'type');
+      initDropdown('add-device-type-list', 'device_type');
+      initDropdown('add-type-list', 'type');
+      initDropdown('edit-device-type-list', 'device_type');
+      initDropdown('edit-type-list', 'type');
+
+      // Close all dropdowns when clicking outside
+      document.addEventListener('click', function(e) {
+        const allDropdowns = document.querySelectorAll('.dropdown');
+        allDropdowns.forEach(dropdown => {
+          if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+            const chevron = dropdown.querySelector('.dropdown-chevron');
+            if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+          }
+        });
+      });
+    });
+
+    // Show toast on page load if message exists
+    {% if message %}
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        showToast('{{ message }}', 'success');
+      }, 300);
+    });
+    {% endif %}
   </script>
 
 

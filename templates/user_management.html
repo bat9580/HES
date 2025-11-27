@@ -2,13 +2,17 @@
 
 {% block content %}
 {% if message %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    showToast('{{ message }}', 'success');
+  }, 300);
+});
+</script>
 {% endif %} 
-<h2 class="mb-4">Хэрэглэгчид</h2>  
-<form method="GET" action="/search-user" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+  <h2 class="page-title mb-4">Хэрэглэгчид</h2>
+<div class="filter-bar-container">
+  <form method="GET" action="/search-user" class="filter-bar"> 
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
           <input type="text" 
                  class="form-control dropdown-search-input dimmed-text hoverable-input" 
@@ -32,13 +36,14 @@
     </div>
     <div class="col-md-auto" >
       <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-trash3"> Устгах</i> 
+        <i class="bi bi-trash3"></i> 
       </button>
     </div>
     
         
 
 </form> 
+</div>
 
 <table class="table table-bordered table-hover table-striped align-middle text-center">
   <thead class="table-light">
@@ -76,7 +81,7 @@
                 data-status="{{ user['status'] }}"
                 data-email="{{ user['email'] }}" 
                 data-phone-number="{{ user['phone_number'] }}" >
-              Засах
+              <i class="bi bi-pencil-square"></i>
         </button> 
       </td> 
     </tr>

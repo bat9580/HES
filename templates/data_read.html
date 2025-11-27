@@ -2,8 +2,9 @@
 
 {% block content %}
 
-<h2 class="mb-4">Татсан өгөгдөл унших</h2>
-<form method="GET" action="/search-one-reading" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+<h2 class="page-title mb-4">Татсан өгөгдөл унших</h2>
+<div class="filter-bar-container">
+<form method="GET" action="/search-one-reading" class="filter-bar"> 
 <input type="hidden" name="page" value="1">
     <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
@@ -31,71 +32,87 @@
       </div>
     </div>
 <div class="col-md-auto position-relative" style="width: 20%; min-height: 35px; height: auto;"> 
-  <select
-      name="obis_code" 
-      class="form-select dropdown-search-input dimmed-text hoverable-input"
-      style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-
-    <option value="1.8.0" {% if selected_obis_code == "1.8.0" %}selected{% endif %}>Нийт импортын актив энерги (1.8.0)</option>  
-    <option value="1.8.1" {% if selected_obis_code == "1.8.1" %}selected{% endif %}>Импортын актив энерги T1 (1.8.1)</option>
-    <option value="1.8.2" {% if selected_obis_code == "1.8.2" %}selected{% endif %}>Импортын актив энерги T2 (1.8.2)</option>
-    <option value="1.8.3" {% if selected_obis_code == "1.8.3" %}selected{% endif %}>Импортын актив энерги T3 (1.8.3)</option>
+  <div class="dropdown" style="height: 35px;">
+    <div class="dropdown-toggle-wrapper position-relative">
+      <input type="text" 
+             class="form-control dropdown-search-input dimmed-text hoverable-input" 
+             id="obis-code-input"
+             placeholder="OBIS код сонгох"
+             autocomplete="off"
+             value="{% if selected_obis_code %}{% if selected_obis_code == '1.8.0' %}Нийт импортын актив энерги (1.8.0){% elif selected_obis_code == '1.8.1' %}Импортын актив энерги T1 (1.8.1){% elif selected_obis_code == '1.8.2' %}Импортын актив энерги T2 (1.8.2){% elif selected_obis_code == '1.8.3' %}Импортын актив энерги T3 (1.8.3){% elif selected_obis_code == '2.8.0' %}Нийт экспортын актив энерги (2.8.0){% elif selected_obis_code == '2.8.1' %}Экспортын актив энерги T1 (2.8.1){% elif selected_obis_code == '2.8.2' %}Экспортын актив энерги T2 (2.8.2){% elif selected_obis_code == '2.8.3' %}Экспортын актив энерги T3 (2.8.3){% elif selected_obis_code == '3.8.0' %}Нийт импортын реактив энерги (3.8.0){% elif selected_obis_code == '3.8.1' %}Импортын реактив энерги T1 (3.8.1){% elif selected_obis_code == '3.8.2' %}Импортын реактив энерги T2 (3.8.2){% elif selected_obis_code == '3.8.3' %}Импортын реактив энерги T3 (3.8.3){% elif selected_obis_code == '4.8.0' %}Нийт экспортын реактив энерги (4.8.0){% elif selected_obis_code == '4.8.1' %}Экспортын реактив энерги T1 (4.8.1){% elif selected_obis_code == '4.8.2' %}Экспортын реактив энерги T2 (4.8.2){% elif selected_obis_code == '4.8.3' %}Экспортын реактив энерги T3 (4.8.3){% elif selected_obis_code == '32.7.0' %}A фазын хүчдэл (32.7.0){% elif selected_obis_code == '52.7.0' %}Б фазын хүчдэл (52.7.0){% elif selected_obis_code == '72.7.0' %}С фазын хүчдэл (72.7.0){% elif selected_obis_code == '31.7.0' %}A фазын гүйдэл (31.7.0){% elif selected_obis_code == '51.7.0' %}Б фазын гүйдэл (51.7.0){% elif selected_obis_code == '71.7.0' %}С фазын гүйдэл (71.7.0){% elif selected_obis_code == '15.7.0' %}Нийт актив чадал (15.7.0){% elif selected_obis_code == '21.7.0' %}A фазын актив чадал (21.7.0){% elif selected_obis_code == '41.7.0' %}Б фазын актив чадал (41.7.0){% elif selected_obis_code == '61.7.0' %}С фазын актив чадал (61.7.0){% elif selected_obis_code == '3.7.0' %}Нийт реактив чадал (3.7.0){% elif selected_obis_code == '23.7.0' %}A фазын реактив чадал (23.7.0){% elif selected_obis_code == '43.7.0' %}Б фазын реактив чадал (43.7.0){% elif selected_obis_code == '63.7.0' %}С фазын реактив чадал (63.7.0){% elif selected_obis_code == '14.7.0' %}Давтамж (14.7.0){% endif %}{% endif %}"
+             style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+        <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </span>
+    </div>
     
-    <option value="2.8.0" {% if selected_obis_code == "2.8.0" %}selected{% endif %}>Нийт экспортын актив энерги (2.8.0)</option>
-    <option value="2.8.1" {% if selected_obis_code == "2.8.1" %}selected{% endif %}>Экспортын актив энерги T1 (2.8.1)</option>
-    <option value="2.8.2" {% if selected_obis_code == "2.8.2" %}selected{% endif %}>Экспортын актив энерги T2 (2.8.2)</option>
-    <option value="2.8.3" {% if selected_obis_code == "2.8.3" %}selected{% endif %}>Экспортын актив энерги T3 (2.8.3)</option>
-
-    <option value="3.8.0" {% if selected_obis_code == "3.8.0" %}selected{% endif %}>Нийт импортын реактив энерги (3.8.0)</option>
-    <option value="3.8.1" {% if selected_obis_code == "3.8.1" %}selected{% endif %}>Импортын реактив энерги T1 (3.8.1)</option>
-    <option value="3.8.2" {% if selected_obis_code == "3.8.2" %}selected{% endif %}>Импортын реактив энерги T2 (3.8.2)</option>
-    <option value="3.8.3" {% if selected_obis_code == "3.8.3" %}selected{% endif %}>Импортын реактив энерги T3 (3.8.3)</option>
-
-    <option value="4.8.0" {% if selected_obis_code == "4.8.0" %}selected{% endif %}>Нийт экспортын реактив энерги (4.8.0)</option>
-    <option value="4.8.1" {% if selected_obis_code == "4.8.1" %}selected{% endif %}>Экспортын реактив энерги T1 (4.8.1)</option>
-    <option value="4.8.2" {% if selected_obis_code == "4.8.2" %}selected{% endif %}>Экспортын реактив энерги T2 (4.8.2)</option>
-    <option value="4.8.3" {% if selected_obis_code == "4.8.3" %}selected{% endif %}>Экспортын реактив энерги T3 (4.8.3)</option> 
-
-    <option value="32.7.0" {% if selected_obis_code == "32.7.0" %}selected{% endif %}>A фазын хүчдэл (32.7.0)</option>
-    <option value="52.7.0" {% if selected_obis_code == "52.7.0" %}selected{% endif %}>Б фазын хүчдэл (52.7.0)</option>
-    <option value="72.7.0" {% if selected_obis_code == "72.7.0" %}selected{% endif %}>С фазын хүчдэл (72.7.0)</option>
-
-    <option value="31.7.0" {% if selected_obis_code == "31.7.0" %}selected{% endif %}>A фазын гүйдэл (31.7.0)</option>
-    <option value="51.7.0" {% if selected_obis_code == "51.7.0" %}selected{% endif %}>Б фазын гүйдэл (51.7.0)</option>
-    <option value="71.7.0" {% if selected_obis_code == "71.7.0" %}selected{% endif %}>С фазын гүйдэл (71.7.0)</option>
-
-    <option value="15.7.0" {% if selected_obis_code == "15.7.0" %}selected{% endif %}>Нийт актив чадал (15.7.0)</option>
-    <option value="21.7.0" {% if selected_obis_code == "21.7.0" %}selected{% endif %}>A фазын актив чадал (21.7.0)</option>
-    <option value="41.7.0" {% if selected_obis_code == "41.7.0" %}selected{% endif %}>Б фазын актив чадал (41.7.0)</option>
-    <option value="61.7.0" {% if selected_obis_code == "61.7.0" %}selected{% endif %}>С фазын актив чадал (61.7.0)</option>
-
-    <option value="3.7.0" {% if selected_obis_code == "3.7.0" %}selected{% endif %}>Нийт реактив чадал (3.7.0)</option>
-    <option value="23.7.0" {% if selected_obis_code == "23.7.0" %}selected{% endif %}>A фазын реактив чадал (23.7.0)</option>
-    <option value="43.7.0" {% if selected_obis_code == "43.7.0" %}selected{% endif %}>Б фазын реактив чадал (43.7.0)</option>
-    <option value="63.7.0" {% if selected_obis_code == "63.7.0" %}selected{% endif %}>С фазын реактив чадал (63.7.0)</option>
-
-    <option value="14.7.0" {% if selected_obis_code == "14.7.0" %}selected{% endif %}>Давтамж (14.7.0)</option>
-  </select>
+    <ul id="obis-code-list" 
+        class="dropdown-menu w-100"
+        aria-labelledby="obisCodeDropdown"
+        style="max-height: 300px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="1.8.0">Нийт импортын актив энерги (1.8.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="1.8.1">Импортын актив энерги T1 (1.8.1)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="1.8.2">Импортын актив энерги T2 (1.8.2)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="1.8.3">Импортын актив энерги T3 (1.8.3)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="2.8.0">Нийт экспортын актив энерги (2.8.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="2.8.1">Экспортын актив энерги T1 (2.8.1)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="2.8.2">Экспортын актив энерги T2 (2.8.2)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="2.8.3">Экспортын актив энерги T3 (2.8.3)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="3.8.0">Нийт импортын реактив энерги (3.8.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="3.8.1">Импортын реактив энерги T1 (3.8.1)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="3.8.2">Импортын реактив энерги T2 (3.8.2)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="3.8.3">Импортын реактив энерги T3 (3.8.3)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="4.8.0">Нийт экспортын реактив энерги (4.8.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="4.8.1">Экспортын реактив энерги T1 (4.8.1)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="4.8.2">Экспортын реактив энерги T2 (4.8.2)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="4.8.3">Экспортын реактив энерги T3 (4.8.3)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="32.7.0">A фазын хүчдэл (32.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="52.7.0">Б фазын хүчдэл (52.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="72.7.0">С фазын хүчдэл (72.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="31.7.0">A фазын гүйдэл (31.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="51.7.0">Б фазын гүйдэл (51.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="71.7.0">С фазын гүйдэл (71.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="15.7.0">Нийт актив чадал (15.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="21.7.0">A фазын актив чадал (21.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="41.7.0">Б фазын актив чадал (41.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="61.7.0">С фазын актив чадал (61.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="3.7.0">Нийт реактив чадал (3.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="23.7.0">A фазын реактив чадал (23.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="43.7.0">Б фазын реактив чадал (43.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="63.7.0">С фазын реактив чадал (63.7.0)</a></li>
+      <li><a class="dropdown-item hoverable-item" href="#" data-value="14.7.0">Давтамж (14.7.0)</a></li>
+    </ul>
+    <input type="hidden" name="obis_code" id="obis-code-hidden" value="{{ selected_obis_code | default('') }}">
+  </div>
 </div>
     <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
 <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
   <input 
     type="text" 
     id="daterange" 
-    class="form-control" 
-    style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;"
+    class="form-control filter-bar-date-input" 
+    style="max-width: 300px;"
     readonly
   >
 </div> 
-      <div class="col-md-auto" style="width: 12%; min-height: 35px; height: auto;"> 
-        <div class="dropdown" style="height: 35px;">
-          <!-- Search Input + Dropdown Toggle Combined -->
-          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+      <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;">
+        <div class="line-dropdown-wrapper w-100">
+          <div class="line-dropdown-shell">
+            <input type="text"
+                   id="treeSearch"
+                   name="line"
+                   class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                   placeholder="Шугам сонгох..."
+                   value="{{ line | default('') }}"
+                   autocomplete="off">
+            <span class="dropdown-chevron line-dropdown-icon">
               <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </span>
+            <div id="parentNodeDropdown" class="line-tree-panel"></div>
           </div>
         </div>
       </div>
@@ -105,13 +122,31 @@
 <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
 <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
     <div class="col-md-auto  position-relative " style="width: 8%; min-height: 35px; height: auto;"> 
-          <select 
-              name = "type" 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-             <option value="Original" {% if selected_type == "Original" %}selected{% endif %}>Original</option>  
-            <option value="Calculated" {% if selected_type == "Calculated" %}selected{% endif %}>Calculated</option> 
-          </select>
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 id="type-input"
+                 placeholder="Type"
+                 autocomplete="off"
+                 value="{% if selected_type == 'Original' %}Original{% elif selected_type == 'Calculated' %}Calculated{% else %}{{ selected_type | default('') }}{% endif %}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="type-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="typeDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="Original">Original</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="Calculated">Calculated</a></li>
+        </ul>
+        <input type="hidden" name="type" id="type-hidden" value="{{ selected_type | default('') }}">
+      </div>
     </div>
     
     <div class="col-md-auto" style="width: 4.166666%;">
@@ -121,6 +156,7 @@
     </div>
   
 </form> 
+</div>
 
 <table class="table table-bordered table-hover table-striped align-middle text-center">
   <thead class="table-light">
@@ -218,49 +254,49 @@
 
 <script>
 $(document).ready(function () {
-    $('#parentNodeDropdown').jstree({
+  const $treePanel = $('#parentNodeDropdown');
+  const $treeSearch = $('#treeSearch');
+
+  if ($treePanel.length) {
+    $treePanel.jstree({
         core: {
             data: {
                 url: '/line-tree-data',
                 dataType: 'json'
             },
             themes: {
-                stripes: true
+                stripes: true,
+                icons: false
             }
         },
         plugins: ["search"] // enable search
-    })
-    .on("select_node.jstree", function (e, data) {
+        })
+        .on("select_node.jstree", function (e, data) {
         // Store node text
         $('#parent_node_input').val(data.node.text);
-        $('#treeSearch').val(data.node.text); 
+        $treeSearch.val(data.node.text); 
 
-        $('#parentNodeDropdown').hide();
+        $treePanel.removeClass('open');
 
     });
 
-    // Simple toggle click to open/close tree dropdown
-    $('#parentNodeDropdown').css({
-    position: 'absolute',
-    zIndex: 99999,   // super high so it’s always on top
-    background: '#fff', // optional, so it doesn't inherit transparency
-    border: '1px solid #ccc' // optional for visual clarity
-}).hide();
-    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
-    .insertBefore('#parentNodeDropdown')
+    if ($treeSearch.length) {
+      $treeSearch
         .on('focus', function () {
-            $('#parentNodeDropdown').show();
+          $treePanel.addClass('open');
         })
         .on('keyup', function () {
-            $('#parentNodeDropdown').jstree(true).search($(this).val());
+          $treePanel.jstree(true).search($(this).val());
         });
+    }
 
     // Hide dropdown when clicking outside
     $(document).click(function(e) {
-        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
-            $('#parentNodeDropdown').hide();
+        if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
+            $treePanel.removeClass('open');
         }
     });
+  }
 });
 
 
@@ -291,11 +327,36 @@ $(function() {
 
   // Also set the input's visible value so user sees the current range
   $('#daterange').val(startDate.format('YYYY-MM-DD[T]HH:mm:ss') + 'T' + endDate.format('YYYY-MM-DD[T]HH:mm:ss'));
+
+  // Add transition effects to daterangepicker dropdown
+  $('#daterange').on('show.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    const $container = picker.container;
+    requestAnimationFrame(function() {
+      $container.addClass('drp-visible');
+    });
+  });
+
+  $('#daterange').on('hide.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    picker.container.removeClass('drp-visible');
+  });
 });
 
   document.addEventListener('DOMContentLoaded', function() {
   const dropdowns = document.querySelectorAll('.dropdown');  
   dropdowns.forEach(function(dropdown) {
+    // Skip static dropdowns (handled separately)
+    if (dropdown.hasAttribute('data-static-dropdown')) {
+      return;
+    }
+    
+    // Skip known static dropdown IDs
+    const list = dropdown.querySelector('.dropdown-menu');
+    if (list && (list.id === 'obis-code-list' || list.id === 'type-list' || list.id === 'profile-list')) {
+      return;
+    }
+    
     const searchInput = dropdown.querySelector('.dropdown-search-input'); 
     const chevron = dropdown.querySelector('.dropdown-chevron');
     const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
@@ -307,46 +368,57 @@ $(function() {
       }
     });
 
-    if (searchInput) {
-  const list = dropdown.querySelector('.dropdown-menu'); 
-   
-  // Fetch meters when input is focused
-  searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
-    var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-      path = '/get-installed-meters'; 
-    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-      path = '/get-zone';  
-    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-      path = '/get-station';
-    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-      path = '/get-installed-dcu';  
-    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-      path = '/get-archived-meter'; 
-    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-      path = '/get-installed-meters';
-    }
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
-          list.appendChild(li);
-        });
+    if (searchInput && list) {
+  // Check if this is a static dropdown (already has items)
+  const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
+  
+  if (!hasStaticItems) {
+    // Fetch meters when input is focused (only for dynamic dropdowns)
+    searchInput.addEventListener('focus', function () {
+      console.log(list.getAttribute("aria-labelledby")); 
+      var path = '' ; 
+      if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+        path = '/get-installed-meters'; 
+      }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+        path = '/get-zone';  
+      }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+        path = '/get-station';
+      }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+        path = '/get-installed-dcu';  
+      }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+        path = '/get-archived-meter'; 
+      }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+        path = '/get-installed-meters';
+      }
+      if (path) {
+        fetch(path)
+          .then(response => response.json())
+          .then(data => {
+            list.innerHTML = ''; // clear old items
+            console.log(data); 
+            data.forEach(element => {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.className = 'dropdown-item hoverable-item';
+              a.href = '#';
+              a.textContent = element;
+              a.setAttribute('data-value', element);  
+              li.appendChild(a);
+              list.appendChild(li);
+            });
 
-        dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
-      });
-  });
+            dropdown.classList.add('show');
+            dropdown.classList.remove('hover-show');
+          });
+      }
+    });
+  } else {
+    // Static dropdown - just show on focus
+    searchInput.addEventListener('focus', function () {
+      dropdown.classList.add('show');
+      dropdown.classList.remove('hover-show');
+    });
+  }
 
   // Real-time filtering — delegate to input
   searchInput.addEventListener('input', function () {
@@ -363,6 +435,15 @@ $(function() {
       if (searchInput) searchInput.value = e.target.textContent;
       dropdown.classList.remove('show');
       if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      // Also update hidden input if it exists with a specific name/id
+      const dataValue = e.target.getAttribute('data-value');
+      if (dataValue) {
+        // Try to find hidden input by common patterns (they're siblings, not children)
+        const hiddenObis = document.getElementById('obis-code-hidden');
+        const hiddenType = document.getElementById('type-hidden');
+        if (hiddenObis) hiddenObis.value = dataValue;
+        if (hiddenType) hiddenType.value = dataValue;
+      }
       e.preventDefault();
     }
   });
@@ -371,6 +452,15 @@ $(function() {
     // Chevron rotation
     if (chevron) {
       chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    // Handle chevron rotation for both static and dynamic dropdowns
+    if (searchInput) {
+      searchInput.addEventListener('focus', function() {
+        if (chevron && !dropdown.classList.contains('show')) {
+          chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+        }
+      });
     }
 
     dropdown.addEventListener('show.bs.dropdown', () => {
@@ -383,7 +473,8 @@ $(function() {
     // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show'); 
+        dropdown.classList.remove('show');
+        if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
       }
     });
   });
@@ -418,6 +509,95 @@ $(document).ready(function () {
             { data: 'export_reactive_energy_T2' },
             { data: 'export_reactive_energy_T3' }
         ]
+    });
+});
+
+// Initialize static dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    // OBIS code dropdown handler
+    const obisDropdown = document.querySelector('#obis-code-list')?.closest('.dropdown');
+    const obisInput = document.getElementById('obis-code-input');
+    const obisList = document.getElementById('obis-code-list');
+    const obisHidden = document.getElementById('obis-code-hidden');
+    const obisChevron = obisDropdown?.querySelector('.dropdown-chevron');
+
+    if (obisDropdown && obisInput && obisList) {
+      obisDropdown.setAttribute('data-static-dropdown', 'true');
+      
+      obisInput.addEventListener('focus', function(e) {
+        e.stopPropagation();
+        obisDropdown.classList.add('show');
+        if (obisChevron) obisChevron.style.transform = 'translateY(-50%) rotate(180deg)';
+      }, true);
+
+      obisInput.addEventListener('input', function(e) {
+        e.stopPropagation();
+        const term = this.value.toLowerCase();
+        const items = obisList.querySelectorAll('.dropdown-item');
+        items.forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+        });
+      }, true);
+
+      obisList.addEventListener('click', function(e) {
+        if (e.target && e.target.matches('.dropdown-item')) {
+          obisInput.value = e.target.textContent;
+          if (obisHidden) obisHidden.value = e.target.getAttribute('data-value');
+          obisDropdown.classList.remove('show');
+          if (obisChevron) obisChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+    }
+
+    // Type dropdown handler
+    const typeDropdown = document.querySelector('#type-list')?.closest('.dropdown');
+    const typeInput = document.getElementById('type-input');
+    const typeList = document.getElementById('type-list');
+    const typeHidden = document.getElementById('type-hidden');
+    const typeChevron = typeDropdown?.querySelector('.dropdown-chevron');
+
+    if (typeDropdown && typeInput && typeList) {
+      typeDropdown.setAttribute('data-static-dropdown', 'true');
+      
+      typeInput.addEventListener('focus', function(e) {
+        e.stopPropagation();
+        typeDropdown.classList.add('show');
+        if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(180deg)';
+      }, true);
+
+      typeInput.addEventListener('input', function(e) {
+        e.stopPropagation();
+        const term = this.value.toLowerCase();
+        const items = typeList.querySelectorAll('.dropdown-item');
+        items.forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+        });
+      }, true);
+
+      typeList.addEventListener('click', function(e) {
+        if (e.target && e.target.matches('.dropdown-item')) {
+          typeInput.value = e.target.textContent;
+          if (typeHidden) typeHidden.value = e.target.getAttribute('data-value');
+          typeDropdown.classList.remove('show');
+          if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+    }
+
+    // Close static dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+      if (obisDropdown && !obisDropdown.contains(e.target)) {
+        obisDropdown.classList.remove('show');
+        if (obisChevron) obisChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+      }
+      if (typeDropdown && !typeDropdown.contains(e.target)) {
+        typeDropdown.classList.remove('show');
+        if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+      }
     });
 }); 
 </script>

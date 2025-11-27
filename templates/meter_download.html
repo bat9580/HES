@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-4 meter-download-page">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+    <div>
+      <h2 class="page-title mb-1">Meter Download</h2>
+      <p class="text-muted mb-0">Manage DCU downloads, connectivity, and meter status in one place.</p>
+    </div>
+    <button class="btn btn-outline-secondary d-flex align-items-center gap-2">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </div>
+
+  <div class="filter-bar-container">
+    <form class="filter-bar" method="GET" action="/meter-download/search">
+      <div class="filter-bar-item">
+        <div class="dropdown">
+          <div class="dropdown-toggle-wrapper position-relative">
+            <input type="text"
+                   name="zone"
+                   class="form-control dropdown-search-input dimmed-text hoverable-input"
+                   placeholder="Zone"
+                   autocomplete="off"
+                   value="{{ filters.zone | default('') }}"
+                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+          <ul id="zone-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
+            {% for zone in zones or [] %}
+            <li><a class="dropdown-item hoverable-item" href="#" data-value="{{ zone }}">{{ zone }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="filter-bar-item">
+        <div class="dropdown">
+          <div class="dropdown-toggle-wrapper position-relative">
+            <input type="text"
+                   name="power_grid"
+                   class="form-control dropdown-search-input dimmed-text hoverable-input"
+                   placeholder="Power Grid"
+                   autocomplete="off"
+                   value="{{ filters.power_grid | default('') }}"
+                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+          <ul id="grid-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
+            {% for grid in power_grids or [] %}
+            <li><a class="dropdown-item hoverable-item" href="#" data-value="{{ grid }}">{{ grid }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="filter-bar-item">
+        <div class="dropdown">
+          <div class="dropdown-toggle-wrapper position-relative">
+            <input type="text"
+                   name="dcu_number"
+                   class="form-control dropdown-search-input dimmed-text hoverable-input"
+                   placeholder="DCU No"
+                   autocomplete="off"
+                   value="{{ filters.dcu_number | default('') }}"
+                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+          <ul id="dcu-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
+            {% for number in dcu_numbers or [] %}
+            <li><a class="dropdown-item hoverable-item" href="#" data-value="{{ number }}">{{ number }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+     
+
+      <div class="filter-bar-item narrow">
+        <button type="submit" class="btn btn-light w-100 border dimmed-text">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="d-flex flex-wrap gap-3 mt-4">
+    <div class="metric-badge">
+      <i class="bi bi-hdd-network"></i>
+      <span>DCU No:</span>
+      <strong>{{ summary.dcu_number | default('—') }}</strong>
+    </div>
+    <div class="metric-badge metric-success">
+      <i class="bi bi-backpack4"></i>
+      <span>Total Meter Count:</span>
+      <strong>{{ summary.total_meter_count | default(0) }}</strong>
+    </div>
+    <div class="metric-badge metric-info">
+      <i class="bi bi-download"></i>
+      <span>Downloaded Meter Count:</span>
+      <strong>{{ summary.downloaded_meter_count | default(0) }}</strong>
+    </div>
+    <div class="metric-badge metric-online">
+      <i class="bi bi-wifi"></i>
+      <span>Online Meter Count:</span>
+      <strong>{{ summary.online_meter_count | default(0) }}</strong>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-3">
+      <div class="card surface-card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <h5 class="mb-0 small">DCU List</h5>
+            <small class="text-muted" style="font-size: 0.7rem;">Select a DCU to view meters</small>
+          </div>
+          <span class="text-muted small" style="font-size: 0.7rem;">{{ dcu_list | length if dcu_list else 0 }} results</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive soft-scroll">
+            <table class="table mb-0 table-striped align-middle">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 60px;">#</th>
+                  <th>DCU No</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if dcu_list %}
+                  {% for dcu in dcu_list %}
+                  <tr class="{{ 'active-row' if dcu.active }}">
+                    <td class="text-center">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="selected_dcu" {% if dcu.active %}checked{% endif %}>
+                      </div>
+                    </td>
+                    <td>{{ dcu.number }}</td>
+                    <td>
+                      {% if dcu.status == 'online' %}
+                      <span class="badge bg-success-subtle text-success">Online</span>
+                      {% elif dcu.status == 'offline' %}
+                      <span class="badge bg-secondary">Offline</span>
+                      {% else %}
+                      <span class="badge bg-light text-muted">Unknown</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">No DCUs found</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer d-flex flex-wrap align-items-center gap-2 justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <select class="form-select form-select-sm">
+              <option>25</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
+            <span class="text-muted small">per page</span>
+          </div>
+          <nav aria-label="Pagination" class="d-flex gap-1">
+            <button class="btn btn-outline-secondary btn-sm" type="button">&lt;</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button">&gt;</button>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="card surface-card h-100">
+        <div class="card-header">
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small">Selected DCU:</span>
+              <strong>{{ summary.dcu_number | default('—') }}</strong>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small">Latency:</span>
+              <span class="badge bg-info-subtle text-info">{{ summary.latency | default('—') }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small">Last Sync:</span>
+              <span>{{ summary.last_sync | default('-') }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <ul class="nav nav-tabs custom-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-settings" type="button" role="tab">Meters Setting</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-quality" type="button" role="tab">DCU Communication Quality</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-blacklist" type="button" role="tab">DCU Black List</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-topology" type="button" role="tab">Topology</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-identify-status" type="button" role="tab">Identify Status</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-identify-result" type="button" role="tab">Identify Result</button>
+            </li>
+          </ul>
+
+          <div class="tab-content pt-3">
+            <div class="tab-pane fade show active" id="tab-settings" role="tabpanel">
+              <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Meter No.</label>
+                  <input type="text" class="form-control form-control-sm" placeholder="Meter number">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Meter Type</label>
+                  <div class="dropdown">
+                    <div class="dropdown-toggle-wrapper position-relative">
+                      <input type="text" class="form-control form-control-sm dropdown-search-input dimmed-text hoverable-input" placeholder="Select type" autocomplete="off">
+                      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                        <svg width="20" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </div>
+                    <ul class="dropdown-menu w-100">
+                      <li><a class="dropdown-item hoverable-item" href="#">GPRS Meter</a></li>
+                      <li><a class="dropdown-item hoverable-item" href="#">PLC Meter</a></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <button class="btn btn-sm btn-primary w-100">
+                    <i class="bi bi-search"></i> Search
+                  </button>
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <button class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                  <i class="bi bi-download"></i> Download
+                </button>
+                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                  <i class="bi bi-check2-circle"></i> Check Downloaded
+                </button>
+                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                  <i class="bi bi-wifi"></i> Check Online
+                </button>
+                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
+                  <i class="bi bi-x-circle"></i> Clear Selected
+                </button>
+                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
+                  <i class="bi bi-x-octagon"></i> Clear All
+                </button>
+                <button class="btn btn-sm btn-warning text-white d-flex align-items-center gap-2">
+                  <i class="bi bi-arrow-repeat"></i> Change DCU
+                </button>
+                <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
+                  <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+              </div>
+
+              <div class="table-responsive soft-scroll">
+                <table class="table table-bordered align-middle">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Point No</th>
+                      <th>Comm Addr</th>
+                      <th>Meter No</th>
+                      <th>Meter Type</th>
+                      <th>Download</th>
+                      <th>Meter Online Status</th>
+                      <th>Result</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if meter_rows %}
+                      {% for row in meter_rows %}
+                      <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ row.point_no }}</td>
+                        <td>{{ row.comm_address }}</td>
+                        <td>{{ row.meter_number }}</td>
+                        <td>{{ row.meter_type }}</td>
+                        <td>
+                          {% if row.downloaded %}
+                          <span class="badge bg-success-subtle text-success">Downloaded</span>
+                          {% else %}
+                          <span class="badge bg-light text-muted">Pending</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if row.online %}
+                          <span class="badge bg-success-subtle text-success">Online</span>
+                          {% else %}
+                          <span class="badge bg-secondary">Offline</span>
+                          {% endif %}
+                        </td>
+                        <td>{{ row.result or '-' }}</td>
+                      </tr>
+                      {% endfor %}
+                    {% else %}
+                    <tr>
+                      <td colspan="8" class="text-center text-muted py-5">No Data</td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {% for tab in ['quality','blacklist','topology','identify-status','identify-result'] %}
+            <div class="tab-pane fade" id="tab-{{ tab }}" role="tabpanel">
+              <div class="empty-state text-center py-5 text-muted">
+                <i class="bi bi-info-circle display-6 mb-3 d-block"></i>
+                Additional content for {{ tab.replace('-', ' ') }} will appear here.
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function initDropdown(listId, inputSelector) {
+      const list = document.getElementById(listId);
+      const input = document.querySelector(inputSelector);
+      if (!list || !input) return;
+
+      const dropdown = input.closest('.dropdown');
+      const chevron = dropdown ? dropdown.querySelector('.dropdown-chevron') : null;
+
+      input.addEventListener('focus', () => {
+        dropdown.classList.add('show');
+        if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+      });
+
+      input.addEventListener('input', () => {
+        const term = input.value.toLowerCase();
+        list.querySelectorAll('.dropdown-item').forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+        });
+      });
+
+      list.addEventListener('click', (e) => {
+        if (e.target.matches('.dropdown-item')) {
+          input.value = e.target.dataset.value || e.target.textContent.trim();
+          dropdown.classList.remove('show');
+          if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+          e.preventDefault();
+        }
+      });
+    }
+
+    initDropdown('zone-list', 'input[name="zone"]');
+    initDropdown('grid-list', 'input[name="power_grid"]');
+    initDropdown('dcu-list', 'input[name="dcu_number"]');
+
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.dropdown').forEach(dropdown => {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('show');
+          const chevron = dropdown.querySelector('.dropdown-chevron');
+          if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+

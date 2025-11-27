@@ -2,15 +2,19 @@
 {% block content %}
 
 {% if message %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    showToast('{{ message }}', 'success');
+  }, 300);
+});
+</script>
 {% endif %} 
 <div class="p-4">
-  <h2 class="mb-4">Шугамууд</h2> 
+  <h2 class="page-title mb-4">Шугамууд</h2> 
 
-  <form method = "GET" action = "/search-line" class="row g-2 mb-3">
+  <div class="filter-bar-container">
+    <form method = "GET" action = "/search-line" class="filter-bar">
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
@@ -38,6 +42,7 @@
         </button>
     </div>
   </form>
+  </div>
 
   <table class="table table-bordered">
     <thead class="table-light">
@@ -65,12 +70,12 @@
                   data-line-name="{{line['line_name']}}"
                   data-line-level="{{ line['line_level'] }}"
                   data-parent-node="{{ line['parent_node'] }}">  
-            <i class="bi bi-pencil-square"> Edit</i>
+            <i class="bi bi-pencil-square"></i>
           </button> 
           <form method="POST" action="/delete-line" style="display:inline;" onsubmit="return confirmDelete();">   
             <input type="hidden" name="line_name" value="{{ line['line_name'] }}">   
             <button type="submit" class="btn btn-sm btn-danger">
-              <i class="bi bi-trash"> Delete</i>
+              <i class="bi bi-trash"></i>
             </button>
           </form>
         </td>

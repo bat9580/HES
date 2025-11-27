@@ -2,74 +2,79 @@
 
 {% block content %}
 
-<div class="container my-4">
-  <div class="row g-3 mb-4 align-items-center">
-  <div class="col d-flex align-items-center justify-content-between">
-    <!-- Left: Title -->
-    <h2 class="mb-0">Хяналтын самбар</h2>
-
-    <!-- Right: Search + Export button -->
-    <div class="d-flex align-items-center gap-2"> 
-      <div style="width: 170px;">
-        <div class="dropdown" style="height: 35px;">
-          <div class="dropdown-toggle-wrapper position-relative"> 
-            <input 
-                type="date" 
-                id="selected_date" 
-                name="selected_date" 
-                value="{{ selected_date | default('') }}" 
-                class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                style="height: 33px; border-radius: 2px !important; padding-right: 30px;" 
-            > 
-          </div>
-        </div>
+<div class="container my-4 dash-modern">
+  <h2 class="mb-4 page-title">Хяналтын самбар</h2>
+  
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-12 dashboard-filter-wrapper">
+      <div class="filter-bar-container">
+        <div class="filter-bar d-flex align-items-center gap-2" style="flex-wrap: nowrap;">
+      <!-- Date input -->
+      <div class="filter-bar-item" style="flex: 0 0 150px; min-width: 0;">
+        <input 
+            type="date" 
+            id="selected_date" 
+            name="selected_date" 
+            value="{{ selected_date | default('') }}" 
+            class="form-control filter-bar-date-input" 
+        > 
       </div>   
       
-      <!-- Search dropdown -->
-      <div style="width: 250px;">
-        <div class="dropdown" style="height: 35px;">
-          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown">  
-            <input type="text" 
-                   class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                   placeholder="Бүлэг хайх" 
-                   value="{{ Zone | default('') }}" 
-                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+      <!-- Line dropdown -->
+      <div class="col-md-auto" style="flex: 0 0 200px; min-width: 0;""> 
+      <!-- <div class="filter-bar-item" style="flex: 0 0 200px; min-width: 0;"> -->
+        <div class="line-dropdown-wrapper w-100">
+          <div class="line-dropdown-shell">
+            <input type="text"
+                   id="treeSearch"
+                   name="line"
+                   class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                   placeholder="Шугам сонгох..."
+                   value="{{ line | default('') }}"
+                   autocomplete="off">
+            <span class="dropdown-chevron line-dropdown-icon">
               <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </span>
+            <div id="parentNodeDropdown" class="line-tree-panel"></div>
           </div>
         </div>
       </div>
 
       <!-- Switch button -->
-      <div class="form-check form-switch d-flex align-items-center" style="height: 33px; min-width: 120px;">
-        <input class="form-check-input" type="checkbox" role="switch" id="dashboardSwitch" style="cursor: pointer;">
-        <label class="form-check-label ms-2 dimmed-text mb-0" for="dashboardSwitch" style="cursor: pointer; font-size: 14px; min-width: 80px; display: inline-block;">
-          <span id="switchLabel" style="display: inline-block; width: 80px; text-align: left;">Original</span>
-        </label>
+      <div class="filter-bar-item" style="flex: 0 0 auto; min-width: 0; flex-shrink: 0;">
+        <div class="switch-toggle-wrapper">
+          <input type="checkbox" id="dashboardSwitch" class="switch-toggle-input">
+          <label for="dashboardSwitch" class="switch-toggle-label">
+            <span class="switch-toggle-track"></span>
+            <span class="switch-toggle-knob"></span>
+          </label>
+          <span id="switchLabel" class="switch-toggle-text">Original</span>
+        </div>
       </div>
 
       <!-- Export button -->
-      <button type="button" 
-              onclick="exportTableToExcel()"  
-              class="btn btn-light border dimmed-text d-flex align-items-center justify-content-center"
-              style="height: 33px; width: 40px; border-radius: 2px;">
-        <i class="bi bi-upload"></i>
-      </button>
+      <div class="filter-bar-item" style="flex: 0 0 36px; min-width: 0; flex-shrink: 0;">
+        <button type="button" 
+                onclick="exportTableToExcel()"  
+                class="btn w-100 d-flex align-items-center justify-content-center">
+          <i class="bi bi-upload"></i>
+        </button>
+      </div>
+    </div>
     </div>
   </div>
 </div>
 
 
   <!-- Stats Cards -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-auto">
+  <div class="row g-3 mb-4 align-items-stretch stats-row">
+    <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
             <div class="card shadow-sm stat-card">
                 <div class="card-body text-center">
-                    <h5 class="text-muted">Онлайн үзүүлэлт</h5>
-                    <canvas id="onlineChart" width="165" height="180"></canvas>
+                    <h5 class="text-muted">Онлайн</h5>
+                    <canvas id="onlineChart" width="165" height="165"></canvas>
                     <div class="d-flex justify-content-center mt-3 gap-3">
                         <!-- Online -->
                         <div class="d-flex align-items-center gap-1">
@@ -85,11 +90,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-auto">
+        <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
             <div class="card shadow-sm stat-card">
                 <div class="card-body text-center">
-                    <h5 class="text-muted">Тоолуурын төрөл</h5>
-                    <canvas id="meterTypeChart" width="165" height="180"></canvas>
+                    <h5 class="text-muted">Төрөл</h5>
+                    <canvas id="meterTypeChart" width="165" height="165"></canvas>
                     <div class="d-flex justify-content-center mt-3 gap-3">
                         <!-- Online -->
                         <div class="d-flex align-items-center gap-1">
@@ -105,11 +110,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-auto">
+        <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
             <div class="card shadow-sm stat-card">
                 <div class="card-body text-center">
                     <h5 class="text-muted">Суурилуулалт</h5>
-                    <canvas id="installationsChart" width="165" height="180"></canvas>
+                    <canvas id="installationsChart" width="165" height="165"></canvas>
                     <div class="d-flex justify-content-center mt-3 gap-3">
                         <!-- Online -->
                         <div class="d-flex align-items-center gap-1">
@@ -125,8 +130,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm">
+        <div class="col-12 col-xl stats-chart-col">
+            <div class="card shadow-sm chart-card">
                 <div class="card-body">
                     <h5 class="text-muted">Нийт ачаалал (сүүлийн 6 цаг) (кВт)</h5> 
                     <canvas id="consumptionLineChart" height="120"></canvas>
@@ -140,7 +145,7 @@
   
 <div class="row g-4"> 
 <div class="col-md-6">
-  <div class="card shadow-sm">
+  <div class="card shadow-sm section-card chart-card">
     <div class="card-body">
       <h5 class="text-muted">Сүүлийн 24 цагийн хэрэглээ</h5>
                   
@@ -151,7 +156,7 @@
 </div>
 
 <div class="col-md-6">
-  <div class="card shadow-sm">
+  <div class="card shadow-sm section-card chart-card">
     <div class="card-body">
       <h5 class="text-muted">Сүүлийн 30 хоногийн хэрэглээ</h5>
       <canvas id="consumptionBarChart30day" height="100"></canvas>
@@ -170,7 +175,7 @@ const centerTextPlugin = {
         const fontSize = (height / 5).toFixed(2);
         ctx.font = fontSize + "px sans-serif";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = "#fff";
         const text = "{{ total_installations }}"; // Replace with your dynamic value if needed
         const textX = Math.round((width - ctx.measureText(text).width) / 2);
         const textY = height / 2;
@@ -186,7 +191,7 @@ const centerTextPlugin1 = {
         const fontSize = (height / 5).toFixed(2);
         ctx.font = fontSize + "px sans-serif";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = "#fff";
         const text = "{{ total_installations }}"; // Replace with your dynamic value if needed
         const textX = Math.round((width - ctx.measureText(text).width) / 2);
         const textY = height / 2;
@@ -202,7 +207,7 @@ const centerTextPlugin2 = {
         const fontSize = (height / 5).toFixed(2);
         ctx.font = fontSize + "px sans-serif";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = "#fff";
         const text = "{{ registered_meter_count }}"; // Replace with your dynamic value if needed
         const textX = Math.round((width - ctx.measureText(text).width) / 2);
         const textY = height / 2;
@@ -217,7 +222,7 @@ const onlineChart = new Chart(document.getElementById('onlineChart'), {
         labels: ['Online', 'Offline'],
         datasets: [{
             data: [{{ total_online_meter }}, {{ total_installations - total_online_meter }}], 
-            backgroundColor: ['#ffcd32', '#e9ecef'],
+            backgroundColor: ['#22d3ee', '#1f2937'],
             borderWidth: 0
         }]
     },
@@ -237,7 +242,7 @@ const meterTypeChart = new Chart(document.getElementById('meterTypeChart'), {
         labels: ['DDSY283SR', 'DTSD545S', 'DTSD546'] ,
         datasets: [{
             data: [{{ type_counts["DDSY283SR"] }}, {{ type_counts["DTSD546"] }}, {{ type_counts["DTSD545S"] }}], 
-            backgroundColor: ['#ffcd32', '#37505b','#39515c'],  
+            backgroundColor: ['#22c55e', '#f43f5e','#60a5fa'],  
             borderWidth: 0
         }]
     },
@@ -259,7 +264,7 @@ const installationsChart = new Chart(document.getElementById('installationsChart
         labels: ['installed', 'archived'],
         datasets: [{ 
             data: [{{ total_installations }}, {{ registered_meter_count - total_installations }}], 
-            backgroundColor: ['#ffcd32', '#02396f'],
+            backgroundColor: ['#f59e0b', '#0ea5e9'],
             borderWidth: 0
         }]
     },
@@ -285,8 +290,8 @@ const consumptionLineChart = new Chart(document.getElementById("consumptionLineC
         label: 'Active Power (kWh)',
         data: [],
         fill: true,
-        borderColor: '#007bff',
-        backgroundColor: 'rgba(0,123,255,0.2)',
+        borderColor: '#22d3ee',
+        backgroundColor: 'rgba(34,211,238,0.18)',
         tension: 0.4
       }]
     },
@@ -312,9 +317,9 @@ const consumptionBarChart24hour = new Chart(document.getElementById("consumption
       datasets: [{
         label: 'Хэрэглээ (Kв.цаг)' ,
         data: [],  // e.g. [85, 90, 80, 95]
-        backgroundColor: '#28a745',
-        borderRadius: 5,
-        barThickness: 12  // adjust bar width here
+        backgroundColor: '#22c55e',
+        borderRadius: 8,
+        barThickness: 14  // adjust bar width here
       }]
     },
     options: {
@@ -349,9 +354,9 @@ const consumptionBarChart30day = new Chart(document.getElementById("consumptionB
       datasets: [{
         label: 'Хэрэглээ (Kв.цаг)' ,
         data: [],  // e.g. [85, 90, 80, 95]
-        backgroundColor: '#2b3eba',
-        borderRadius: 5,
-        barThickness: 12  // adjust bar width here
+        backgroundColor: '#8b5cf6',
+        borderRadius: 8,
+        barThickness: 14  // adjust bar width here
       }]
     },
     options: {
@@ -393,14 +398,43 @@ $(document).ready(function () {
                 stripes: true
             }
         },
-        plugins: ["search"] // enable search
+        plugins: ["search"], // enable search
+        icons: false // disable default icons
+    })
+    .on("ready.jstree", function (e, data) {
+        // Automatically select the first line when tree is loaded
+        const tree = data.instance;
+        
+        // Get all nodes in flat format
+        const allNodes = tree.get_json('#', { flat: true });
+        
+        // Find the first leaf node (actual line, not a parent)
+        let firstLeafNode = null;
+        for (let i = 0; i < allNodes.length; i++) {
+            const node = allNodes[i];
+            // Check if it's a leaf node (has no children or children array is empty)
+            if (!node.children || node.children.length === 0) {
+                firstLeafNode = node;
+                break;
+            }
+        }
+        
+        // If no leaf node found, try to get the first node anyway
+        if (!firstLeafNode && allNodes.length > 0) {
+            firstLeafNode = allNodes[0];
+        }
+        
+        // Select the first node programmatically
+        if (firstLeafNode) {
+            tree.select_node(firstLeafNode.id);
+        }
     })
     .on("select_node.jstree", function (e, data) {
         // Store node text
         $('#parent_node_input').val(data.node.text);
         $('#treeSearch').val(data.node.text); 
 
-        $('#parentNodeDropdown').hide();
+        $('#parentNodeDropdown').removeClass('open').hide();
         const offsetMs = 8 * 60 * 60 * 1000; // UTC+8
          
         
@@ -498,25 +532,28 @@ $(document).ready(function () {
     });
 
     // Simple toggle click to open/close tree dropdown
-    $('#parentNodeDropdown').css({
-    position: 'absolute',
-    zIndex: 99999,   // super high so it’s always on top
-    background: '#fff', // optional, so it doesn't inherit transparency
-    border: '1px solid #ccc' // optional for visual clarity
-}).hide();
-    $('<input type="text" id="treeSearch" class="form-control" placeholder="Шугам сонгох..." style="height: 33px; border-radius: 2px !important; padding-right: 30px;" >')
-        .insertBefore('#parentNodeDropdown')
+    const $treePanel = $('#parentNodeDropdown');
+    const $treeSearch = $('#treeSearch');
+
+    $treePanel.addClass('line-tree-panel').hide();
+
+    $treeSearch
         .on('focus', function () {
-            $('#parentNodeDropdown').show();
+            $treePanel.addClass('open').show();
         })
-        .on('keyup', function () {
-            $('#parentNodeDropdown').jstree(true).search($(this).val());
+        .on('input', function () {
+            $treePanel.jstree(true).search($(this).val());
         });
 
     // Hide dropdown when clicking outside
     $(document).click(function(e) {
-        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
-            $('#parentNodeDropdown').hide();
+        if (!$(e.target).closest('.line-dropdown-wrapper').length) {
+            $treePanel.removeClass('open');
+            setTimeout(function() {
+                if (!$treePanel.hasClass('open')) {
+                    $treePanel.hide();
+                }
+            }, 300);
         }
     });
 }); 
@@ -610,6 +647,67 @@ $(document).ready(function() {
     // Refresh all charts with new data type
     refreshAllCharts();
   });
+  
+  // Initialize switch state
+  const switchInput = $('#dashboardSwitch');
+  if (switchInput.length) {
+    switchInput.prop('checked', false);
+    $('#switchLabel').text('Original');
+  }
+
+  // Add transition effects to date input (similar to daterangepicker)
+  const dateInput = document.getElementById('selected_date');
+  let datePickerTimeout;
+  
+  if (dateInput) {
+    // Enhanced visual feedback when date picker is being used
+    dateInput.addEventListener('focus', function() {
+      clearTimeout(datePickerTimeout);
+      this.classList.add('date-picker-open');
+      
+      // Add enhanced state after a brief delay (simulating calendar opening)
+      setTimeout(() => {
+        this.classList.add('date-picker-active');
+      }, 150);
+    });
+    
+    // Handle click for immediate feedback
+    dateInput.addEventListener('click', function() {
+      clearTimeout(datePickerTimeout);
+      this.classList.add('date-picker-open');
+      
+      setTimeout(() => {
+        this.classList.add('date-picker-active');
+      }, 100);
+    });
+    
+    dateInput.addEventListener('mousedown', function() {
+      clearTimeout(datePickerTimeout);
+      this.classList.add('date-picker-open');
+    });
+    
+    // Remove classes when calendar closes
+    dateInput.addEventListener('blur', function() {
+      const self = this;
+      clearTimeout(datePickerTimeout);
+      
+      // Delay removal to allow any animations to complete
+      datePickerTimeout = setTimeout(() => {
+        self.classList.remove('date-picker-open', 'date-picker-active');
+      }, 400);
+    });
+    
+    // Also handle when a date is selected
+    dateInput.addEventListener('change', function() {
+      const self = this;
+      clearTimeout(datePickerTimeout);
+      
+      // Keep the active state briefly after selection, then remove
+      datePickerTimeout = setTimeout(() => {
+        self.classList.remove('date-picker-open', 'date-picker-active');
+      }, 300);
+    });
+  }
 });
 
 function exportTableToExcel() {

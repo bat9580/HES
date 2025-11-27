@@ -66,7 +66,7 @@ document.getElementById("nextLink").addEventListener("click", function (e) {
     e.preventDefault(); // stop immediate navigation
     console.log("medx"); 
     if (meterNumbers.length === 0) {
-        alert("Excel файлаас тоолуурын дугаар ачаалаагүй байна!");
+        showToast("Excel файлаас тоолуурын дугаар ачаалаагүй байна!", "warning", 5000);
         return;
     }
 

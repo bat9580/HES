@@ -1,67 +1,185 @@
 {% extends "base.html" %}
 {% block content %}
 {% if message %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    showToast('{{ message }}', 'success');
+  }, 300);
+});
+</script>
 {% endif %} 
 
 
 <!-- Parameters Section -->
-<div class="card p-3 mb-4">
-  <h2 class="mb-4">Тоолуураас шууд унших</h2>  
-  <div class="tree">
-    <ul>
-      <li>
-        <span class="toggle" onclick="toggleChildren(this)">▶</span>
-        <label>Энергийн утга унших</label> 
-        <ul class="nested">
-          <li><input type="checkbox" class="parameter-checkbox" value="1.8.0"> <label>Нийт импортын актив энерги (1.8.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="1.8.1"> <label>Импортын актив энерги T1 (1.8.1)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="1.8.2"> <label>Импортын актив энерги T2 (1.8.2)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="1.8.3"> <label>Импортын актив энерги T3 (1.8.3)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="2.8.0"> <label>Нийт экспортын актив энерги (2.8.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="2.8.1"> <label>Экспортын актив энерги T1 (2.8.1)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="2.8.2"> <label>Экспортын актив энерги T2 (2.8.2)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="2.8.3"> <label>Экспортын актив энерги T3 (2.8.3)</label></li> 
-          <li><input type="checkbox" class="parameter-checkbox" value="3.8.0"> <label>Нийт импортын реактив энерги (3.8.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="3.8.1"> <label>Импортын реактив энерги T1 (3.8.1)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="3.8.2"> <label>Импортын реактив энерги T2 (3.8.2)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="3.8.3"> <label>Импортын реактив энерги T3 (3.8.3)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="4.8.0"> <label>Нийт экспортын реактив энерги (4.8.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="4.8.1"> <label>Экспортын реактив энерги T1 (4.8.1)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="4.8.2"> <label>Экспортын реактив энерги T2 (4.8.2)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="4.8.3"> <label>Экспортын реактив энерги T3 (4.8.3)</label></li>   
-        </ul>
-      </li>
-      <li>
-        <span class="toggle" onclick="toggleChildren(this)">▶</span>
-        <label>Агшин зуурын утга унших</label>
-        <ul class="nested">
-          <li><input type="checkbox" class="parameter-checkbox" value="32.7.0"> <label>A фазын хүчдэл(32.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="52.7.0"> <label>Б фазын хүчдэл(52.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="72.7.0"> <label>С фазын хүчдэл(72.7.0)</label></li> 
-          <li><input type="checkbox" class="parameter-checkbox" value="31.7.0"> <label>A фазын гүйдэл(31.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="51.7.0"> <label>Б фазын гүйдэл(51.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="71.7.0"> <label>С фазын гүйдэл(71.7.0)</label></li> 
-          <li><input type="checkbox" class="parameter-checkbox" value="15.7.0"> <label>Нийт актив чадал(15.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="21.7.0"> <label>A фазын актив чадал(21.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="41.7.0"> <label>Б фазын актив чадал(41.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="61.7.0"> <label>С фазын актив чадал(61.7.0)</label></li>  
-          <li><input type="checkbox" class="parameter-checkbox" value="3.7.0"> <label>Нийт реактив чадал(3.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="23.7.0"> <label>A фазын реактив чадал(23.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="43.7.0"> <label>Б фазын реактив чадал(43.7.0)</label></li>
-          <li><input type="checkbox" class="parameter-checkbox" value="63.7.0"> <label>С фазын реактив чадал(63.7.0)</label></li>  
-          <li><input type="checkbox" class="parameter-checkbox" value="14.7.0"> <label>Давтамж (14.7.0)</label></li> 
-        </ul>
-      </li>
-    </ul>
+<section class="parameter-panel card p-4 mb-4">
+  <div class="parameter-panel__header">
+    <div>
+      <h2 class="page-title mb-4">Тоолуураас шууд унших</h2>
+      <small>Шаардлагатай параметрүүдийг сонгоод уншилт хий.</small>
+    </div>
   </div>
-</div>
+
+  <div class="accordion parameter-accordion" id="parameterAccordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingEnergy">
+        <button class="accordion-button parameter-accordion-btn" type="button"
+                data-bs-toggle="collapse" data-bs-target="#collapseEnergy"
+                aria-expanded="true" aria-controls="collapseEnergy">
+          <i class="bi bi-lightning-charge"></i> <span>Энергийн утга унших</span>
+        </button>
+      </h2>
+      <div id="collapseEnergy" class="accordion-collapse collapse"
+           aria-labelledby="headingEnergy" data-bs-parent="#parameterAccordion">
+        <div class="accordion-body parameter-grid">
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="1.8.0">
+            <span>Нийт импортын актив энерги (1.8.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="1.8.1">
+            <span>Импортын актив энерги T1 (1.8.1)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="1.8.2">
+            <span>Импортын актив энерги T2 (1.8.2)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="1.8.3">
+            <span>Импортын актив энерги T3 (1.8.3)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="2.8.0">
+            <span>Нийт экспортын актив энерги (2.8.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="2.8.1">
+            <span>Экспортын актив энерги T1 (2.8.1)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="2.8.2">
+            <span>Экспортын актив энерги T2 (2.8.2)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="2.8.3">
+            <span>Экспортын актив энерги T3 (2.8.3)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="3.8.0">
+            <span>Нийт импортын реактив энерги (3.8.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="3.8.1">
+            <span>Импортын реактив энерги T1 (3.8.1)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="3.8.2">
+            <span>Импортын реактив энерги T2 (3.8.2)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="3.8.3">
+            <span>Импортын реактив энерги T3 (3.8.3)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="4.8.0">
+            <span>Нийт экспортын реактив энерги (4.8.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="4.8.1">
+            <span>Экспортын реактив энерги T1 (4.8.1)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="4.8.2">
+            <span>Экспортын реактив энерги T2 (4.8.2)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="4.8.3">
+            <span>Экспортын реактив энерги T3 (4.8.3)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingInstant">
+        <button class="accordion-button collapsed parameter-accordion-btn" type="button"
+                data-bs-toggle="collapse" data-bs-target="#collapseInstant"
+                aria-expanded="false" aria-controls="collapseInstant">
+          <i class="bi bi-activity"></i> Агшин зуурын утга унших
+        </button>
+      </h2>
+      <div id="collapseInstant" class="accordion-collapse collapse"
+           aria-labelledby="headingInstant" data-bs-parent="#parameterAccordion">
+        <div class="accordion-body parameter-grid">
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="32.7.0">
+            <span>A фазын хүчдэл(32.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="52.7.0">
+            <span>Б фазын хүчдэл(52.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="72.7.0">
+            <span>С фазын хүчдэл(72.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="31.7.0">
+            <span>A фазын гүйдэл(31.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="51.7.0">
+            <span>Б фазын гүйдэл(51.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="71.7.0">
+            <span>С фазын гүйдэл(71.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="15.7.0">
+            <span>Нийт актив чадал(15.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="21.7.0">
+            <span>A фазын актив чадал(21.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="41.7.0">
+            <span>Б фазын актив чадал(41.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="61.7.0">
+            <span>С фазын актив чадал(61.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="3.7.0">
+            <span>Нийт реактив чадал(3.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="23.7.0">
+            <span>A фазын реактив чадал(23.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="43.7.0">
+            <span>Б фазын реактив чадал(43.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="63.7.0">
+            <span>С фазын реактив чадал(63.7.0)</span>
+          </label>
+          <label class="parameter-check">
+            <input type="checkbox" class="parameter-checkbox" value="14.7.0">
+            <span>Давтамж (14.7.0)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <div class="p-4">
 
-  <form method = "GET" action = "/search-meter-parameter" class="row g-2 mb-3">
+  <div class="filter-bar-container">
+    <form method = "GET" action = "/search-meter-parameter" class="filter-bar">
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
@@ -88,16 +206,21 @@
       </div>
     </div>
     <div class="col-md-2">
-      <div class="col-md-auto" style="width: 100%; min-height: 35px; height: auto;"> 
-        <div class="dropdown" style="height: 35px;">
-          <!-- Search Input + Dropdown Toggle Combined -->
-          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
+      <div class="line-dropdown-wrapper w-100">
+        <div class="line-dropdown-shell">
+          <input type="text" 
+                 id="treeSearch"
+                 name="line"
+                 class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                 placeholder="Шугам сонгох..."
+                 value="{{ line | default('') }}"
+                 autocomplete="off">
+          <span class="dropdown-chevron line-dropdown-icon">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div id="parentNodeDropdown" class="line-tree-panel"></div>
         </div>
       </div>
     </div>
@@ -129,6 +252,7 @@
         </button>
     </div>
   </form>
+  </div>
 
   <table class="table table-bordered">
     <thead class="table-light">
@@ -197,28 +321,36 @@
     </div>
   </div>
 </div> -->
-<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+<div class="modal fade custom-modal" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="resultModalLabel">Уншилтын үр дүн</h5>  
+        <h5 class="modal-title" id="resultModalLabel">
+          <i class="bi bi-clipboard-data me-2"></i>Уншилтын үр дүн
+        </h5>  
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       
       <!-- Toggle Buttons -->
-      <div class="modal-header">
-        <button id="showOriginalBtn" class="btn btn-primary btn-sm me-2">Original</button>
-        <button id="showCalculatedBtn" class="btn btn-secondary btn-sm">Calculated</button>
+      <div class="modal-header result-toggle-header">
+        <div class="result-toggle-group">
+          <button id="showOriginalBtn" class="btn result-toggle-btn active">
+            <i class="bi bi-file-earmark-text me-1"></i>Original
+          </button>
+          <button id="showCalculatedBtn" class="btn result-toggle-btn">
+            <i class="bi bi-calculator me-1"></i>Calculated
+          </button>
+        </div>
       </div>
 
-      <div class="modal-body" >
+      <div class="modal-body result-modal-body">
         <!-- Original table -->
-        <div id="originalTableWrapper">
+        <div id="originalTableWrapper" class="result-table-wrapper">
           
         </div>
 
         <!-- Calculated table (hidden initially) -->
-        <div id="calculatedTableWrapper" style="display:none;">
+        <div id="calculatedTableWrapper" class="result-table-wrapper" style="display:none;">
           
         </div>
       </div>
@@ -231,28 +363,57 @@
 document.getElementById('showOriginalBtn').addEventListener('click', function() {
     document.getElementById('originalTableWrapper').style.display = 'block';
     document.getElementById('calculatedTableWrapper').style.display = 'none';
-    this.classList.add('btn-primary');
-    this.classList.remove('btn-secondary');
-    document.getElementById('showCalculatedBtn').classList.add('btn-secondary');
-    document.getElementById('showCalculatedBtn').classList.remove('btn-primary');
+    this.classList.add('active');
+    document.getElementById('showCalculatedBtn').classList.remove('active');
 });
 document.getElementById('showCalculatedBtn').addEventListener('click', function() {
     document.getElementById('originalTableWrapper').style.display = 'none';
     document.getElementById('calculatedTableWrapper').style.display = 'block';
-    this.classList.add('btn-primary');
-    this.classList.remove('btn-secondary');
-    document.getElementById('showOriginalBtn').classList.add('btn-secondary');
-    document.getElementById('showOriginalBtn').classList.remove('btn-primary');
+    this.classList.add('active');
+    document.getElementById('showOriginalBtn').classList.remove('active');
 });
 
 
 function formatResult(result) {
-  if (typeof result === 'object') {
-    return `<ul>` + Object.entries(result)
-      .map(([key, val]) => `<li><strong>${key}</strong>: ${val}</li>`)
-      .join("") + `</ul>`;
+  if (typeof result === 'object' && result !== null) {
+    const entries = Object.entries(result);
+    if (entries.length === 0) {
+      return '<p class="text-muted text-center py-4">No data available</p>';
+    }
+    
+    // Create a styled table
+    let tableHTML = `
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Параметр</th>
+              <th>Утга</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    entries.forEach(([key, val]) => {
+      const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const displayVal = val !== null && val !== undefined ? val : '-';
+      tableHTML += `
+        <tr>
+          <td><strong>${displayKey}</strong></td>
+          <td>${displayVal}</td>
+        </tr>
+      `;
+    });
+    
+    tableHTML += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    return tableHTML;
   }
-  return result;
+  return `<div class="text-center py-4"><p class="text-muted">${result || 'No data available'}</p></div>`;
 }
 
 // 🔹 Global object to store results per meter
@@ -280,13 +441,13 @@ document.getElementById('read-button').addEventListener('click', function () {
   const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value); 
 
   if (selectedMeters.length === 0) {
-    alert("Please select at least one meter.");
+    showToast("Please select at least one meter.", "warning", 4000);
     readBtn.innerHTML = originalContent;
     readBtn.disabled = false; 
     return;
   }
   if (selectedParameters.length === 0) {
-    alert("Please select at least one parameter.");
+    showToast("Please select at least one parameter.", "warning", 4000);
     readBtn.innerHTML = originalContent;
     readBtn.disabled = false;
     return;
@@ -330,7 +491,7 @@ document.getElementById('read-button').addEventListener('click', function () {
 })
   .catch(error => {
     console.error("Error:", error);
-    alert("Failed to send read command.");
+    showToast("Failed to send read command.", "error", 5000);
    // show error in all selected result fields
   selectedMeters.forEach(meter => {
     const resultField = document.getElementById(`result-${meter}`);
@@ -442,49 +603,49 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 $(document).ready(function () {
-    $('#parentNodeDropdown').jstree({
-        core: {
-            data: {
-                url: '/line-tree-data',
-                dataType: 'json'
-            },
-            themes: {
-                stripes: true
-            }
-        },
-        plugins: ["search"] // enable search
-    })
-    .on("select_node.jstree", function (e, data) {
-        // Store node text
-        $('#parent_node_input').val(data.node.text);
-        $('#treeSearch').val(data.node.text); 
+    const $treePanel = $('#parentNodeDropdown');
+    const $treeSearch = $('#treeSearch');
 
-        $('#parentNodeDropdown').hide();
+    if ($treePanel.length) {
+      $treePanel.jstree({
+          core: {
+              data: {
+                  url: '/line-tree-data',
+                  dataType: 'json'
+              },
+              themes: {
+                  stripes: true,
+                  icons: false
+              }
+          },
+          plugins: ["search"] // enable search
+      })
+      .on("select_node.jstree", function (e, data) {
+          // Store node text
+          $('#parent_node_input').val(data.node.text);
+          $treeSearch.val(data.node.text); 
 
-    });
+          $treePanel.removeClass('open');
 
-    // Simple toggle click to open/close tree dropdown
-    $('#parentNodeDropdown').css({
-    position: 'absolute',
-    zIndex: 99999,   // super high so it’s always on top
-    background: '#fff', // optional, so it doesn't inherit transparency
-    border: '1px solid #ccc' // optional for visual clarity
-}).hide();
-    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
-    .insertBefore('#parentNodeDropdown')
-        .on('focus', function () {
-            $('#parentNodeDropdown').show();
-        })
-        .on('keyup', function () {
-            $('#parentNodeDropdown').jstree(true).search($(this).val());
-        });
+      });
 
-    // Hide dropdown when clicking outside
-    $(document).click(function(e) {
-        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
-            $('#parentNodeDropdown').hide();
-        }
-    });
+      if ($treeSearch.length) {
+        $treeSearch
+          .on('focus', function () {
+              $treePanel.addClass('open');
+          })
+          .on('keyup', function () {
+              $treePanel.jstree(true).search($(this).val());
+          });
+      }
+
+      // Hide dropdown when clicking outside
+      $(document).click(function(e) {
+          if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
+              $treePanel.removeClass('open');
+          }
+      });
+    }
 });
 
 function toggleChildren(el) {

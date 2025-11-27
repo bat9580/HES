@@ -2,8 +2,9 @@
 
 {% block content %}
 
-<h2 class="mb-4">Заалт нөхөж унших</h2> 
-<form method="GET" action="/search-meters-ondemand" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+<h2 class="page-title mb-4">Заалт нөхөж унших</h2> 
+<div class="filter-bar-container">
+<form method="GET" action="/search-meters-ondemand" class="filter-bar"> 
     <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
@@ -30,31 +31,54 @@
       </div>
     </div>
     <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
-          <select
-              name="profile" 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-                <option value="energy profile">Энергийн Профайл</option> 
-                <option value="instant profile">Агшин зуурын Профайл</option>
-          </select>
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 id="profile-input"
+                 placeholder="Профайл сонгох"
+                 autocomplete="off"
+                 value="{% if profile == 'energy profile' %}Энергийн Профайл{% elif profile == 'instant profile' %}Агшин зуурын Профайл{% else %}{{ profile | default('') }}{% endif %}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="profile-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="profileDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="energy profile">Энергийн Профайл</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="instant profile">Агшин зуурын Профайл</a></li>
+        </ul>
+        <input type="hidden" name="profile" id="profile-hidden">
+      </div>
     </div>
     <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
     <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
-        <input type="text" id="daterange" class="form-control" style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
+        <input type="text" id="daterange" class="form-control filter-bar-date-input" style="max-width: 300px;">
         <input type="hidden" id="start_date" name="start_date">
         <input type="hidden" id="end_date" name="end_date">
     </div>
     <div class="col-md-2">
-      <div class="col-md-auto" style="width: 100%; min-height: 35px; height: auto;"> 
-        <div class="dropdown" style="height: 35px;">
-          <!-- Search Input + Dropdown Toggle Combined -->
-          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
+      <div class="line-dropdown-wrapper w-100">
+        <div class="line-dropdown-shell">
+          <input type="text"
+                 id="treeSearch"
+                 name="line"
+                 class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                 placeholder="Шугам сонгох..."
+                 value="{{ line | default('') }}"
+                 autocomplete="off">
+          <span class="dropdown-chevron line-dropdown-icon">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div id="parentNodeDropdown" class="line-tree-panel"></div>
         </div>
       </div>
     </div>
@@ -69,6 +93,7 @@
         </button>
     </div> 
 </form> 
+</div>
 
 <table class="table table-bordered">
     <thead class="table-light">
@@ -130,43 +155,37 @@
 
 
 <!-- Result Modal -->
-<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+<div class="modal fade custom-modal" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="resultModalLabel">Уншилтын үр дүн</h5>
+        <h5 class="modal-title" id="resultModalLabel">
+          <i class="bi bi-clipboard-data me-2"></i>Уншилтын үр дүн
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       
       <!-- Toggle Buttons -->
-      <div class="modal-header">
-        <button id="showOriginalBtn" class="btn btn-primary btn-sm me-2">Original</button>
-        <button id="showCalculatedBtn" class="btn btn-secondary btn-sm">Calculated</button>
+      <div class="modal-header result-toggle-header">
+        <div class="result-toggle-group">
+          <button id="showOriginalBtn" class="btn result-toggle-btn active">
+            <i class="bi bi-file-earmark-text me-1"></i>Original
+          </button>
+          <button id="showCalculatedBtn" class="btn result-toggle-btn">
+            <i class="bi bi-calculator me-1"></i>Calculated
+          </button>
+        </div>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body result-modal-body">
         <!-- Original table -->
-        <div id="originalTableWrapper">
-          <table class="table table-striped">
-            <thead>
-              <tr><th>Тоолуур</th><th>Уншилт</th><th>Огноо</th></tr>
-            </thead>
-            <tbody id="originalTableBody">
-              <!-- Injected via JS -->
-            </tbody>
-          </table>
+        <div id="originalTableWrapper" class="result-table-wrapper">
+          <!-- Injected via JS -->
         </div>
 
         <!-- Calculated table (hidden initially) -->
-        <div id="calculatedTableWrapper" style="display:none;">
-          <table class="table table-striped table-bordered">
-            <thead>
-              <tr><th>Тоолуур</th><th>Тооцоологдсон утга</th><th>Нэгж</th></tr>
-            </thead>
-            <tbody id="calculatedTableBody">
-              <!-- Injected via JS -->
-            </tbody>
-          </table>
+        <div id="calculatedTableWrapper" class="result-table-wrapper" style="display:none;">
+          <!-- Injected via JS -->
         </div>
       </div>
     </div>
@@ -184,19 +203,15 @@
 document.getElementById('showOriginalBtn').addEventListener('click', function() {
     document.getElementById('originalTableWrapper').style.display = 'block';
     document.getElementById('calculatedTableWrapper').style.display = 'none';
-    this.classList.add('btn-primary');
-    this.classList.remove('btn-secondary');
-    document.getElementById('showCalculatedBtn').classList.add('btn-secondary');
-    document.getElementById('showCalculatedBtn').classList.remove('btn-primary');
+    this.classList.add('active');
+    document.getElementById('showCalculatedBtn').classList.remove('active');
 });
 
 document.getElementById('showCalculatedBtn').addEventListener('click', function() {
     document.getElementById('originalTableWrapper').style.display = 'none';
     document.getElementById('calculatedTableWrapper').style.display = 'block';
-    this.classList.add('btn-primary');
-    this.classList.remove('btn-secondary');
-    document.getElementById('showOriginalBtn').classList.add('btn-secondary');
-    document.getElementById('showOriginalBtn').classList.remove('btn-primary');
+    this.classList.add('active');
+    document.getElementById('showOriginalBtn').classList.remove('active');
 });
 
 
@@ -223,18 +238,19 @@ function showResultModal(button) {
   const data_calculated = resultMap_calculated[meterNumber];  
   console.log(data)  
   if (!data || data.length === 0) {
-    document.getElementById("originalTableWrapper").innerHTML = "<p>No result found</p>";
-    document.getElementById("calculatedTableWrapper").innerHTML = "<p>No result found</p>";
+    document.getElementById("originalTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result found</p>';
+    document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result found</p>';
   }else if(data == "Error: meter is offline") {
-    document.getElementById("originalTableWrapper").innerHTML = "<p>meter is offline</p>";
-    document.getElementById("calculatedTableWrapper").innerHTML = "<p>meter is offline</p>";
+    document.getElementById("originalTableWrapper").innerHTML = '<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>Meter is offline</p>';
+    document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>Meter is offline</p>';
   }
    else {
     // ===== Original Table =====
-    let originalTable = `<table class="table table-bordered table-sm">
-      <thead>
-        <tr>
-          <th>Timestamp</th>`;
+    let originalTable = `<div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Timestamp</th>`;
     
     const fieldKeys = Object.keys(data[0]).filter(key => key !== 'timestamp');
     fieldKeys.forEach(key => {
@@ -251,16 +267,17 @@ function showResultModal(button) {
       originalTable += `</tr>`;
     });
 
-    originalTable += `</tbody></table>`;
+    originalTable += `</tbody></table></div>`;
     document.getElementById("originalTableWrapper").innerHTML = originalTable;
 
     // ===== Calculated Table =====
-    let calculatedTable = `<table class="table table-bordered table-sm">
-      <thead>
-        <tr>
-          <th>Timestamp</th>`; 
+    let calculatedTable = `<div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Timestamp</th>`; 
     const fieldKeys_cal = Object.keys(data_calculated[0]).filter(key => key !== 'timestamp');
-    fieldKeys.forEach(key => {
+    fieldKeys_cal.forEach(key => {
       calculatedTable += `<th>${key}</th>`;
     });
     calculatedTable += `</tr></thead><tbody>`;
@@ -273,7 +290,7 @@ function showResultModal(button) {
       calculatedTable += `</tr>`;
     });
 
-    calculatedTable += `</tbody></table>`;
+    calculatedTable += `</tbody></table></div>`;
     document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
   }
 
@@ -303,13 +320,13 @@ document.getElementById('read-button').addEventListener('click', function () {
   const endDate = document.getElementById('end_date').value;
 
   if (selectedMeters.length === 0) {
-    alert("Please select at least one meter.");
+    showToast("Please select at least one meter.", "warning", 4000);
     readBtn.innerHTML = originalContent;
     readBtn.disabled = false;
     return;
   }
   if (!startDate || !endDate) {
-  alert("Please select a valid time range.");
+  showToast("Please select a valid time range.", "warning", 4000);
   readBtn.innerHTML = originalContent;
   readBtn.disabled = false;
   return;
@@ -338,7 +355,7 @@ document.getElementById('read-button').addEventListener('click', function () {
 })
   .catch(error => {
     console.error("Error:", error);
-    alert("Failed to send read command.");
+    showToast("Failed to send read command.", "error", 5000);
    // show error in all selected result fields
   selectedMeters.forEach(meter => {
     const resultField = document.getElementById(`result-${meter}`);
@@ -380,11 +397,36 @@ $(function() {
     $('#start_date').val(start.format('YYYY-MM-DD[T]HH:mm:ss'));
     $('#end_date').val(end.format('YYYY-MM-DD[T]HH:mm:ss'));
   });
+
+  // Add transition effects to daterangepicker dropdown
+  $('#daterange').on('show.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    const $container = picker.container;
+    requestAnimationFrame(function() {
+      $container.addClass('drp-visible');
+    });
+  });
+
+  $('#daterange').on('hide.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    picker.container.removeClass('drp-visible');
+  });
 });
 
   document.addEventListener('DOMContentLoaded', function() {
   const dropdowns = document.querySelectorAll('.dropdown');  
   dropdowns.forEach(function(dropdown) {
+    // Skip static dropdowns (handled separately)
+    if (dropdown.hasAttribute('data-static-dropdown')) {
+      return;
+    }
+    
+    // Skip known static dropdown IDs
+    const list = dropdown.querySelector('.dropdown-menu');
+    if (list && (list.id === 'obis-code-list' || list.id === 'type-list' || list.id === 'profile-list')) {
+      return;
+    }
+    
     const searchInput = dropdown.querySelector('.dropdown-search-input'); 
     const chevron = dropdown.querySelector('.dropdown-chevron');
     const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
@@ -396,46 +438,57 @@ $(function() {
       }
     });
 
-    if (searchInput) {
-  const list = dropdown.querySelector('.dropdown-menu'); 
-   
-  // Fetch meters when input is focused
-  searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
-    var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-      path = '/get-installed-meters'; 
-    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-      path = '/get-zone';  
-    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-      path = '/get-station';
-    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-      path = '/get-installed-dcu';  
-    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-      path = '/get-archived-meter'; 
-    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-      path = '/get-installed-meters';
-    }
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
-          list.appendChild(li);
-        });
+    if (searchInput && list) {
+  // Check if this is a static dropdown (already has items)
+  const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
+  
+  if (!hasStaticItems) {
+    // Fetch meters when input is focused (only for dynamic dropdowns)
+    searchInput.addEventListener('focus', function () {
+      console.log(list.getAttribute("aria-labelledby")); 
+      var path = '' ; 
+      if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+        path = '/get-installed-meters'; 
+      }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+        path = '/get-zone';  
+      }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+        path = '/get-station';
+      }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+        path = '/get-installed-dcu';  
+      }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+        path = '/get-archived-meter'; 
+      }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+        path = '/get-installed-meters';
+      }
+      if (path) {
+        fetch(path)
+          .then(response => response.json())
+          .then(data => {
+            list.innerHTML = ''; // clear old items
+            console.log(data); 
+            data.forEach(element => {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.className = 'dropdown-item hoverable-item';
+              a.href = '#';
+              a.textContent = element;
+              a.setAttribute('data-value', element);  
+              li.appendChild(a);
+              list.appendChild(li);
+            });
 
-        dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
-      });
-  });
+            dropdown.classList.add('show');
+            dropdown.classList.remove('hover-show');
+          });
+      }
+    });
+  } else {
+    // Static dropdown - just show on focus
+    searchInput.addEventListener('focus', function () {
+      dropdown.classList.add('show');
+      dropdown.classList.remove('hover-show');
+    });
+  }
 
   // Real-time filtering — delegate to input
   searchInput.addEventListener('input', function () {
@@ -452,6 +505,13 @@ $(function() {
       if (searchInput) searchInput.value = e.target.textContent;
       dropdown.classList.remove('show');
       if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      // Also update hidden input if it exists with a specific name/id
+      const dataValue = e.target.getAttribute('data-value');
+      if (dataValue) {
+        // Try to find hidden input by common patterns (they're siblings, not children)
+        const hiddenProfile = document.getElementById('profile-hidden');
+        if (hiddenProfile) hiddenProfile.value = dataValue;
+      }
       e.preventDefault();
     }
   });
@@ -460,6 +520,15 @@ $(function() {
     // Chevron rotation
     if (chevron) {
       chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    // Handle chevron rotation for both static and dynamic dropdowns
+    if (searchInput) {
+      searchInput.addEventListener('focus', function() {
+        if (chevron && !dropdown.classList.contains('show')) {
+          chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+        }
+      });
     }
 
     dropdown.addEventListener('show.bs.dropdown', () => {
@@ -472,56 +541,103 @@ $(function() {
     // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show'); 
+        dropdown.classList.remove('show');
+        if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
       }
     });
   });
 });
 
 $(document).ready(function () {
-    $('#parentNodeDropdown').jstree({
-        core: {
-            data: {
-                url: '/line-tree-data',
-                dataType: 'json'
-            },
-            themes: {
-                stripes: true
-            }
-        },
-        plugins: ["search"] // enable search
-    })
-    .on("select_node.jstree", function (e, data) {
-        // Store node text
-        $('#parent_node_input').val(data.node.text);
-        $('#treeSearch').val(data.node.text); 
+    const $treePanel = $('#parentNodeDropdown');
+    const $treeSearch = $('#treeSearch');
 
-        $('#parentNodeDropdown').hide();
+    if ($treePanel.length) {
+      $treePanel.jstree({
+          core: {
+              data: {
+                  url: '/line-tree-data',
+                  dataType: 'json'
+              },
+              themes: {
+                  stripes: true,
+                  icons: false
+              }
+          },
+          plugins: ["search"] // enable search
+      })
+      .on("select_node.jstree", function (e, data) {
+          // Store node text
+          $('#parent_node_input').val(data.node.text);
+          $treeSearch.val(data.node.text); 
 
-    });
+          $treePanel.removeClass('open');
 
-    // Simple toggle click to open/close tree dropdown
-    $('#parentNodeDropdown').css({
-    position: 'absolute',
-    zIndex: 99999,   // super high so it’s always on top
-    background: '#fff', // optional, so it doesn't inherit transparency
-    border: '1px solid #ccc' // optional for visual clarity
-}).hide();
-    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
-    .insertBefore('#parentNodeDropdown')
-        .on('focus', function () {
-            $('#parentNodeDropdown').show();
-        })
-        .on('keyup', function () {
-            $('#parentNodeDropdown').jstree(true).search($(this).val());
+      });
+
+      if ($treeSearch.length) {
+        $treeSearch
+          .on('focus', function () {
+              $treePanel.addClass('open');
+          })
+          .on('keyup', function () {
+              $treePanel.jstree(true).search($(this).val());
+          });
+      }
+
+      // Hide dropdown when clicking outside
+      $(document).click(function(e) {
+          if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
+              $treePanel.removeClass('open');
+          }
+      });
+    }
+
+    // Profile dropdown handler - must run before generic handler
+    const profileDropdown = document.querySelector('#profile-list')?.closest('.dropdown');
+    const profileInput = document.getElementById('profile-input');
+    const profileList = document.getElementById('profile-list');
+    const profileHidden = document.getElementById('profile-hidden');
+    const profileChevron = profileDropdown?.querySelector('.dropdown-chevron');
+
+    if (profileDropdown && profileInput && profileList) {
+      // Mark this dropdown as static to prevent generic handler from interfering
+      profileDropdown.setAttribute('data-static-dropdown', 'true');
+      
+      profileInput.addEventListener('focus', function(e) {
+        e.stopPropagation();
+        profileDropdown.classList.add('show');
+        if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(180deg)';
+      }, true);
+
+      profileInput.addEventListener('input', function(e) {
+        e.stopPropagation();
+        const term = this.value.toLowerCase();
+        const items = profileList.querySelectorAll('.dropdown-item');
+        items.forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
         });
+      }, true);
 
-    // Hide dropdown when clicking outside
-    $(document).click(function(e) {
-        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
-            $('#parentNodeDropdown').hide();
+      profileList.addEventListener('click', function(e) {
+        if (e.target && e.target.matches('.dropdown-item')) {
+          profileInput.value = e.target.textContent;
+          if (profileHidden) profileHidden.value = e.target.getAttribute('data-value');
+          profileDropdown.classList.remove('show');
+          if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+          e.preventDefault();
+          e.stopPropagation();
         }
-    });
+      }, true);
+
+      // Close when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!profileDropdown.contains(e.target)) {
+          profileDropdown.classList.remove('show');
+          if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+        }
+      });
+    }
 });
 
 </script>

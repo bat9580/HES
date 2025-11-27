@@ -2,18 +2,22 @@
 
 {% block content %}
 {% if message %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-  {{ message }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    showToast('{{ message }}', 'success');
+  }, 300);
+});
+</script>
 {% endif %} 
   <div class="container-fluid">
     <div class="row">
       
       <!-- Left side: Role table -->
       <div class="col-md-7">
-        <h2 class="mb-4">Эрхүүд</h2>  
-        <form method="GET" action="/search-role" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+        <h2 class="page-title mb-4">Эрхүүд</h2>  
+        <div class="filter-bar-container">
+          <form method="GET" action="/search-role" class="filter-bar"> 
             <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
                 <input type="text" 
                         class="form-control dropdown-search-input dimmed-text hoverable-input" 
@@ -43,6 +47,7 @@
                 
 
         </form> 
+        </div>
 
         
         <table class="table table-bordered table-hover table-striped align-middle text-center">

@@ -65,10 +65,9 @@ async def add_meter(
                 device_type = ?,
                 type = ?, 
                 password = ?, 
-                remarks = ?,
-                status = ? 
+                remarks = ?
             WHERE meter_number = ? 
-        """, (meter_number, comm_address, device_type, type, password, remarks,status,original_meter_number)) 
+        """, (meter_number, comm_address, device_type, type, password, remarks,original_meter_number)) 
         conn.commit()
         message = f"✅ Meter edited successfully." 
     except sqlite3.IntegrityError: 

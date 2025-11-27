@@ -3,7 +3,26 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import dashboard, energy_profile_read,data_read, meter_management, DCU_management, read_DCU_parameter, unregistered_device, meter_installation, read_meter_parameter, system_task, ondemand_reading, line_management, login, instant_profile_read, batch_upload_meter,user_management, role_management 
+from routers import (
+    dashboard,
+    energy_profile_read,
+    data_read,
+    meter_management,
+    DCU_management,
+    read_DCU_parameter,
+    unregistered_device,
+    meter_installation,
+    read_meter_parameter,
+    system_task,
+    ondemand_reading,
+    line_management,
+    login,
+    instant_profile_read,
+    batch_upload_meter,
+    user_management,
+    role_management,
+    meter_download,
+)
 from api_endpoints import meters_api, readings_api, dcu_api, system_api, meter_installation_api, auth_api
 from api_endpoints import dashboard_api
 from services.state import connected_clients,scheduler
@@ -81,21 +100,32 @@ init_db()
 
  
     
-    
+
 
 
 
 async def handle_client(reader, writer):
+    meter_number = None 
+    DCU_number = None 
     addr = writer.get_extra_info('peername')
     print(f"✅ Connected: {addr}") 
     access_time = 0
     data = await reader.read(1024)
     print(f"📥 From DCU {addr}: {data.hex()}")
-    
+    print(len(data)) 
     # if is_expected_frame(data):  
 
     if utility_functions.is_heartbeat_frame(data): #  daraa ni zasah  
-        meter_number = int(data[-8:].decode('utf-8', errors='ignore').strip())
+        meter_number = int(data[-8:].decode('utf-8', errors='ignore').strip()) 
+    if utility_functions.is_heartbeat_frame_DCU(data):
+        try:
+            DCU_number = await utility_functions.get_DCU_number(reader, writer)
+            print(f"DCU number: {DCU_number}") 
+        except (ConnectionError, ValueError, asyncio.TimeoutError) as e:
+            print(f"❌ Failed to get DCU number: {e}")
+            writer.close()
+            await writer.wait_closed()
+            return 
     else: 
         print(f"unexpected frame, closing connection: {data}")  
         writer.close()
@@ -109,12 +139,15 @@ async def handle_client(reader, writer):
     #     print("meter number is in connected clients") 
     #     connected_clients[meter_number]['access_time'] = access_time 
     # else: 
-    if utility_functions.is_meter_installed(meter_number):
+    if meter_number and utility_functions.is_meter_installed(meter_number):
         utility_functions.add_meter_to_connected_clients(meter_number,addr, access_time,reader,writer) 
         utility_functions.creat_meter_task(meter_number)
         connected_clients[meter_number]['pause_event'].set()
+    elif DCU_number and utility_functions.is_DCU_installed(DCU_number):
+        utility_functions.add_DCU_to_connected_clients(DCU_number,addr, access_time,reader,writer) 
+        connected_clients[DCU_number]['pause_event'].set()
     else:
-        print(f"this  Meter {meter_number} is not installed")  
+        print(f"this  Meter or DCU {meter_number} or {DCU_number} is not installed")  
         writer.close()
         await writer.wait_closed()   
         return
@@ -213,6 +246,7 @@ app.include_router(meter_installation.router)
 app.include_router(read_meter_parameter.router) 
 app.include_router(system_task.router)
 app.include_router(dashboard.router)
+app.include_router(meter_download.router)
 app.include_router(data_read.router)
 app.include_router(energy_profile_read.router) 
 app.include_router(ondemand_reading.router)  

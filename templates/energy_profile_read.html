@@ -2,8 +2,9 @@
 
 {% block content %}
 
-<h2 class="mb-4">Энергийн Профайл унших</h2>
-<form method="GET" action="/search-energy-profile" class="d-flex flex-wrap align-items-center mb-3 gap-2"> 
+<h2 class="page-title mb-4">Энергийн Профайл унших</h2>
+<div class="filter-bar-container">
+<form method="GET" action="/search-energy-profile" class="filter-bar"> 
     <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
       <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
@@ -39,32 +40,57 @@
           </select>
     </div> -->
     <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
-        <input type="text" id="daterange" class="form-control" 
-              style="max-width: 300px; height: 33px; border-radius: 2px !important; padding-right: 10px;">
+        <input type="text" id="daterange" class="form-control filter-bar-date-input" 
+              style="max-width: 300px;">
         <!-- Hidden inputs to submit the dates -->
         <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
         <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
     </div>
-    <div class="col-md-auto" style="width: 12%; min-height: 35px; height: auto;"> 
-        <div class="dropdown" style="height: 35px;">
-          <!-- Search Input + Dropdown Toggle Combined -->
-          <div class="dropdown-toggle-wrapper position-relative" id="parentNodeDropdown" >
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
+    <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
+      <div class="line-dropdown-wrapper w-100">
+        <div class="line-dropdown-shell">
+          <input type="text"
+                 id="treeSearch"
+                 name="line"
+                 class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                 placeholder="Шугам сонгох..."
+                 value="{{ line | default('') }}"
+                 autocomplete="off">
+          <span class="dropdown-chevron line-dropdown-icon">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+          <div id="parentNodeDropdown" class="line-tree-panel"></div>
         </div>
       </div>
+    </div>
     <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
-          <select 
-              name = "type" 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-             <option value="Original" {% if selected_type == "Original" %}selected{% endif %}>Original</option>  
-            <option value="Calculated" {% if selected_type == "Calculated" %}selected{% endif %}>Calculated</option> 
-          </select>
+      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown-toggle-wrapper position-relative">
+          <input type="text" 
+                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
+                 id="type-input"
+                 placeholder="Type"
+                 autocomplete="off"
+                 value="{% if selected_type == 'Original' %}Original{% elif selected_type == 'Calculated' %}Calculated{% else %}{{ selected_type | default('') }}{% endif %}"
+                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+        
+        <ul id="type-list" 
+            class="dropdown-menu w-100"
+            aria-labelledby="typeDropdown"
+            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="Original">Original</a></li>
+          <li><a class="dropdown-item hoverable-item" href="#" data-value="Calculated">Calculated</a></li>
+        </ul>
+        <input type="hidden" name="type" id="type-hidden" value="{{ selected_type | default('') }}">
+      </div>
     </div> 
 
     
@@ -79,6 +105,7 @@
       </button>
     </div>
 </form> 
+</div>
 <div class="table-scroll-top">
   <div class="table-scroll-x"></div>
 </div>
@@ -158,49 +185,49 @@
 
 <script>
 $(document).ready(function () {
-    $('#parentNodeDropdown').jstree({
-        core: {
-            data: {
-                url: '/line-tree-data',
-                dataType: 'json'
-            },
+    const $treePanel = $('#parentNodeDropdown');
+    const $treeSearch = $('#treeSearch');
+
+    if ($treePanel.length) {
+      $treePanel.jstree({
+          core: {
+              data: {
+                  url: '/line-tree-data',
+                  dataType: 'json'
+              },
             themes: {
-                stripes: true
+                stripes: true,
+                icons: false
             }
-        },
-        plugins: ["search"] // enable search
-    })
-    .on("select_node.jstree", function (e, data) {
-        // Store node text
-        $('#parent_node_input').val(data.node.text);
-        $('#treeSearch').val(data.node.text); 
+          },
+          plugins: ["search"] // enable search
+      })
+      .on("select_node.jstree", function (e, data) {
+          // Store node text
+          $('#parent_node_input').val(data.node.text);
+          $treeSearch.val(data.node.text); 
 
-        $('#parentNodeDropdown').hide();
+          $treePanel.removeClass('open');
 
-    });
+      });
 
-    // Simple toggle click to open/close tree dropdown
-    $('#parentNodeDropdown').css({
-    position: 'absolute',
-    zIndex: 99999,   // super high so it’s always on top
-    background: '#fff', // optional, so it doesn't inherit transparency
-    border: '1px solid #ccc' // optional for visual clarity
-}).hide();
-    $("<input type='text' id='treeSearch' name='line' class='form-control' value='{{ line | default('') }}' placeholder='Шугам сонгох...' style='height: 33px; border-radius: 2px !important; padding-right: 30px;'>")
-    .insertBefore('#parentNodeDropdown')
-        .on('focus', function () {
-            $('#parentNodeDropdown').show();
-        })
-        .on('keyup', function () {
-            $('#parentNodeDropdown').jstree(true).search($(this).val());
-        });
+      if ($treeSearch.length) {
+        $treeSearch
+          .on('focus', function () {
+              $treePanel.addClass('open');
+          })
+          .on('keyup', function () {
+              $treePanel.jstree(true).search($(this).val());
+          });
+      }
 
-    // Hide dropdown when clicking outside
-    $(document).click(function(e) {
-        if (!$(e.target).closest('#parentNodeDropdown, #treeSearch').length) {
-            $('#parentNodeDropdown').hide();
-        }
-    });
+      // Hide dropdown when clicking outside
+      $(document).click(function(e) {
+          if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
+              $treePanel.removeClass('open');
+          }
+      });
+    }
 });
 $(function() {
   // Parse dates from server or fallback to current hour
@@ -228,6 +255,20 @@ $(function() {
 
   // Also set the initial value in the visible input so the user sees it
   $('#daterange').val(startDate.format('YYYY-MM-DD[T]HH:mm:ss') + 'T' + endDate.format('YYYY-MM-DD[T]HH:mm:ss'));
+
+  // Add transition effects to daterangepicker dropdown
+  $('#daterange').on('show.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    const $container = picker.container;
+    requestAnimationFrame(function() {
+      $container.addClass('drp-visible');
+    });
+  });
+
+  $('#daterange').on('hide.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    picker.container.removeClass('drp-visible');
+  });
 });
 
 function exportTableToExcel(tableId) {
@@ -238,8 +279,64 @@ function exportTableToExcel(tableId) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Type dropdown handler - must run before generic handler
+  const typeDropdown = document.querySelector('#type-list')?.closest('.dropdown');
+  const typeInput = document.getElementById('type-input');
+  const typeList = document.getElementById('type-list');
+  const typeHidden = document.getElementById('type-hidden');
+  const typeChevron = typeDropdown?.querySelector('.dropdown-chevron');
+
+  if (typeDropdown && typeInput && typeList) {
+    typeDropdown.setAttribute('data-static-dropdown', 'true');
+    
+    typeInput.addEventListener('focus', function(e) {
+      e.stopPropagation();
+      typeDropdown.classList.add('show');
+      if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(180deg)';
+    }, true);
+
+    typeInput.addEventListener('input', function(e) {
+      e.stopPropagation();
+      const term = this.value.toLowerCase();
+      const items = typeList.querySelectorAll('.dropdown-item');
+      items.forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+      });
+    }, true);
+
+    typeList.addEventListener('click', function(e) {
+      if (e.target && e.target.matches('.dropdown-item')) {
+        typeInput.value = e.target.textContent;
+        if (typeHidden) typeHidden.value = e.target.getAttribute('data-value');
+        typeDropdown.classList.remove('show');
+        if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!typeDropdown.contains(e.target)) {
+        typeDropdown.classList.remove('show');
+        if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(0deg)';
+      }
+    });
+  }
+
   const dropdowns = document.querySelectorAll('.dropdown');  
   dropdowns.forEach(function(dropdown) {
+    // Skip static dropdowns (handled separately)
+    if (dropdown.hasAttribute('data-static-dropdown')) {
+      return;
+    }
+    
+    // Skip known static dropdown IDs
+    const list = dropdown.querySelector('.dropdown-menu');
+    if (list && (list.id === 'obis-code-list' || list.id === 'type-list' || list.id === 'profile-list')) {
+      return;
+    }
+    
     const searchInput = dropdown.querySelector('.dropdown-search-input'); 
     const chevron = dropdown.querySelector('.dropdown-chevron');
     const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
@@ -251,46 +348,57 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    if (searchInput) {
-  const list = dropdown.querySelector('.dropdown-menu'); 
-   
-  // Fetch meters when input is focused
-  searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
-    var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-      path = '/get-installed-meters'; 
-    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-      path = '/get-zone';  
-    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-      path = '/get-station';
-    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-      path = '/get-installed-dcu';  
-    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-      path = '/get-archived-meter'; 
-    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-      path = '/get-installed-meters';
-    }
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
-          list.appendChild(li);
-        });
+    if (searchInput && list) {
+  // Check if this is a static dropdown (already has items)
+  const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
+  
+  if (!hasStaticItems) {
+    // Fetch meters when input is focused (only for dynamic dropdowns)
+    searchInput.addEventListener('focus', function () {
+      console.log(list.getAttribute("aria-labelledby")); 
+      var path = '' ; 
+      if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+        path = '/get-installed-meters'; 
+      }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+        path = '/get-zone';  
+      }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+        path = '/get-station';
+      }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+        path = '/get-installed-dcu';  
+      }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+        path = '/get-archived-meter'; 
+      }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+        path = '/get-installed-meters';
+      }
+      if (path) {
+        fetch(path)
+          .then(response => response.json())
+          .then(data => {
+            list.innerHTML = ''; // clear old items
+            console.log(data); 
+            data.forEach(element => {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.className = 'dropdown-item hoverable-item';
+              a.href = '#';
+              a.textContent = element;
+              a.setAttribute('data-value', element);  
+              li.appendChild(a);
+              list.appendChild(li);
+            });
 
-        dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
-      });
-  });
+            dropdown.classList.add('show');
+            dropdown.classList.remove('hover-show');
+          });
+      }
+    });
+  } else {
+    // Static dropdown - just show on focus
+    searchInput.addEventListener('focus', function () {
+      dropdown.classList.add('show');
+      dropdown.classList.remove('hover-show');
+    });
+  }
 
   // Real-time filtering — delegate to input
   searchInput.addEventListener('input', function () {
@@ -307,6 +415,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (searchInput) searchInput.value = e.target.textContent;
       dropdown.classList.remove('show');
       if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
+      // Also update hidden input if it exists with a specific name/id
+      const dataValue = e.target.getAttribute('data-value');
+      if (dataValue) {
+        // Try to find hidden input by common patterns (they're siblings, not children)
+        const hiddenType = document.getElementById('type-hidden');
+        if (hiddenType) hiddenType.value = dataValue;
+      }
       e.preventDefault();
     }
   });
@@ -315,6 +430,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Chevron rotation
     if (chevron) {
       chevron.style.transition = 'transform 0.2s ease';
+    }
+
+    // Handle chevron rotation for both static and dynamic dropdowns
+    if (searchInput) {
+      searchInput.addEventListener('focus', function() {
+        if (chevron && !dropdown.classList.contains('show')) {
+          chevron.style.transform = 'translateY(-50%) rotate(180deg)';
+        }
+      });
     }
 
     dropdown.addEventListener('show.bs.dropdown', () => {
@@ -327,7 +451,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show'); 
+        dropdown.classList.remove('show');
+        if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
       }
     });
   });
