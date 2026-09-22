@@ -8,7 +8,8 @@ from services.database import get_db_connection
 from services.state import connected_clients,scheduler 
 import utils.meter_task_functions as task_functions
 from apscheduler.triggers.cron import CronTrigger 
-from utils import frames 
+from utils import frames
+from utils.dcu_invoke_id import migrate_dcu_invoke_session, with_dcu_invoke
 import os
 from datetime import datetime 
 templates = Jinja2Templates(directory="templates")  
@@ -34,16 +35,23 @@ def is_DCU_installed(DCU_number):
     conn.close()
     return result is not None
 def is_heartbeat_frame(data):
-    if len(data) == 26:
-        return True 
-    else:
-        return False    
+    if len(data) == 26 and data[0] != 0x7E:
+        return True
+    return False    
 
 def is_heartbeat_frame_DCU(data):
     if len(data) == 10: 
         return True 
     else:
         return False 
+def is_profile_frame_DCU(data): 
+    data_str = data.hex().lower()
+    if data_str[:12] == "000100010001":
+        print("profile frame")
+        return True
+    else: 
+        print("not profile frame") 
+        return False
 async def get_DCU_number(reader, writer, timeout: float = 5.0) -> int:
     """
     Retrieve DCU number from a connected DCU device.
@@ -61,6 +69,7 @@ async def get_DCU_number(reader, writer, timeout: float = 5.0) -> int:
         ValueError: If DCU number cannot be extracted from response
         ConnectionError: If communication with DCU fails
     """
+    peer_key = f"peer:{writer.get_extra_info('peername')}"
     try:
         # Send DCU ACK
         writer.write(bytes.fromhex(frames.DCU_ACK))
@@ -81,8 +90,8 @@ async def get_DCU_number(reader, writer, timeout: float = 5.0) -> int:
         
         print(f"📥 From DCU (ACK/AARQ response): {data.hex()}")
         
-        # Send GET_DCU_NAME request
-        writer.write(bytes.fromhex(frames.GET_DCU_NAME))
+        # Send GET_DCU_NAME request (invoke id rotated per connection, then keyed by DCU number)
+        writer.write(bytes.fromhex(with_dcu_invoke(frames.GET_DCU_NAME, peer_key)))
         await writer.drain()
         
         # Read DCU name response with timeout
@@ -120,6 +129,7 @@ async def get_DCU_number(reader, writer, timeout: float = 5.0) -> int:
             raise ValueError(f"Invalid DCU number: {dcu_number} (must be positive)")
         
         print(f"✅ Successfully retrieved DCU number: {dcu_number}")
+        migrate_dcu_invoke_session(peer_key, str(dcu_number))
         return dcu_number
         
     except (ValueError, ConnectionError) as e:
@@ -203,6 +213,7 @@ def creat_meter_task(meter_number):
         asyncio.create_task(task_functions.task_executor(meter_number)) 
     ]
     add_system_task(meter_number) 
+
 async def clear_tasks(client): 
     try:
         tasks = client.get('tasks', [])

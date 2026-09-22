@@ -6,11 +6,17 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => {
     showToast('{{ message }}', 'success');
   }, 300);
+  toggleCommFields();
 });
 </script>
 {% endif %} 
 <div class="p-4">
-  <h2 class="page-title mb-4">Суулгасан тоолуурууд</h2>
+  <div class="page-header mb-4">
+    <div class="page-header-text">
+      <h2 class="page-title mb-1">Суулгасан тоолуурууд</h2>
+      <p class="page-header-sub">Суурилуулсан тоолуурын мэдээлэл болон шугам, дэд станцын холболт.</p>
+    </div>
+  </div>
 
   <div class="filter-bar-container">
     <form method = "GET" action = "/search-meter-installation" class="filter-bar">
@@ -125,12 +131,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <div class="col-md-auto" style="width: 4.166666%;"> 
         <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
-          <i class="bi bi-plus-lg"></i>
+          <i class="bi bi-plus" aria-hidden="true"></i>
         </button>
     </div>
     <div class="col-md-auto" style="width: 4.166666%;"> 
         <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#uninstallMeterModal">
-          <i class="bi bi-dash-lg"></i>
+          <i class="bi bi-dash" aria-hidden="true"></i>
         </button>
     </div>
   </form>
@@ -142,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <th style="width: 30px;">#</th>
         <th>Тоолуурын дугаар</th>
         <th>Комм хаяг</th>
+        <th>Тоолуурын төрөл</th>
         <th>CT харьцаа</th>
         <th>VT харьцаа</th>  
         <th>Тайлбар</th>
@@ -156,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <td>{{ loop.index }}</td>
         <td>{{ meter['meter_number'] }}</td>
         <td>{{ meter['com_address'] }}</td>
+        <td>{{ meter['device_type'] }}</td>
         <td>{{ meter['CT_ratio'] }}</td>
         <td>{{ meter['VT_ratio'] }}</td>
         <td>{{ meter['remarks'] or '-' }}</td>
@@ -245,6 +253,9 @@ document.addEventListener('DOMContentLoaded', function() {
                           style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li> 
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li> 
+                          
                       </ul>
                     </div>
                   </div>
@@ -265,8 +276,35 @@ document.addEventListener('DOMContentLoaded', function() {
   
                 <div class="row mb-3">
                   <div class="col-md-6">
-                    <label>Комм хаяг:</label>
-                    <input type="text" name="comm_address" class="form-control" readonly  required>
+                    <div id="commAddressGroup">
+                      <label>Комм хаяг:</label>
+                      <input type="text" name="comm_address" id="commAddressInput" class="form-control" readonly required>
+                    </div>
+                    <div id="dcuNumberGroup" class="d-none">
+                      <label>DCU дугаар:</label>
+                      <div class="dropdown">
+                        <div class="dropdown-toggle-wrapper position-relative">
+                          <input type="text"
+                                 name="dcu_number"
+                                 id="addDcuNumberInput"
+                                 class="form-control dropdown-search-input dimmed-text hoverable-input"
+                                 placeholder="DCU дугаарыг сонгох"
+                                 autocomplete="off">
+                          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                          </span>
+                        </div>
+                        <ul id="add-dcu-number-list"
+                            class="dropdown-menu w-100"
+                            aria-labelledby="dcuDropdown"
+                            style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                          <!-- dynamically populated -->
+                        </ul>
+                      </div>
+                      <small class="text-muted">PLC төрлийн тоолуур дээр DCU-г сонгоно уу</small>
+                    </div>
                   </div>
                   <div class="col-md-6">
                     <label>Тоолуурын төрөл:</label>
@@ -300,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>CT харьцаа:</label> 
-                    <input type="number" name="CT_ratio" class="form-control" step="1" min="0">
+                    <input type="number" name="CT_ratio" class="form-control" step="1" min="1" value="1">
                   </div> 
                   <div class="col-md-6">
                     <label>Тайлбар:</label>
@@ -311,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div class="col-md-6">
                     <label>VT харьцаа:</label> 
-                    <input type="number" name="VT_ratio" class="form-control" step="1" min="0">
+                    <input type="number" name="VT_ratio" class="form-control" step="1" min="1" value="1">
                   </div> 
                 <div class="col-md-auto" id="parentNodeWrapper" style="display:block;">
                         <label>Харьяа шугам:</label>
@@ -523,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>CT харьцаа:</label> 
-                    <input type="number" name="CT_ratio" id = "editCT_ratio" class="form-control" step="1" min="0">
+                    <input type="number" name="CT_ratio" id = "editCT_ratio" class="form-control" step="1" min="1" value="1">
                   </div> 
                   <div class="col-md-6">
                     <label>Тайлбар:</label>
@@ -533,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>VT харьцаа:</label> 
-                    <input type="number" name="VT_ratio" id = "editVT_ratio" class="form-control" step="1" min="0">
+                    <input type="number" name="VT_ratio" id = "editVT_ratio" class="form-control" step="1" min="1" value="1">
                   </div> 
                   <div class="col-md-auto" id="editLineWrapper" style="display:block;"> 
                     <label>Харьяа шугам:</label>
@@ -573,8 +611,10 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('editType').value = button.getAttribute('data-type');
       document.getElementById('editPassword').value = button.getAttribute('data-password');
       document.getElementById('editRemarks').value = button.getAttribute('data-remarks'); 
-      document.getElementById('editVT_ratio').value = button.getAttribute('data-vt_ratio');
-      document.getElementById('editCT_ratio').value = button.getAttribute('data-ct_ratio'); 
+      const vtRatio = button.getAttribute('data-vt_ratio');
+      const ctRatio = button.getAttribute('data-ct_ratio');
+      document.getElementById('editVT_ratio').value = vtRatio && vtRatio.trim() ? vtRatio : '1';
+      document.getElementById('editCT_ratio').value = ctRatio && ctRatio.trim() ? ctRatio : '1'; 
       console.log(button.getAttribute('data-device-type'))
  
 
@@ -631,6 +671,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     
 
+const meterTypeInput = document.getElementById('addMeterType');
+const commAddressGroup = document.getElementById('commAddressGroup');
+const dcuNumberGroup = document.getElementById('dcuNumberGroup');
+const commAddressInput = document.getElementById('commAddressInput');
+const dcuNumberInput = document.getElementById('addDcuNumberInput');
+
+function toggleCommFields() {
+  if (!meterTypeInput || !commAddressGroup || !dcuNumberGroup) return;
+  const typeValue = meterTypeInput.value.trim().toLowerCase();
+  const isPLC = typeValue.includes('plc'); 
+  const isRS485withEDAT = typeValue.includes('rs485 with edat');
+
+  if (isPLC || isRS485withEDAT) {
+    commAddressGroup.classList.add('d-none');
+    dcuNumberGroup.classList.remove('d-none');
+    commAddressInput && commAddressInput.removeAttribute('required');
+    if (dcuNumberInput) {
+      dcuNumberInput.setAttribute('required', 'required');
+      if (!commAddressInput.value && dcuNumberInput.value) {
+        commAddressInput.value = dcuNumberInput.value;
+      }
+    }
+  } else {
+    commAddressGroup.classList.remove('d-none');
+    dcuNumberGroup.classList.add('d-none');
+    commAddressInput && commAddressInput.setAttribute('required', 'required');
+    if (dcuNumberInput) {
+      dcuNumberInput.removeAttribute('required');
+      dcuNumberInput.value = '';
+    }
+  }
+}
+
+if (meterTypeInput) {
+  meterTypeInput.addEventListener('input', toggleCommFields);
+  meterTypeInput.addEventListener('change', toggleCommFields);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const dropdowns = document.querySelectorAll('.dropdown');  
   dropdowns.forEach(function(dropdown) {
@@ -650,40 +728,60 @@ document.addEventListener('DOMContentLoaded', function() {
    
   // Fetch meters when input is focused
   searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
+    const ariaLabel = list ? list.getAttribute("aria-labelledby") : null;
+    console.log('Dropdown aria-labelledby:', ariaLabel, 'Input ID:', searchInput.id); 
     var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+    if(ariaLabel == "deviceDropdown"){
       path = '/get-installed-meters'; 
-    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+    }else if(ariaLabel == "zoneDropdown"){
       path = '/get-zone';  
-    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+    }else if(ariaLabel == "stationDropdown"){
       path = '/get-station';
-    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-      path = '/get-installed-dcu';  
-    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-      path = '/get-archived-meter'; 
-    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+    }else if(ariaLabel == "dcuDropdown"){
+      path = '/get-installed-dcu';
+      console.log('Fetching DCU data from:', path);
+    }else if(ariaLabel == "archivedDropdown"){
+      const meterTypeInput = document.getElementById('addMeterType');
+      const selectedType = meterTypeInput ? meterTypeInput.value.trim() : "";
+      const typeQuery = selectedType ? `?device_type=${encodeURIComponent(selectedType)}` : "";
+      path = `/get-archived-meter${typeQuery}`;
+    }else if(ariaLabel == "installedDropdown"){
       path = '/get-installed-meters';
     }
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
-          list.appendChild(li);
-        });
+    if (path) {
+      fetch(path)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          list.innerHTML = ''; // clear old items
+          console.log('DCU data received:', data); 
+          if (Array.isArray(data) && data.length > 0) {
+            data.forEach(element => {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.className = 'dropdown-item hoverable-item';
+              a.href = '#';
+              a.textContent = element;
+              a.setAttribute('data-value', element);  
+              li.appendChild(a);
+              list.appendChild(li);
+            });
+          } else {
+            console.log('No DCU data available');
+          }
 
-        dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
-      });
+          dropdown.classList.add('show');
+          dropdown.classList.remove('hover-show');
+        })
+        .catch(error => {
+          console.error('Error fetching DCU data:', error);
+          list.innerHTML = '<li><a class="dropdown-item text-muted">No DCUs available</a></li>';
+        });
+    }
   });
 
   // Real-time filtering — delegate to input
@@ -698,7 +796,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Item selection — event delegation
   list.addEventListener('click', function (e) {
     if (e.target && e.target.matches('.dropdown-item')) {
-      if (searchInput) searchInput.value = e.target.textContent;
+      if (searchInput) {
+        searchInput.value = e.target.textContent;
+        if (searchInput === meterTypeInput) {
+          toggleCommFields();
+        }
+      }
       dropdown.classList.remove('show');
       if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
       e.preventDefault();
@@ -727,6 +830,17 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(err => console.error("Error fetching meter details:", err));
     }
+      if (list.getAttribute("aria-labelledby") === "dcuDropdown") {
+        const selectedDcu = e.target.getAttribute('data-value');
+        const commAddressInput = document.getElementById('commAddressInput');
+        const dcuNumberInput = document.getElementById('addDcuNumberInput');
+        if (commAddressInput && selectedDcu) {
+          commAddressInput.value = selectedDcu;
+        }
+        if (dcuNumberInput && selectedDcu) {
+          dcuNumberInput.value = selectedDcu;
+        }
+      }
     
     }
   });
@@ -747,6 +861,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// Toggle logic is defined earlier in the script
 // Custom dropdown handlers for modal selectors
 document.addEventListener('DOMContentLoaded', function() {
   // Generic function to initialize a dropdown

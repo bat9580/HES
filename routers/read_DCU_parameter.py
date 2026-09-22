@@ -4,7 +4,8 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from services.state import connected_clients, pending_requests
-import utils.frames as frames 
+import utils.frames as frames
+from utils.dcu_invoke_id import with_dcu_invoke
 from services.database import get_db_connection
 templates = Jinja2Templates(directory="templates")
 
@@ -51,7 +52,9 @@ async def read_DCU_parameter(request: Request):
         pending_requests[dcu] = response_future
 
         # You can tailor what frame to send based on selected_parameters if needed
-        await connected_clients[dcu]['queue'].put(bytes.fromhex(frames.GET_DCU_NAME))
+        await connected_clients[dcu]['queue'].put(
+            bytes.fromhex(with_dcu_invoke(frames.GET_DCU_NAME, dcu))
+        )
 
         try:
             response_data = await asyncio.wait_for(response_future, timeout=20)

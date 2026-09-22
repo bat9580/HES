@@ -3,7 +3,8 @@
 {% block content %}
 <div class="wizard-steps">
   <div  data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
-  <div class="active" data-step="2">Баталгаажуулах</div> 
+  <div data-step="2">Төхөөрөмжийн төрөл</div>
+  <div class="active" data-step="3">Баталгаажуулах</div> 
 </div>
 
 <!-- Status Summary -->
@@ -36,7 +37,7 @@
 <!-- Actions -->
 <p id="serverMessage" style="margin-top:10px; color:blue;"></p>  
 <div class="d-flex justify-content-between mt-4">
-    <a href="{{ url_for('previous_step') }}" class="btn btn-secondary">← Өмнөх</a>
+    <a href="/batch-upload-device-type" class="btn btn-secondary">← Өмнөх</a>
     <button id = "submit_meters" type="submit" class="btn btn-success">Илгээх</button>
 </div>
 
@@ -87,11 +88,27 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 document.getElementById("submit_meters").addEventListener('click',function(e){
     let meter_info = localStorage.getItem("excel_rows");
-    console.log(meter_info); 
+    const deviceType = localStorage.getItem("deviceType");
+    const dcuNumber = localStorage.getItem("dcuNumber");
+    const commAddress = localStorage.getItem("commAddress");
+    console.log("submitting") 
+    console.log("Device Type:", deviceType);
+    console.log("DCU Number:", dcuNumber);
+    console.log("Comm Address:", commAddress);
+    console.log("Meter Info:", meter_info);
+    
+    // Prepare request data with device configuration
+    const requestData = {
+        meters: meter_info,
+        device_type: deviceType,
+        dcu_number: dcuNumber || null,
+        comm_address: commAddress || null
+    };
+    
     fetch("/install_meters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meters: meter_info })
+        body: JSON.stringify(requestData)
     })
     .then(res => res.json())
     .then(data => {
@@ -100,9 +117,26 @@ document.getElementById("submit_meters").addEventListener('click',function(e){
 
         // optional: set color depending on success or fail
         msgEl.style.color = data.success ? "green" : "yellow";     
-        console.log("Server response:", data); 
+        console.log("Server response:", data);
+        
+        // Clear localStorage after successful installation
+        if (data.success) {
+            setTimeout(() => {
+                localStorage.removeItem("deviceType");
+                localStorage.removeItem("dcuNumber");
+                localStorage.removeItem("commAddress");
+                localStorage.removeItem("meterNumbers");
+                localStorage.removeItem("meters");
+                localStorage.removeItem("excel_rows");
+            }, 2000);
+        }
     })
-    .catch(err => console.error("Error:", err)); 
+    .catch(err => {
+        console.error("Error:", err);
+        const msgEl = document.getElementById("serverMessage");
+        msgEl.innerText = "Алдаа гарлаа: " + err.message;
+        msgEl.style.color = "red";
+    }); 
     
 } )
 </script> 

@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="p-4">
-  <h2 class="page-title mb-4">DCU Management</h2>
+  <div class="page-header mb-4">
+    <div class="page-header-text">
+      <h2 class="page-title mb-1">DCU Management</h2>
+      <p class="page-header-sub">DCU төхөөрөмжүүдийн бүртгэл, хайлт, удирдлага.</p>
+    </div>
+  </div>
 
   <div class="filter-bar-container">
     <form method="GET" action="/search-dcu" class="filter-bar">
@@ -55,7 +60,7 @@
                 class="btn btn-light w-100 border dimmed-text"
                 data-bs-toggle="modal"
                 data-bs-target="#addDCUModal">
-          <i class="bi bi-plus-lg"></i>
+          <i class="bi bi-plus" aria-hidden="true"></i>
         </button>
       </div>
     </form>
@@ -155,20 +160,12 @@
                              name="status"
                              id="addStatus"
                              class="form-control dropdown-search-input dimmed-text hoverable-input"
-                             placeholder="Choose status"
+                             placeholder="installed"
                              autocomplete="off"
-                             value="archived"
+                             value="installed"
+                             readonly
                              required>
-                      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                        <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </span>
                     </div>
-                    <ul id="add-status-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
-                      <li><a class="dropdown-item hoverable-item" href="#" data-value="installed">Installed</a></li>
-                      <li><a class="dropdown-item hoverable-item" href="#" data-value="archived">Archived</a></li>
-                    </ul>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -232,19 +229,12 @@
                              name="status"
                              id="editStatus"
                              class="form-control dropdown-search-input dimmed-text hoverable-input"
-                             placeholder="Choose status"
+                             placeholder="installed"
                              autocomplete="off"
+                             value="installed"
+                             readonly
                              required>
-                      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                        <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </span>
                     </div>
-                    <ul id="edit-status-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
-                      <li><a class="dropdown-item hoverable-item" href="#" data-value="installed">Installed</a></li>
-                      <li><a class="dropdown-item hoverable-item" href="#" data-value="archived">Archived</a></li>
-                    </ul>
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -279,7 +269,7 @@
       document.getElementById('editCommAddress').value = button.getAttribute('data-comm-address');
       document.getElementById('editPassword').value = button.getAttribute('data-password');
       document.getElementById('editRemarks').value = button.getAttribute('data-remarks') || '';
-      document.getElementById('editStatus').value = button.getAttribute('data-status') || '';
+      document.getElementById('editStatus').value = 'installed';
     });
   }
 
@@ -318,8 +308,7 @@
     }
 
     initDropdown('filter-status-list', '.filter-bar input[name="status"]');
-    initDropdown('add-status-list', '#addStatus');
-    initDropdown('edit-status-list', '#editStatus');
+    // Status for add/edit DCU is fixed to "installed", so no dropdown initialization needed
 
     document.addEventListener('click', e => {
       document.querySelectorAll('.dropdown').forEach(dropdown => {

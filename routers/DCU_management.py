@@ -65,6 +65,7 @@ async def add_dcu(
         message = "⚠️ Same DCU NUMBER is already registered."
     finally:
         conn.close()
+        
 
     return RedirectResponse(url=f"/DCU-management?message={message}", status_code=303)
 
@@ -118,12 +119,24 @@ async def delete_dcu(dcu_number: str = Form(...)):
 
     if not dcu:
         message = "⚠️ DCU not found."
-    elif dcu["status"] == "installed":
-        message = "⚠️ Please dismantle the DCU first."
     else:
-        cursor.execute("DELETE FROM registered_dcus WHERE dcu_number = ?", (dcu_number,))
-        conn.commit()
-        message = "✅ DCU is successfully deleted."
+        # Check if there are any meters still installed on this DCU
+        meter_row = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM installed_meters WHERE DCU_number = ?",
+            (dcu_number,),
+        ).fetchone()
+        meter_count = meter_row["cnt"] if meter_row is not None else 0
+
+        if meter_count > 0:
+            message = (
+                f"⚠️ Please uninstall all meters ({meter_count}) from this DCU before deleting it."
+            )
+        else:
+            cursor.execute(
+                "DELETE FROM registered_dcus WHERE dcu_number = ?", (dcu_number,)
+            )
+            conn.commit()
+            message = "✅ DCU is successfully deleted."
 
     conn.close()
     return RedirectResponse(url=f"/DCU-management?message={message}", status_code=303)

@@ -11,7 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %} 
 <div class="p-4">
-  <h2 class="page-title mb-4">Шугамууд</h2> 
+  <div class="page-header mb-4">
+    <div class="page-header-text">
+      <h2 class="page-title mb-1">Шугамууд</h2>
+      <p class="page-header-sub">Шугам, бүлэг, дэд станцын мэдээллийг удирдах.</p>
+    </div>
+  </div>
 
   <div class="filter-bar-container">
     <form method = "GET" action = "/search-line" class="filter-bar">
@@ -38,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <div class="col-md-auto" style="width: 4.166666%;"> 
         <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addLineModal">
-          <i class="bi bi-plus-lg"></i>
+          <i class="bi bi-plus" aria-hidden="true"></i>
         </button>
     </div>
   </form>

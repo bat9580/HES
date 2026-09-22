@@ -1,0 +1,123 @@
+{# -----------------------------------------------------------------------
+   Aurora pagination macro
+
+   Renders a sticky, consistent pagination bar:
+     - Previous / Next edge buttons (with clear disabled state)
+     - Numbered page links with first / last + windowed range (current ± 1)
+     - "Page X of Y" status text for supplementary clarity
+
+   Hard rules:
+     - Pure presentation. The href pattern `?page=N` is preserved exactly
+       to match the existing link behavior across the three data pages.
+     - No backend or data-fetching logic introduced.
+
+   Usage:
+     {% from "_pagination.html" import render_pagination %}
+     {{ render_pagination(page, total_pages) }}
+-------------------------------------------------------------------------#}
+
+{% macro render_pagination(page, total_pages) -%}
+{% set _page = (page if page is not none else 1) | int %}
+{% set _total = (total_pages if total_pages is not none else 0) | int %}
+{% set _last = _total if _total > 0 else 1 %}
+{% set _current = _page if _page >= 1 else 1 %}
+{% if _current > _last %}{% set _current = _last %}{% endif %}
+
+{# windowed range around the current page (current ± 1), kept inside [2, _last - 1] #}
+{% set window_start = [_current - 1, 2] | max %}
+{% set window_end = [_current + 1, _last - 1] | min %}
+
+<nav class="aurora-pagination"
+     aria-label="Pagination"
+     data-page="{{ _current }}"
+     data-total="{{ _last }}">
+  <div class="aurora-pagination-inner">
+
+    {# ------- Previous ------- #}
+    {% if _current > 1 %}
+      <a href="?page={{ _current - 1 }}"
+         class="aurora-pg-btn aurora-pg-edge"
+         rel="prev"
+         aria-label="Previous page">
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+        <span class="aurora-pg-btn-text">Previous</span>
+      </a>
+    {% else %}
+      <button type="button"
+              class="aurora-pg-btn aurora-pg-edge"
+              disabled
+              aria-disabled="true"
+              aria-label="Previous page (disabled)">
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+        <span class="aurora-pg-btn-text">Previous</span>
+      </button>
+    {% endif %}
+
+    {# ------- Numbered pages ------- #}
+    <ul class="aurora-pg-pages" role="list">
+      {# Page 1 always rendered #}
+      {% if _current == 1 %}
+        <li><span class="aurora-pg-num is-current" aria-current="page">1</span></li>
+      {% else %}
+        <li><a href="?page=1" class="aurora-pg-num" aria-label="Page 1">1</a></li>
+      {% endif %}
+
+      {# Leading ellipsis if there is a gap before the window #}
+      {% if window_start > 2 %}
+        <li class="aurora-pg-ellipsis" aria-hidden="true">…</li>
+      {% endif %}
+
+      {# Windowed range #}
+      {% for p in range(window_start, window_end + 1) %}
+        {% if p > 1 and p < _last %}
+          {% if p == _current %}
+            <li><span class="aurora-pg-num is-current" aria-current="page">{{ p }}</span></li>
+          {% else %}
+            <li><a href="?page={{ p }}" class="aurora-pg-num" aria-label="Page {{ p }}">{{ p }}</a></li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {# Trailing ellipsis if there is a gap after the window #}
+      {% if window_end < _last - 1 %}
+        <li class="aurora-pg-ellipsis" aria-hidden="true">…</li>
+      {% endif %}
+
+      {# Last page (only if more than 1 total page) #}
+      {% if _last > 1 %}
+        {% if _current == _last %}
+          <li><span class="aurora-pg-num is-current" aria-current="page">{{ _last }}</span></li>
+        {% else %}
+          <li><a href="?page={{ _last }}" class="aurora-pg-num" aria-label="Page {{ _last }} (last)">{{ _last }}</a></li>
+        {% endif %}
+      {% endif %}
+    </ul>
+
+    {# ------- Status text (supplementary) ------- #}
+    <span class="aurora-pg-status" aria-live="polite">
+      Page <strong>{{ _current }}</strong> of <strong>{{ _last }}</strong>
+    </span>
+
+    {# ------- Next ------- #}
+    {% if _current < _last %}
+      <a href="?page={{ _current + 1 }}"
+         class="aurora-pg-btn aurora-pg-edge"
+         rel="next"
+         aria-label="Next page">
+        <span class="aurora-pg-btn-text">Next</span>
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </a>
+    {% else %}
+      <button type="button"
+              class="aurora-pg-btn aurora-pg-edge"
+              disabled
+              aria-disabled="true"
+              aria-label="Next page (disabled)">
+        <span class="aurora-pg-btn-text">Next</span>
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </button>
+    {% endif %}
+
+  </div>
+</nav>
+{%- endmacro %}

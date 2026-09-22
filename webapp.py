@@ -22,8 +22,9 @@ from routers import (
     user_management,
     role_management,
     meter_download,
+    relay_control,
 )
-from api_endpoints import meters_api, readings_api, dcu_api, system_api, meter_installation_api, auth_api
+from api_endpoints import meters_api, readings_api, dcu_api, system_api, meter_installation_api, auth_api, Lorawan_api
 from api_endpoints import dashboard_api
 from services.state import connected_clients,scheduler
 from fastapi import status
@@ -34,10 +35,12 @@ import json
 from pathlib import Path 
 from fastapi.requests import Request
 import asyncio
+from utils import DCU_functions, Mictostar_EDAT_utility_functions
 import utils.frames as frames 
 import utils.utility_functions as utility_functions
 from starlette.middleware.sessions import SessionMiddleware  
 from utils.parameters import meter_parameters 
+from utils.DCU_meter_reader_functions import extract_and_save_profile_data 
 from fastapi.middleware.cors import CORSMiddleware 
 
 CONFIG_FILE = "config.json" 
@@ -106,7 +109,9 @@ init_db()
 
 async def handle_client(reader, writer):
     meter_number = None 
-    DCU_number = None 
+    DCU_number = None
+    EDAT_dev_addr = None
+    reply = None
     addr = writer.get_extra_info('peername')
     print(f"✅ Connected: {addr}") 
     access_time = 0
@@ -117,7 +122,7 @@ async def handle_client(reader, writer):
 
     if utility_functions.is_heartbeat_frame(data): #  daraa ni zasah  
         meter_number = int(data[-8:].decode('utf-8', errors='ignore').strip()) 
-    if utility_functions.is_heartbeat_frame_DCU(data):
+    elif utility_functions.is_heartbeat_frame_DCU(data):
         try:
             DCU_number = await utility_functions.get_DCU_number(reader, writer)
             print(f"DCU number: {DCU_number}") 
@@ -126,6 +131,9 @@ async def handle_client(reader, writer):
             writer.close()
             await writer.wait_closed()
             return 
+    elif Mictostar_EDAT_utility_functions.is_heartbeat_frame_EDAT(data): 
+        EDAT_dev_addr = Mictostar_EDAT_utility_functions.get_EDAT_dev_ID(data)
+        print(f"EDAT DEV id: {EDAT_dev_addr}") 
     else: 
         print(f"unexpected frame, closing connection: {data}")  
         writer.close()
@@ -142,21 +150,33 @@ async def handle_client(reader, writer):
     if meter_number and utility_functions.is_meter_installed(meter_number):
         utility_functions.add_meter_to_connected_clients(meter_number,addr, access_time,reader,writer) 
         utility_functions.creat_meter_task(meter_number)
-        connected_clients[meter_number]['pause_event'].set()
+        connected_clients[meter_number]['pause_event'].set() 
+        device_number = meter_number 
+        reply = data[0:2] + data[4:6] + data[2:4] + data[6:8] + b'\xDA' + data[9:10] + b'\x00\x00' + data[12:]
+
     elif DCU_number and utility_functions.is_DCU_installed(DCU_number):
-        utility_functions.add_DCU_to_connected_clients(DCU_number,addr, access_time,reader,writer) 
-        connected_clients[DCU_number]['pause_event'].set()
+        utility_functions.add_DCU_to_connected_clients(DCU_number,addr, access_time,reader,writer)
+        DCU_functions.creat_dcu_task(DCU_number) 
+        connected_clients[DCU_number]['pause_event'].set() 
+        device_number = DCU_number  
+        reply = bytes.fromhex('0001001000010000')    
+    elif EDAT_dev_addr and Mictostar_EDAT_utility_functions.is_EDAT_installed(EDAT_dev_addr): 
+        utility_functions.add_DCU_to_connected_clients(EDAT_dev_addr,addr, access_time,reader,writer)
+        Mictostar_EDAT_utility_functions.creat_edat_task(EDAT_dev_addr)
+        connected_clients[EDAT_dev_addr]['pause_event'].set() 
+        device_number = EDAT_dev_addr 
     else:
         print(f"this  Meter or DCU {meter_number} or {DCU_number} is not installed")  
         writer.close()
         await writer.wait_closed()   
         return
         
-    response_queue = connected_clients[meter_number]['response_queue'] 
-    keep_connection_queue = connected_clients[meter_number]['keep_connection_queue']  
-    reply = data[0:2] + data[4:6] + data[2:4] + data[6:8] + b'\xDA' + data[9:10] + b'\x00\x00' + data[12:]
-    writer.write(reply) 
-    print("sent reply ")
+    response_queue = connected_clients[device_number]['response_queue'] 
+    keep_connection_queue = connected_clients[device_number]['keep_connection_queue']  
+    # reply = data[0:2] + data[4:6] + data[2:4] + data[6:8] + b'\xDA' + data[9:10] + b'\x00\x00' + data[12:]
+    if reply: 
+        writer.write(reply) 
+        print("sent reply ")
 
     try:
         current_date_str = datetime.now().strftime("%m_%d")  # start date
@@ -167,7 +187,7 @@ async def handle_client(reader, writer):
             try: 
                 now = datetime.now()
                 timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
-                data = await asyncio.wait_for(reader.read(1024), timeout=600.0) 
+                data = await asyncio.wait_for(reader.read(2048), timeout=600.0) 
 
                 # check date rollover
                 date_str = now.strftime("%m_%d") 
@@ -183,34 +203,41 @@ async def handle_client(reader, writer):
                     open(log_file_path, "a").close()
                     break 
 
-                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 📥[meter_reader] From meter {meter_number}: {data.hex()}") 
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 📥[meter_reader] From meter {meter_number} or DCU {DCU_number}: {data.hex()}") 
                 with open(log_file_path, "a", encoding="utf-8") as f:
                     f.write(f"{timestamp} | from METER:  {data.hex()}\n")   
 
-                if utility_functions.is_heartbeat_frame(data):  
-                    await keep_connection_queue.put(data)     
+                if utility_functions.is_heartbeat_frame(data): 
+                    await keep_connection_queue.put(data)   
+                elif utility_functions.is_heartbeat_frame_DCU(data): 
+                    await keep_connection_queue.put(data)  
+                elif utility_functions.is_profile_frame_DCU(data): 
+                    extract_and_save_profile_data(data)  # pyright: ignore[reportUndefinedVariable]
+                    print("profile frame")  
                 else: 
+                    print("regular response frame") 
                     await response_queue.put(data) 
 
             except asyncio.TimeoutError:
-                print(f"⏰ Timeout: No data received from meter {meter_number} in 10 minutes")
+                print(f"⏰ Timeout: No data received from meter or DCU {meter_number} or {DCU_number} in 10 minutes")
                 break 
 
     finally:
         print(f"❌ Disconnected: {addr}") 
         try:
-            if meter_number in connected_clients:   # ? 
+            if device_number in connected_clients:   # ? 
 
-                client = connected_clients[meter_number]
-                await utility_functions.clear_tasks(client)
-                utility_functions.clear_scheduled_jobs(meter_number)
+                client = connected_clients[device_number]
+                if meter_number:
+                    await utility_functions.clear_tasks(client)
+                    utility_functions.clear_scheduled_jobs(device_number)
                 writer.close()
                 await writer.wait_closed()
-                del connected_clients[meter_number]
-                print(f"🗑️ Removed meter {meter_number} from connected_clients")
+                del connected_clients[device_number] 
+                print(f"🗑️ Removed meter {device_number} from connected_clients")
 
         except Exception as e:
-            print(f"⚠️ Cleanup error for meter {meter_number}: {e}")
+            print(f"⚠️ Cleanup error for meter {device_number}: {e}")
         
 
 
@@ -256,6 +283,7 @@ app.include_router(instant_profile_read.router)
 app.include_router(batch_upload_meter.router)  
 app.include_router(user_management.router) 
 app.include_router(role_management.router)
+app.include_router(relay_control.router)
 
 # REST API Endpoints
 app.include_router(auth_api.router)  # Authentication endpoints
@@ -265,7 +293,7 @@ app.include_router(dcu_api.router)
 app.include_router(system_api.router)
 app.include_router(meter_installation_api.router)  # Legacy endpoint 
 app.include_router(dashboard_api.router)
- 
+app.include_router(Lorawan_api.router)
  
 
  

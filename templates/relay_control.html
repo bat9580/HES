@@ -1,0 +1,1337 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header mb-3">
+  <div class="page-header-text">
+    <h2 class="page-title mb-1">Реле удирдлага</h2>
+    <p class="page-header-sub">Тоолуурын реле унтраах, асаах, төлөвийг шалгах.</p>
+  </div>
+</div>
+
+<!-- Section tabs -->
+<ul class="nav relay-section-tabs mb-3" id="relaySectionTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="relay-operation-tab-btn" data-bs-toggle="tab"
+            data-bs-target="#relay-operation-pane" type="button" role="tab"
+            aria-controls="relay-operation-pane" aria-selected="true">
+      Relay Operation
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="relay-log-tab-btn" data-bs-toggle="tab"
+            data-bs-target="#relay-log-pane" type="button" role="tab"
+            aria-controls="relay-log-pane" aria-selected="false">
+      Relay Operation Log
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content relay-tab-content">
+
+  <!-- ===================== Relay Operation ===================== -->
+  <div class="tab-pane fade show active" id="relay-operation-pane" role="tabpanel"
+       aria-labelledby="relay-operation-tab-btn">
+
+    <div class="filter-bar-container">
+      <form method="GET" action="/search-meters-relay" class="filter-bar">
+        <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;">
+          <div class="dropdown" style="height: 35px;">
+            <div class="dropdown-toggle-wrapper position-relative">
+              <input type="text"
+                     class="form-control dropdown-search-input dimmed-text hoverable-input"
+                     name="meter_number"
+                     placeholder="Тоолуур хайх"
+                     autocomplete="off"
+                     value="{{ meter_number | default('') }}"
+                     style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+              <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </div>
+            <ul id="installed-meter-list"
+                class="dropdown-menu w-100"
+                aria-labelledby="deviceDropdown"
+                style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
+            </ul>
+            <input type="hidden" name="device_type" required>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="line-dropdown-wrapper w-100">
+            <div class="line-dropdown-shell">
+              <input type="text"
+                     id="treeSearch"
+                     name="line"
+                     class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
+                     placeholder="Шугам сонгох..."
+                     value="{{ line | default('') }}"
+                     autocomplete="off">
+              <span class="dropdown-chevron line-dropdown-icon">
+                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+              <div id="parentNodeDropdown" class="line-tree-panel"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-auto" style="width: 4.166666%;">
+          <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+        <div class="col-md-auto" style="width: 4.166666%;">
+          <button type="button" id="connect-button" class="btn btn-success w-100 border dimmed-text" style="height: 33px;" title="Connect">
+            <i class="bi bi-toggle-on" style="font-size: 18px;"></i>
+          </button>
+        </div>
+        <div class="col-md-auto" style="width: 4.166666%;">
+          <button type="button" id="disconnect-button" class="btn btn-danger w-100 border dimmed-text" style="height: 33px;" title="Disconnect">
+            <i class="bi bi-toggle-off" style="font-size: 18px;"></i>
+          </button>
+        </div>
+        <div class="col-md-auto" style="width: 4.166666%;">
+          <button type="button" id="status-button" class="btn btn-info w-100 border dimmed-text" style="height: 33px;" title="Status">
+            <i class="bi bi-activity" style="font-size: 18px;"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-striped align-middle relay-operation-table">
+        <thead class="table-light">
+          <tr>
+            <th><input type="checkbox" id="select-all-meters"></th>
+            <th>#</th>
+            <th>Тоолуурын дугаар</th>
+            <th>Комм хаяг</th>
+            <th>Тоолуурын төрөл</th>
+            <th>Модулийн төрөл</th>
+            <th>Шугам</th>
+            <th>Төлөв</th>
+            <th>Бүртгэлийн төлөв</th>
+            <th>Реле төлөв</th>
+            <th>Үр дүн</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for meter in installed_meters %}
+          <tr>
+            <td>
+              <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
+            </td>
+            <td>{{ loop.index }}</td>
+            <td>{{ meter['meter_number'] }}</td>
+            <td>{{ meter['com_address'] }}</td>
+            <td>{{ meter['type'] }}</td>
+            <td>{{ meter['device_type'] }}</td>
+            <td>{{ meter['line'] or '-' }}</td>
+            <td>
+              {% if meter['device_type'] == 'PLC Meter' %}
+                {% if meter['dcu_number']|int in connected_clients %}
+                  <span class="badge bg-success">Online</span>
+                {% else %}
+                  <span class="badge bg-secondary">Offline</span>
+                {% endif %}
+              {% else %}
+                {% if meter['meter_number']|int in connected_clients %}
+                  <span class="badge bg-success">Online</span>
+                {% else %}
+                  <span class="badge bg-secondary">Offline</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>
+              {% if meter['status'] == 'installed' %}
+                <span class="badge bg-success text-white">Installed</span>
+              {% elif meter['status'] == 'Archived' %}
+                <span class="badge bg-secondary">Archived</span>
+              {% else %}
+                <span class="badge bg-light text-muted">Unknown</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if meter['relay_status'] == 'connected' %}
+                <span class="badge bg-success text-white">connected</span>
+              {% elif meter['relay_status'] == 'disconnected' %}
+                <span class="badge bg-danger">disconnected</span>
+              {% else %}
+                <span class="badge bg-light text-muted">Unknown</span>
+              {% endif %}
+            </td>
+            <td>
+              <span id="result-{{ meter['meter_number'] }}"></span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================== Relay Operation Log ===================== -->
+  <div class="tab-pane fade" id="relay-log-pane" role="tabpanel"
+       aria-labelledby="relay-log-tab-btn">
+
+    <div class="filter-bar-container relay-log-filters">
+      <form id="relay-log-filter-form" class="relay-log-filter-grid" onsubmit="return false;">
+        <!-- Row 1 -->
+        <div class="relay-log-filter-item">
+          <div class="dropdown" data-static-dropdown>
+            <div class="dropdown-toggle-wrapper position-relative">
+              <input type="text"
+                     id="log-filter-meter"
+                     class="form-control dropdown-search-input dimmed-text hoverable-input"
+                     placeholder="Meter No."
+                     autocomplete="off">
+              <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </div>
+            <ul id="log-meter-list" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></ul>
+          </div>
+        </div>
+
+        <div class="relay-log-filter-item">
+          <div class="dropdown" data-static-dropdown>
+            <div class="dropdown-toggle-wrapper position-relative">
+              <input type="text"
+                     id="log-filter-dcu"
+                     class="form-control dropdown-search-input dimmed-text hoverable-input"
+                     placeholder="DCU No."
+                     autocomplete="off">
+              <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </div>
+            <ul id="log-dcu-list" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></ul>
+          </div>
+        </div>
+
+        <div class="relay-log-filter-item relay-log-date-item position-relative d-flex align-items-center">
+          <input type="text" id="log-daterange" class="form-control filter-bar-date-input" style="max-width: 300px; min-width: 260px;">
+          <input type="hidden" id="log-start-date">
+          <input type="hidden" id="log-end-date">
+        </div>
+
+        <div class="relay-log-filter-item relay-log-search-item">
+          <button type="button" id="log-search-btn" class="btn btn-primary relay-log-search-btn">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </div>
+
+        <div class="relay-log-filter-item relay-log-toolbar">
+          <button type="button" id="log-refresh-btn" class="btn btn-light border" title="Refresh">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+          <button type="button" id="log-export-btn" class="btn btn-light border" title="Export">
+            <i class="bi bi-upload"></i>
+          </button>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="relay-log-filter-item">
+          <div class="dropdown" data-static-dropdown>
+            <div class="dropdown-toggle-wrapper position-relative">
+              <input type="text"
+                     id="log-filter-user"
+                     class="form-control dropdown-search-input dimmed-text hoverable-input"
+                     placeholder="Select User"
+                     autocomplete="off">
+              <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </div>
+            <ul id="log-user-list" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></ul>
+          </div>
+        </div>
+
+        <div class="relay-log-filter-item">
+          <div class="dropdown" data-static-dropdown>
+            <div class="dropdown-toggle-wrapper position-relative">
+              <input type="text"
+                     id="log-filter-task"
+                     class="form-control dropdown-search-input dimmed-text hoverable-input"
+                     placeholder="All"
+                     autocomplete="off">
+              <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
+            </div>
+            <ul id="log-task-list" class="dropdown-menu w-100">
+              <li><a class="dropdown-item hoverable-item" href="#" data-value="">All</a></li>
+              <li><a class="dropdown-item hoverable-item" href="#" data-value="Switch-On">Switch-On</a></li>
+              <li><a class="dropdown-item hoverable-item" href="#" data-value="Switch-Off">Switch-Off</a></li>
+              <li><a class="dropdown-item hoverable-item" href="#" data-value="Status Check">Status Check</a></li>
+            </ul>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="relay-log-table-shell">
+      <div class="relay-log-scroll-x" id="relay-log-scroll-x">
+        <table class="table table-bordered table-hover table-striped align-middle relay-log-table relay-log-table-main" id="relay-log-table-main">
+          <thead class="table-light">
+            <tr>
+              <th class="sortable" data-sort="index"># <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="meter_number">Meter No. <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="zone">Zone <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="power_grid">Power Grid <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="dcu_number">DCU No. <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="task_name">Task Name <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="task_type">Task Type <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="start_time">Start Time <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="end_time">End Time <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="process">Process <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="try_times">Try Times <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="user_name">User Name <i class="bi bi-arrow-down-up sort-icon"></i></th>
+            </tr>
+          </thead>
+          <tbody id="relay-log-table-body-main"></tbody>
+        </table>
+      </div>
+
+      <div class="relay-log-fixed-cols" id="relay-log-fixed-cols">
+        <table class="table table-bordered table-hover table-striped align-middle relay-log-table relay-log-table-fixed" id="relay-log-table-fixed">
+          <thead class="table-light">
+            <tr>
+              <th class="sortable" data-sort="result">Result <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th>Operate</th>
+            </tr>
+          </thead>
+          <tbody id="relay-log-table-body-fixed"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="relay-log-pagination" id="relay-log-pagination"></div>
+  </div>
+</div>
+
+<!-- Log detail modal -->
+<div class="modal fade" id="relayLogDetailModal" tabindex="-1" aria-labelledby="relayLogDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="relayLogDetailModalLabel">Relay Operation Detail</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3" id="relay-log-detail-body">
+          <!-- Filled dynamically -->
+        </div>
+        <hr>
+        <h6 class="mb-2">Attempt History</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="relay-log-attempt-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .relay-section-tabs {
+    border-bottom: 2px solid var(--aurora-border-soft, #e2e8f0);
+    gap: 0;
+  }
+
+  .relay-section-tabs .nav-link {
+    font-family: var(--font-body, "Segoe UI", sans-serif);
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--aurora-text-muted, #64748b);
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    padding: 0.65rem 1.25rem;
+    margin-bottom: -2px;
+    background: transparent;
+    transition: color 0.18s ease, border-color 0.18s ease;
+  }
+
+  .relay-section-tabs .nav-link:hover {
+    color: var(--aurora-primary, #4f46e5);
+    border-bottom-color: rgba(79, 70, 229, 0.25);
+  }
+
+  .relay-section-tabs .nav-link.active {
+    color: var(--aurora-primary, #4f46e5);
+    background: transparent;
+    border-bottom-color: var(--aurora-primary, #4f46e5);
+  }
+
+  .relay-operation-table th,
+  .relay-operation-table td,
+  .relay-log-table th,
+  .relay-log-table td {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .relay-log-filters {
+    padding: 0.85rem 1rem;
+  }
+
+  .relay-log-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.65rem 0.75rem;
+    align-items: center;
+  }
+
+  .relay-log-filter-item .form-control,
+  .relay-log-filter-item .btn {
+    height: 36px;
+    min-height: 36px;
+  }
+
+  .relay-log-date-item {
+    grid-column: span 2;
+  }
+
+  .relay-log-search-item {
+    grid-column: span 1;
+  }
+
+  .relay-log-search-btn {
+    width: 100%;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .relay-log-toolbar {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+  }
+
+  .relay-log-toolbar .btn {
+    width: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .relay-log-table-shell {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 0.75rem;
+    border: 1px solid var(--aurora-border-soft, #e2e8f0);
+    border-radius: 14px;
+    background: var(--aurora-surface, #fff);
+    box-shadow: var(--aurora-shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.08));
+    overflow: hidden;
+  }
+
+  .relay-log-scroll-x {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .relay-log-fixed-cols {
+    flex: 0 0 auto;
+    border-left: 1px solid var(--aurora-border-soft, #e2e8f0);
+    box-shadow: -8px 0 14px -10px rgba(15, 23, 42, 0.18);
+    background: var(--aurora-surface, #fff);
+    z-index: 2;
+  }
+
+  .relay-log-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .relay-log-table-main {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .relay-log-table-fixed {
+    width: auto;
+  }
+
+  .relay-log-table-fixed th:first-child,
+  .relay-log-table-fixed td:first-child {
+    min-width: 132px;
+    width: 132px;
+  }
+
+  .relay-log-table-fixed th:last-child,
+  .relay-log-table-fixed td:last-child {
+    min-width: 96px;
+    width: 96px;
+  }
+
+  .relay-log-scroll-x .relay-log-table,
+  .relay-log-fixed-cols .relay-log-table {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .relay-log-scroll-x .relay-log-table th,
+  .relay-log-scroll-x .relay-log-table td,
+  .relay-log-fixed-cols .relay-log-table th,
+  .relay-log-fixed-cols .relay-log-table td {
+    border-top: none;
+  }
+
+  .relay-log-scroll-x .relay-log-table tr:first-child th,
+  .relay-log-fixed-cols .relay-log-table tr:first-child th {
+    border-top: none;
+  }
+
+  .relay-log-table tr.relay-log-row-hover > td {
+    background-color: rgba(0, 0, 0, 0.075) !important;
+  }
+
+  .relay-log-table thead th.sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .relay-log-table thead th.sortable:hover {
+    color: var(--aurora-primary, #4f46e5);
+  }
+
+  .relay-log-table .sort-icon {
+    font-size: 0.7rem;
+    opacity: 0.45;
+    margin-left: 2px;
+  }
+
+  .relay-log-table thead th.sort-asc .sort-icon::before { content: "\F148"; }
+  .relay-log-table thead th.sort-desc .sort-icon::before { content: "\F148"; transform: rotate(180deg); display: inline-block; }
+
+  .btn-detail-log {
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+    border: none;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn-detail-log:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+  }
+
+  .relay-log-badge-finish {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  .relay-log-badge-waiting {
+    background: #fef3c7;
+    color: #b45309;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  .relay-log-result-success { color: #15803d; font-weight: 600; }
+  .relay-log-result-timeout { color: #dc2626; font-weight: 600; }
+  .relay-log-result-processing { color: #2563eb; font-weight: 600; }
+
+  .relay-log-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+    padding: 0.5rem 0;
+  }
+
+  .relay-log-pagination-info {
+    font-size: 0.85rem;
+    color: var(--aurora-text-muted, #64748b);
+  }
+
+  .relay-log-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .relay-log-pagination-controls .btn-page {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--aurora-border-soft, #e2e8f0);
+    background: #fff;
+    color: var(--aurora-text-soft, #475569);
+  }
+
+  .relay-log-pagination-controls .btn-page.active {
+    background: var(--aurora-primary, #4f46e5);
+    border-color: var(--aurora-primary, #4f46e5);
+    color: #fff;
+  }
+
+  .relay-log-pagination-controls .btn-page:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .relay-log-empty {
+    text-align: center;
+    color: var(--aurora-text-muted, #64748b);
+    padding: 2.5rem 1rem;
+  }
+
+  @media (max-width: 1200px) {
+    .relay-log-filter-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .relay-log-toolbar {
+      grid-column: span 3;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .relay-log-filter-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .relay-log-toolbar {
+      grid-column: span 2;
+    }
+  }
+</style>
+
+<script>
+(function () {
+  /* ---------- Relay Operation (existing handlers) ---------- */
+  function initRelayOperation() {
+    const selectAll = document.getElementById("select-all-meters");
+    if (selectAll) {
+      selectAll.addEventListener("change", function () {
+        document.querySelectorAll(".meter-checkbox").forEach(cb => cb.checked = this.checked);
+      });
+    }
+
+    bindRelayAction("connect-button", "/relay-connect", "Connected", "success");
+    bindRelayAction("disconnect-button", "/relay-disconnect", "Disconnected", "danger");
+    bindStatusAction();
+    initOperationDropdowns();
+    initLineTree();
+  }
+
+  function bindRelayAction(btnId, url, successLabel, badgeClass) {
+    const btn = document.getElementById(btnId);
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+
+    btn.addEventListener("click", function () {
+      const originalContent = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      btn.disabled = true;
+
+      const selectedMeters = Array.from(document.querySelectorAll(".meter-checkbox:checked")).map(cb => cb.value);
+      if (selectedMeters.length === 0) {
+        showToast("Please select at least one meter.", "warning", 4000);
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        return;
+      }
+
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selected_meters: selectedMeters })
+      })
+        .then(r => r.json())
+        .then(data => {
+          data.results.forEach(result => {
+            const resultSpan = document.querySelector(`span#result-${result.meter_number}`);
+            if (!resultSpan) return;
+            if (result.status === "success") {
+              resultSpan.innerHTML = `<span class="badge bg-${badgeClass}">${successLabel}</span>`;
+            } else {
+              resultSpan.innerHTML = `<span class="badge bg-danger">${result.message}</span>`;
+            }
+          });
+        })
+        .catch(() => showToast("Request failed.", "error", 5000))
+        .finally(() => {
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+    });
+  }
+
+  function bindStatusAction() {
+    const statusBtn = document.getElementById("status-button");
+    if (!statusBtn || statusBtn.dataset.bound) return;
+    statusBtn.dataset.bound = "1";
+
+    statusBtn.addEventListener("click", function () {
+      const originalContent = statusBtn.innerHTML;
+      statusBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      statusBtn.disabled = true;
+
+      const selectedMeters = Array.from(document.querySelectorAll(".meter-checkbox:checked")).map(cb => cb.value);
+      if (selectedMeters.length === 0) {
+        showToast("Please select at least one meter.", "warning", 4000);
+        statusBtn.innerHTML = originalContent;
+        statusBtn.disabled = false;
+        return;
+      }
+
+      fetch("/relay-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selected_meters: selectedMeters })
+      })
+        .then(r => r.json())
+        .then(data => {
+          data.results.forEach(result => {
+            const resultSpan = document.querySelector(`span#result-${result.meter_number}`);
+            if (!resultSpan) return;
+            if (result.status === "success") {
+              const statusText = (result.relay_status || "Unknown").toLowerCase();
+              if (statusText === "connected") {
+                resultSpan.innerHTML = '<span class="badge bg-success">Connected</span>';
+              } else if (statusText === "disconnected") {
+                resultSpan.innerHTML = '<span class="badge bg-danger">disconnected</span>';
+              } else {
+                resultSpan.innerHTML = `<span class="badge bg-info">${result.relay_status || "Unknown"}</span>`;
+              }
+            } else {
+              resultSpan.innerHTML = `<span class="badge bg-danger">${result.message}</span>`;
+            }
+          });
+        })
+        .catch(() => showToast("Failed to get relay status.", "error", 5000))
+        .finally(() => {
+          statusBtn.innerHTML = originalContent;
+          statusBtn.disabled = false;
+        });
+    });
+  }
+
+  function initOperationDropdowns() {
+    document.querySelectorAll("#relay-operation-pane .dropdown").forEach(function (dropdown) {
+      if (dropdown.dataset.bound) return;
+      dropdown.dataset.bound = "1";
+
+      const list = dropdown.querySelector(".dropdown-menu");
+      if (list && list.id === "installed-meter-list") {
+        bindDynamicDropdown(dropdown, list, "/get-installed-meters");
+      }
+    });
+  }
+
+  function bindDynamicDropdown(dropdown, list, path) {
+    const searchInput = dropdown.querySelector(".dropdown-search-input");
+    const chevron = dropdown.querySelector(".dropdown-chevron");
+
+    dropdown.addEventListener("mouseenter", function () {
+      if (!dropdown.classList.contains("show")) dropdown.classList.add("hover-show");
+    });
+
+    searchInput.addEventListener("focus", function () {
+      fetch(path)
+        .then(r => r.json())
+        .then(data => {
+          list.innerHTML = "";
+          data.forEach(element => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.className = "dropdown-item hoverable-item";
+            a.href = "#";
+            a.textContent = element;
+            li.appendChild(a);
+            list.appendChild(li);
+          });
+          dropdown.classList.add("show");
+          dropdown.classList.remove("hover-show");
+        });
+    });
+
+    searchInput.addEventListener("input", function () {
+      const term = this.value.toLowerCase();
+      list.querySelectorAll(".dropdown-item").forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(term) ? "block" : "none";
+      });
+    });
+
+    list.addEventListener("click", function (e) {
+      if (e.target && e.target.matches(".dropdown-item")) {
+        searchInput.value = e.target.textContent;
+        dropdown.classList.remove("show");
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove("show");
+        if (chevron) chevron.style.transform = "translateY(-50%) rotate(0deg)";
+      }
+    });
+  }
+
+  function initLineTree() {
+    const $treePanel = $("#parentNodeDropdown");
+    const $treeSearch = $("#treeSearch");
+    if (!$treePanel.length || $treePanel.data("jstree")) return;
+
+    $treePanel.jstree({
+      core: {
+        data: { url: "/line-tree-data", dataType: "json" },
+        themes: { stripes: true, icons: false }
+      },
+      plugins: ["search"]
+    }).on("select_node.jstree", function (e, data) {
+      $treeSearch.val(data.node.text);
+      $treePanel.removeClass("open");
+    });
+
+    $treeSearch.on("focus", () => $treePanel.addClass("open"))
+      .on("keyup", function () {
+        $treePanel.jstree(true).search($(this).val());
+      });
+
+    $(document).on("click.relayLineTree", function (e) {
+      if (!$(e.target).closest(".line-dropdown-wrapper, #treeSearch").length) {
+        $treePanel.removeClass("open");
+      }
+    });
+  }
+
+  /* ---------- Relay Operation Log (API) ---------- */
+  const LOG_PAGE_SIZE = 15;
+  let logFilteredData = [];
+  let logCurrentPage = 1;
+  let logTotalRecords = 0;
+  let logTotalPages = 1;
+  let logSortKey = "start_time";
+  let logSortDir = "desc";
+  let logFiltersMeta = { meters: [], dcus: [], users: [] };
+  let logFetchInFlight = false;
+
+  function getLogFilterParams() {
+    const task = document.getElementById("log-filter-task").value.trim();
+    return {
+      meter_number: document.getElementById("log-filter-meter").value.trim(),
+      dcu_number: document.getElementById("log-filter-dcu").value.trim(),
+      user_name: document.getElementById("log-filter-user").value.trim(),
+      task_name: task && task !== "All" ? task : "",
+      start_date: document.getElementById("log-start-date").value,
+      end_date: document.getElementById("log-end-date").value,
+    };
+  }
+
+  async function fetchLogData(options = {}) {
+    if (logFetchInFlight) return;
+    logFetchInFlight = true;
+
+    if (options.resetPage) logCurrentPage = 1;
+    if (options.page) logCurrentPage = options.page;
+
+    const filters = getLogFilterParams();
+    const params = new URLSearchParams({
+      ...filters,
+      page: String(logCurrentPage),
+      page_size: String(options.page_size || LOG_PAGE_SIZE),
+      sort_by: logSortKey,
+      sort_dir: logSortDir,
+    });
+
+    try {
+      const response = await fetch(`/api/relay-operation-log?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to load relay operation logs");
+      const data = await response.json();
+
+      logFilteredData = data.records || [];
+      logTotalRecords = data.total || 0;
+      logCurrentPage = data.page || 1;
+      logTotalPages = data.total_pages || 1;
+      if (data.filters) {
+        logFiltersMeta = data.filters;
+        populateLogFilterOptions();
+      }
+
+      renderLogTable();
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to load relay operation logs.", "error", 5000);
+    } finally {
+      logFetchInFlight = false;
+    }
+  }
+
+  function initLogDropdowns() {
+    document.querySelectorAll("#relay-log-pane .dropdown[data-static-dropdown]").forEach(function (dropdown) {
+      if (dropdown.dataset.logBound) return;
+      dropdown.dataset.logBound = "1";
+
+      const searchInput = dropdown.querySelector(".dropdown-search-input");
+      const list = dropdown.querySelector(".dropdown-menu");
+      const chevron = dropdown.querySelector(".dropdown-chevron");
+
+      searchInput.addEventListener("focus", () => {
+        dropdown.classList.add("show");
+      });
+
+      searchInput.addEventListener("input", function () {
+        const term = this.value.toLowerCase();
+        list.querySelectorAll(".dropdown-item").forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? "block" : "none";
+        });
+      });
+
+      list.addEventListener("click", function (e) {
+        if (e.target && e.target.matches(".dropdown-item")) {
+          searchInput.value = e.target.dataset.value !== undefined ? (e.target.dataset.value || e.target.textContent) : e.target.textContent;
+          dropdown.classList.remove("show");
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener("click", function (e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove("show");
+          if (chevron) chevron.style.transform = "";
+        }
+      });
+    });
+
+    populateLogFilterOptions();
+  }
+
+  function populateLogFilterOptions() {
+    fillDropdownList("log-meter-list", logFiltersMeta.meters || []);
+    fillDropdownList("log-dcu-list", logFiltersMeta.dcus || []);
+    fillDropdownList("log-user-list", logFiltersMeta.users || []);
+  }
+
+  function fillDropdownList(listId, values) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    list.innerHTML = values.map(v =>
+      `<li><a class="dropdown-item hoverable-item" href="#" data-value="${v}">${v}</a></li>`
+    ).join("");
+  }
+
+  function initLogDateRange() {
+    const $input = $("#log-daterange");
+    if (!$input.length || $input.data("daterangepicker")) return;
+
+    const startDate = moment().startOf("hour");
+    const endDate = moment().endOf("hour");
+
+    $input.daterangepicker({
+      timePicker: true,
+      timePicker24Hour: true,
+      timePickerSeconds: true,
+      locale: {
+        format: "YYYY-MM-DD[T]HH:mm:ss",
+        separator: "T"
+      },
+      startDate: startDate,
+      endDate: endDate
+    }, function (start, end) {
+      $("#log-start-date").val(start.format("YYYY-MM-DD[T]HH:mm:ss"));
+      $("#log-end-date").val(end.format("YYYY-MM-DD[T]HH:mm:ss"));
+    });
+
+    $("#log-start-date").val(startDate.format("YYYY-MM-DD[T]HH:mm:ss"));
+    $("#log-end-date").val(endDate.format("YYYY-MM-DD[T]HH:mm:ss"));
+
+    $input.on("show.daterangepicker", function (ev, picker) {
+      if (!picker || !picker.container) return;
+      requestAnimationFrame(function () {
+        picker.container.addClass("drp-visible");
+      });
+    });
+
+    $input.on("hide.daterangepicker", function (ev, picker) {
+      if (!picker || !picker.container) return;
+      picker.container.removeClass("drp-visible");
+    });
+  }
+
+  function applyLogFilters() {
+    fetchLogData({ resetPage: true });
+  }
+
+  function renderLogTable() {
+    const tbodyMain = document.getElementById("relay-log-table-body-main");
+    const tbodyFixed = document.getElementById("relay-log-table-body-fixed");
+    const pageRows = logFilteredData;
+    const startIdx = (logCurrentPage - 1) * LOG_PAGE_SIZE;
+
+    if (pageRows.length === 0) {
+      tbodyMain.innerHTML = `<tr><td colspan="12" class="relay-log-empty">No operation logs found.</td></tr>`;
+      tbodyFixed.innerHTML = `<tr><td colspan="2" class="relay-log-empty">&nbsp;</td></tr>`;
+    } else {
+      const mainRows = [];
+      const fixedRows = [];
+
+      pageRows.forEach((row, i) => {
+        const processBadge = row.process === "Finish"
+          ? `<span class="relay-log-badge-finish">${row.process}</span>`
+          : `<span class="relay-log-badge-waiting">${row.process}</span>`;
+        const resultClass = row.result === "Success" ? "relay-log-result-success"
+          : row.result === "Processing" ? "relay-log-result-processing"
+          : "relay-log-result-timeout";
+
+        mainRows.push(`
+          <tr data-log-row="${row.id}">
+            <td>${startIdx + i + 1}</td>
+            <td>${row.meter_number}</td>
+            <td>${row.zone}</td>
+            <td>${row.power_grid}</td>
+            <td>${row.dcu_number}</td>
+            <td>${row.task_name}</td>
+            <td>${row.task_type}</td>
+            <td>${row.start_time}</td>
+            <td>${row.end_time || "—"}</td>
+            <td>${processBadge}</td>
+            <td>${row.try_times}</td>
+            <td>${row.user_name}</td>
+          </tr>`);
+
+        fixedRows.push(`
+          <tr data-log-row="${row.id}">
+            <td><span class="${resultClass}">${row.result}</span></td>
+            <td>
+              <button type="button" class="btn-detail-log" data-log-id="${row.id}">
+                <i class="bi bi-pencil-square"></i> Detail
+              </button>
+            </td>
+          </tr>`);
+      });
+
+      tbodyMain.innerHTML = mainRows.join("");
+      tbodyFixed.innerHTML = fixedRows.join("");
+    }
+
+    renderLogPagination(logTotalRecords, logTotalPages);
+    updateSortHeaders();
+    syncLogRowHeights();
+  }
+
+  function bindLogRowHover() {
+    const shell = document.querySelector(".relay-log-table-shell");
+    if (!shell || shell.dataset.hoverBound) return;
+    shell.dataset.hoverBound = "1";
+
+    shell.addEventListener("mouseover", function (e) {
+      const row = e.target.closest("tr[data-log-row]");
+      if (!row) return;
+      document.querySelectorAll(`tr[data-log-row="${row.dataset.logRow}"]`)
+        .forEach(r => r.classList.add("relay-log-row-hover"));
+    });
+
+    shell.addEventListener("mouseout", function (e) {
+      const row = e.target.closest("tr[data-log-row]");
+      if (!row) return;
+      document.querySelectorAll(`tr[data-log-row="${row.dataset.logRow}"]`)
+        .forEach(r => r.classList.remove("relay-log-row-hover"));
+    });
+  }
+
+  function syncLogRowHeights() {
+    const mainHead = document.querySelector("#relay-log-table-main thead tr");
+    const fixedHead = document.querySelector("#relay-log-table-fixed thead tr");
+    const mainRows = document.querySelectorAll("#relay-log-table-body-main tr");
+    const fixedRows = document.querySelectorAll("#relay-log-table-body-fixed tr");
+
+    if (mainHead && fixedHead) {
+      fixedHead.style.height = "";
+      mainHead.style.height = "";
+      const headH = Math.max(mainHead.offsetHeight, fixedHead.offsetHeight);
+      mainHead.style.height = headH + "px";
+      fixedHead.style.height = headH + "px";
+    }
+
+    mainRows.forEach((mainRow, i) => {
+      const fixedRow = fixedRows[i];
+      if (!fixedRow) return;
+      mainRow.style.height = "";
+      fixedRow.style.height = "";
+      const rowH = Math.max(mainRow.offsetHeight, fixedRow.offsetHeight);
+      mainRow.style.height = rowH + "px";
+      fixedRow.style.height = rowH + "px";
+    });
+  }
+
+  function renderLogPagination(total, totalPages) {
+    const container = document.getElementById("relay-log-pagination");
+    const start = total === 0 ? 0 : (logCurrentPage - 1) * LOG_PAGE_SIZE + 1;
+    const end = Math.min(logCurrentPage * LOG_PAGE_SIZE, total);
+
+    let pagesHtml = "";
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || (p >= logCurrentPage - 1 && p <= logCurrentPage + 1)) {
+        pagesHtml += `<button type="button" class="btn-page${p === logCurrentPage ? " active" : ""}" data-page="${p}">${p}</button>`;
+      } else if (p === logCurrentPage - 2 || p === logCurrentPage + 2) {
+        pagesHtml += `<span class="px-1 text-muted">…</span>`;
+      }
+    }
+
+    container.innerHTML = `
+      <div class="relay-log-pagination-info">
+        Showing <strong>${start}</strong>–<strong>${end}</strong> of <strong>${total}</strong> records
+      </div>
+      <div class="relay-log-pagination-controls">
+        <button type="button" class="btn-page" data-page="prev" ${logCurrentPage <= 1 ? "disabled" : ""}>
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        ${pagesHtml}
+        <button type="button" class="btn-page" data-page="next" ${logCurrentPage >= totalPages ? "disabled" : ""}>
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>`;
+
+    container.querySelectorAll("[data-page]").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const val = this.dataset.page;
+        if (val === "prev" && logCurrentPage > 1) {
+          fetchLogData({ page: logCurrentPage - 1 });
+        } else if (val === "next" && logCurrentPage < totalPages) {
+          fetchLogData({ page: logCurrentPage + 1 });
+        } else if (!isNaN(parseInt(val, 10))) {
+          fetchLogData({ page: parseInt(val, 10) });
+        }
+      });
+    });
+  }
+
+  function updateSortHeaders() {
+    document.querySelectorAll(".relay-log-table thead th.sortable").forEach(th => {
+      th.classList.remove("sort-asc", "sort-desc");
+      if (th.dataset.sort === logSortKey) {
+        th.classList.add(logSortDir === "asc" ? "sort-asc" : "sort-desc");
+      }
+    });
+  }
+
+  function bindLogSort() {
+    document.querySelectorAll(".relay-log-table thead th.sortable").forEach(th => {
+      if (th.dataset.bound) return;
+      th.dataset.bound = "1";
+      th.addEventListener("click", function () {
+        const key = this.dataset.sort;
+        if (logSortKey === key) {
+          logSortDir = logSortDir === "asc" ? "desc" : "asc";
+        } else {
+          logSortKey = key;
+          logSortDir = "asc";
+        }
+        fetchLogData({ resetPage: true });
+      });
+    });
+  }
+
+  function bindLogDetail() {
+    const tbody = document.getElementById("relay-log-table-body-fixed");
+    if (!tbody || tbody.dataset.bound) return;
+    tbody.dataset.bound = "1";
+    tbody.addEventListener("click", async function (e) {
+      const btn = e.target.closest(".btn-detail-log");
+      if (!btn) return;
+      const id = parseInt(btn.dataset.logId, 10);
+      try {
+        const response = await fetch(`/api/relay-operation-log/${id}`);
+        if (!response.ok) throw new Error("Failed to load log detail");
+        const data = await response.json();
+        showLogDetail(data.record, data.attempts || []);
+      } catch (error) {
+        console.error(error);
+        showToast("Failed to load log detail.", "error", 5000);
+      }
+    });
+  }
+
+  function showLogDetail(row, attempts) {
+    const fields = [
+      ["Meter No.", row.meter_number],
+      ["Zone", row.zone],
+      ["Power Grid", row.power_grid],
+      ["DCU No.", row.dcu_number],
+      ["Task Name", row.task_name],
+      ["Task Type", row.task_type],
+      ["Start Time", row.start_time],
+      ["End Time", row.end_time || "—"],
+      ["Process", row.process],
+      ["Try Times", row.try_times],
+      ["User Name", row.user_name],
+      ["Result", row.result]
+    ];
+
+    document.getElementById("relay-log-detail-body").innerHTML = fields.map(([label, value]) => `
+      <div class="col-md-6">
+        <div class="small text-muted mb-1">${label}</div>
+        <div class="fw-semibold">${value}</div>
+      </div>`).join("");
+
+    document.getElementById("relay-log-attempt-body").innerHTML = (attempts || []).map(a => `
+      <tr>
+        <td>${a.attempt ?? ""}</td>
+        <td>${a.time ?? ""}</td>
+        <td>${a.status ?? ""}</td>
+        <td>${a.message ?? ""}</td>
+      </tr>`).join("");
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById("relayLogDetailModal")).show();
+  }
+
+  function bindLogActions() {
+    const searchBtn = document.getElementById("log-search-btn");
+    const refreshBtn = document.getElementById("log-refresh-btn");
+    const exportBtn = document.getElementById("log-export-btn");
+    if (!searchBtn || searchBtn.dataset.bound) return;
+    searchBtn.dataset.bound = "1";
+    refreshBtn.dataset.bound = "1";
+    exportBtn.dataset.bound = "1";
+
+    searchBtn.addEventListener("click", applyLogFilters);
+    refreshBtn.addEventListener("click", function () {
+      fetchLogData();
+      showToast("Log data refreshed.", "success", 2500);
+    });
+    exportBtn.addEventListener("click", async function () {
+      if (typeof XLSX === "undefined") {
+        showToast("Export library not available.", "error", 4000);
+        return;
+      }
+      try {
+        const filters = getLogFilterParams();
+        const params = new URLSearchParams({
+          ...filters,
+          page: "1",
+          page_size: "10000",
+          sort_by: logSortKey,
+          sort_dir: logSortDir,
+        });
+        const response = await fetch(`/api/relay-operation-log?${params.toString()}`);
+        if (!response.ok) throw new Error("Export fetch failed");
+        const data = await response.json();
+        const exportRows = (data.records || []).map((r, i) => ({
+          "#": i + 1,
+          "Meter No.": r.meter_number,
+          "Zone": r.zone,
+          "Power Grid": r.power_grid,
+          "DCU No.": r.dcu_number,
+          "Task Name": r.task_name,
+          "Task Type": r.task_type,
+          "Start Time": r.start_time,
+          "End Time": r.end_time,
+          "Process": r.process,
+          "Try Times": r.try_times,
+          "User Name": r.user_name,
+          "Result": r.result
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Relay Operation Log");
+        XLSX.writeFile(wb, `relay_operation_log_${moment().format("YYYYMMDD_HHmmss")}.xlsx`);
+        showToast("Export completed.", "success", 2500);
+      } catch (error) {
+        console.error(error);
+        showToast("Export failed.", "error", 5000);
+      }
+    });
+  }
+
+  function initSectionTabs() {
+    const hash = window.location.hash;
+    if (hash === "#log") {
+      const logTab = document.getElementById("relay-log-tab-btn");
+      if (logTab) bootstrap.Tab.getOrCreateInstance(logTab).show();
+    }
+
+    document.querySelectorAll("#relaySectionTabs button[data-bs-toggle='tab']").forEach(btn => {
+      btn.addEventListener("shown.bs.tab", function (e) {
+        window.location.hash = e.target.id === "relay-log-tab-btn" ? "log" : "operation";
+        if (e.target.id === "relay-log-tab-btn") {
+          initLogDateRange();
+          fetchLogData();
+          requestAnimationFrame(syncLogRowHeights);
+        }
+      });
+    });
+  }
+
+  function initRelayLog() {
+    initLogDropdowns();
+    initLogDateRange();
+    bindLogSort();
+    bindLogDetail();
+    bindLogActions();
+    bindLogRowHover();
+    fetchLogData();
+
+    if (!window._relayLogResizeBound) {
+      window._relayLogResizeBound = true;
+      window.addEventListener("resize", syncLogRowHeights);
+    }
+  }
+
+  function initPage() {
+    initRelayOperation();
+    initRelayLog();
+    initSectionTabs();
+  }
+
+  document.addEventListener("DOMContentLoaded", initPage);
+  document.addEventListener("turbo:load", initPage);
+})();
+</script>
+
+{% endblock %}

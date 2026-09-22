@@ -108,17 +108,17 @@
     <div class="metric-badge metric-success">
       <i class="bi bi-backpack4"></i>
       <span>Total Meter Count:</span>
-      <strong>{{ summary.total_meter_count | default(0) }}</strong>
+      <strong id="totalMeterCount">{{ summary.total_meter_count | default(0) }}</strong>
     </div>
     <div class="metric-badge metric-info">
       <i class="bi bi-download"></i>
       <span>Downloaded Meter Count:</span>
-      <strong>{{ summary.downloaded_meter_count | default(0) }}</strong>
+      <strong id="downloadedMeterCount">{{ summary.downloaded_meter_count | default(0) }}</strong>
     </div>
     <div class="metric-badge metric-online">
       <i class="bi bi-wifi"></i>
       <span>Online Meter Count:</span>
-      <strong>{{ summary.online_meter_count | default(0) }}</strong>
+      <strong id="onlineMeterCount">{{ summary.online_meter_count | default(0) }}</strong>
     </div>
   </div>
 
@@ -148,17 +148,16 @@
                   <tr class="{{ 'active-row' if dcu.active }}">
                     <td class="text-center">
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="selected_dcu" {% if dcu.active %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="selected_dcu" value="{{ dcu.number }}" {% if dcu.active %}checked{% endif %}>
                       </div>
                     </td>
                     <td>{{ dcu.number }}</td>
                     <td>
-                      {% if dcu.status == 'online' %}
-                      <span class="badge bg-success-subtle text-success">Online</span>
-                      {% elif dcu.status == 'offline' %}
-                      <span class="badge bg-secondary">Offline</span>
+                      {% set dcu_num_int = dcu.number|int %}
+                      {% if dcu_num_int in connected_clients %}   
+                      <span class="badge bg-success">Online</span> 
                       {% else %}
-                      <span class="badge bg-light text-muted">Unknown</span>
+                      <span class="badge bg-secondary">Offline</span>
                       {% endif %}
                     </td>
                   </tr>
@@ -253,27 +252,36 @@
                     </ul>
                   </div>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
-                  <button class="btn btn-sm btn-primary w-100">
-                    <i class="bi bi-search"></i> Search
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                  <button class="btn btn-sm btn-primary flex-fill">
+                    <i class="bi bi-search"></i> 
+                  </button>
+                  <button class="btn btn-sm btn-success" title="Check">
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                  <button id="assign-point-numbers-btn" class="btn btn-sm" style="background-color: #ff7f7f; border-color: #ff7f7f; color: white;" title="Assign Point Numbers">
+                    <i class="bi bi-arrow-repeat"></i>
+                  </button>
+                  <button class="btn btn-sm" style="background-color: #ffa500; border-color: #ffa500; color: white;" title="Reload">
+                    <i class="bi bi-arrow-repeat"></i>
                   </button>
                 </div>
               </div>
 
               <div class="d-flex flex-wrap gap-2 mb-3">
-                <button class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                <button id="downloadButton" class="btn btn-sm btn-success d-flex align-items-center gap-2">
                   <i class="bi bi-download"></i> Download
                 </button>
-                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                <button id="checkDownloadedButton" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
                   <i class="bi bi-check2-circle"></i> Check Downloaded
                 </button>
-                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
+                <button id="checkOnlineButton" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
                   <i class="bi bi-wifi"></i> Check Online
                 </button>
-                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
+                <button id="clear-selected-point-numbers-btn" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
                   <i class="bi bi-x-circle"></i> Clear Selected
                 </button>
-                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
+                <button id="clear-all-point-numbers-btn" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
                   <i class="bi bi-x-octagon"></i> Clear All
                 </button>
                 <button class="btn btn-sm btn-warning text-white d-flex align-items-center gap-2">
@@ -288,10 +296,15 @@
                 <table class="table table-bordered align-middle">
                   <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Point No</th>
-                      <th>Comm Addr</th>
+                      <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;"> 
+                        <div class="form-check d-flex justify-content-center">
+                          <input class="form-check-input" type="checkbox" id="selectAllMeters">
+                        </div>
+                      </th>
+                      <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">#</th>
+                      <th style="width: 70px; min-width: 70px; max-width: 70px;">Point No</th>
                       <th>Meter No</th>
+                      <th>Comm Addr</th>
                       <th>Meter Type</th>
                       <th>Download</th>
                       <th>Meter Online Status</th>
@@ -302,16 +315,21 @@
                     {% if meter_rows %}
                       {% for row in meter_rows %}
                       <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ row.point_no }}</td>
-                        <td>{{ row.comm_address }}</td>
+                        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">
+                          <div class="form-check d-flex justify-content-center">
+                            <input class="form-check-input meter-checkbox" type="checkbox" name="selected_meters" value="{{ row.meter_number }}" data-point-no="{{ row.point_no }}">
+                          </div>
+                        </td>
+                        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">{{ loop.index }}</td>
+                        <td style="width: 70px; min-width: 70px; max-width: 70px;">{{ row.point_no }}</td> 
                         <td>{{ row.meter_number }}</td>
+                        <td>{{ row.comm_address }}</td>
                         <td>{{ row.meter_type }}</td>
                         <td>
                           {% if row.downloaded %}
                           <span class="badge bg-success-subtle text-success">Downloaded</span>
                           {% else %}
-                          <span class="badge bg-light text-muted">Pending</span>
+                          <span class="badge bg-danger-subtle text-danger">No download</span>
                           {% endif %}
                         </td>
                         <td>
@@ -321,7 +339,118 @@
                           <span class="badge bg-secondary">Offline</span>
                           {% endif %}
                         </td>
-                        <td>{{ row.result or '-' }}</td>
+                        <td>{{ row.result or '' }}</td>
+                      </tr>
+                      {% endfor %}
+                    {% else %}
+                    <tr>
+                      <td colspan="9" class="text-center text-muted py-5">No Data</td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-quality" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <button type="button" id="read-communication-quality-button" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                  <i class="bi bi-lightning-charge"></i> Read
+                </button>
+                <p class="text-muted small mb-0">
+                  Table stays empty until you click Read. Rows match the DCU response only (frame: <code>frames.DCU_COMMUNICATION_QUALITY</code>).
+                </p>
+              </div>
+              <div class="table-responsive soft-scroll">
+                <table id="communication-quality-table" class="table table-bordered align-middle text-center">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="communication-quality-comm-col">Comm Addr</th>
+                      <th>Node Status</th>
+                      <th>Node success rate</th>
+                      <th>Send Frame count</th>
+                      <th>Receive Frame count</th>
+                      <th>Relay Level</th>
+                      <th>Node phase</th>
+                    </tr>
+                  </thead>
+                  <tbody id="communication-quality-table-body">
+                    <tr class="communication-quality-empty-row">
+                      <td colspan="7" class="text-center text-muted py-5">No data yet — select a DCU and click <strong>Read</strong>.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-blacklist" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                  <button type="button" id="read-blacklist-button" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-lightning-charge"></i> Read
+                  </button>
+                  <button type="button" id="save-blacklist-button" class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                    <i class="bi bi-save"></i> Save Meter
+                  </button>
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" title="Refresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" title="Export">
+                    <i class="bi bi-upload"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-responsive soft-scroll">
+                <table class="table table-bordered align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px;">
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" id="selectAllBlacklist">
+                        </div>
+                      </th>
+                      <th style="cursor: pointer;">
+                        # <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                      <th style="cursor: pointer;">
+                        Comm Addr <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                      <th style="cursor: pointer;">
+                        Count <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                      <th style="cursor: pointer;">
+                        First Time <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                      <th style="cursor: pointer;">
+                        Current Time <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                      <th style="cursor: pointer;">
+                        Current DCU No <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                      <th style="cursor: pointer;">
+                        Old DCU No <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="blacklist-table-body">
+                    {% if blacklist_data %}
+                      {% for item in blacklist_data %}
+                      <tr>
+                        <td>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="blacklist_item" value="{{ item.id }}">
+                          </div>
+                        </td>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ item.comm_addr }}</td>
+                        <td>{{ item.count }}</td>
+                        <td>{{ item.first_time }}</td>
+                        <td>{{ item.current_time }}</td>
+                        <td>{{ item.current_dcu_no }}</td>
+                        <td>{{ item.old_dcu_no }}</td>
                       </tr>
                       {% endfor %}
                     {% else %}
@@ -334,7 +463,7 @@
               </div>
             </div>
 
-            {% for tab in ['quality','blacklist','topology','identify-status','identify-result'] %}
+            {% for tab in ['topology','identify-status','identify-result'] %}
             <div class="tab-pane fade" id="tab-{{ tab }}" role="tabpanel">
               <div class="empty-state text-center py-5 text-muted">
                 <i class="bi bi-info-circle display-6 mb-3 d-block"></i>
@@ -351,6 +480,60 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    function normalizeMeterNumber(meterNumber) {
+      if (meterNumber === null || meterNumber === undefined) return '';
+      return String(meterNumber).trim().replace(/^0+/, '');
+    }
+
+    function getMeterTableRows() {
+      // Only count real meter rows (ignore "No Data" row)
+      return Array.from(document.querySelectorAll('table tbody tr')).filter(row =>
+        row.querySelector('input.meter-checkbox')
+      );
+    }
+
+    function setDownloadBadge(cell, isDownloaded) {
+      if (!cell) return;
+      cell.innerHTML = isDownloaded
+        ? '<span class="badge bg-success-subtle text-success">Downloaded</span>'
+        : '<span class="badge bg-danger-subtle text-danger">No download</span>';
+    }
+
+    function setOnlineBadge(cell, isOnline) {
+      if (!cell) return;
+      cell.innerHTML = isOnline
+        ? '<span class="badge bg-success-subtle text-success">Online</span>'
+        : '<span class="badge bg-secondary">Offline</span>';
+    }
+
+    function refreshSummaryBadgesFromTable() {
+      const rows = getMeterTableRows();
+      const total = rows.length;
+      const downloaded = rows.filter(r => r.dataset.downloaded === '1').length;
+      const online = rows.filter(r => r.dataset.online === '1').length;
+
+      const totalEl = document.getElementById('totalMeterCount');
+      const downloadedEl = document.getElementById('downloadedMeterCount');
+      const onlineEl = document.getElementById('onlineMeterCount');
+
+      if (totalEl) totalEl.textContent = String(total);
+      if (downloadedEl) downloadedEl.textContent = String(downloaded);
+      if (onlineEl) onlineEl.textContent = String(online);
+    }
+
+    // Initialize row dataset values from server-rendered state on first load
+    (function initRowDatasets() {
+      const rows = getMeterTableRows();
+      rows.forEach(row => {
+        const downloadCell = row.querySelector('td:nth-child(7)');
+        const onlineCell = row.querySelector('td:nth-child(8)');
+        const downloadText = (downloadCell ? downloadCell.textContent : '').toLowerCase();
+        const onlineText = (onlineCell ? onlineCell.textContent : '').toLowerCase();
+        row.dataset.downloaded = downloadText.includes('downloaded') ? '1' : '0';
+        row.dataset.online = onlineText.includes('online') ? '1' : '0';
+      });
+    })();
+
     function initDropdown(listId, inputSelector) {
       const list = document.getElementById(listId);
       const input = document.querySelector(inputSelector);
@@ -384,6 +567,34 @@
     initDropdown('zone-list', 'input[name="zone"]');
     initDropdown('grid-list', 'input[name="power_grid"]');
     initDropdown('dcu-list', 'input[name="dcu_number"]');
+    
+    // Initialize save blacklist modal dropdowns when modal is shown
+    const saveModalEl = document.getElementById('saveBlacklistMeterModal');
+    if (saveModalEl) {
+      saveModalEl.addEventListener('shown.bs.modal', function() {
+        // Initialize dropdowns when modal is shown
+        initDropdown('save-modem-type-list', '#saveModemType');
+        initDropdown('save-dcu-number-list', '#saveDcuNumberInput');
+      });
+    }
+
+    // Handle DCU selection via radio buttons
+    const dcuRadioButtons = document.querySelectorAll('input[name="selected_dcu"]');
+    dcuRadioButtons.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.checked) {
+          const dcuNumber = this.value;
+          
+          if (dcuNumber) {
+            // Get current filter values to preserve other filters
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('dcu_number', dcuNumber);
+            // Reload page with selected DCU
+            window.location.href = `/meter-download?${urlParams.toString()}`;
+          }
+        }
+      });
+    });
 
     document.addEventListener('click', (e) => {
       document.querySelectorAll('.dropdown').forEach(dropdown => {
@@ -394,7 +605,1215 @@
         }
       });
     });
+
+    // Select all checkbox for blacklist
+    const selectAllBlacklist = document.getElementById('selectAllBlacklist');
+    if (selectAllBlacklist) {
+      selectAllBlacklist.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('input[name="blacklist_item"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+    }
+
+    // Select all checkbox for meters
+    const selectAllMeters = document.getElementById('selectAllMeters');
+    if (selectAllMeters) {
+      selectAllMeters.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('input[name="selected_meters"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+
+      // Update "select all" checkbox state when individual checkboxes change
+      const meterCheckboxes = document.querySelectorAll('input[name="selected_meters"]');
+      meterCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const allChecked = Array.from(meterCheckboxes).every(cb => cb.checked);
+          const someChecked = Array.from(meterCheckboxes).some(cb => cb.checked);
+          selectAllMeters.checked = allChecked;
+          selectAllMeters.indeterminate = someChecked && !allChecked;
+        });
+      });
+    }
+
+    // Download button functionality
+    const downloadButton = document.getElementById('downloadButton');
+    if (downloadButton) {
+      downloadButton.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected meters with their point_no values
+        const selectedMetersData = Array.from(document.querySelectorAll('input[name="selected_meters"]:checked'))
+          .map(checkbox => ({
+            meter_number: checkbox.value,
+            point_no: parseInt(checkbox.getAttribute('data-point-no')) || 0
+          }));
+        
+        if (selectedMetersData.length === 0) {
+          showToast("Please select at least one meter to download.", "warning", 4000);
+          return;
+        }
+        
+        // Check if any selected meter has point number 0
+        const metersWithZeroPoint = selectedMetersData.filter(meter => meter.point_no === 0);
+        if (metersWithZeroPoint.length > 0) {
+          showToast("Please init point number", "error", 4000);
+          return;
+        }
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Downloading...`;
+        btn.disabled = true;
+        
+        // Get selected DCU number
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        const dcuNumber = selectedDCU ? selectedDCU.value : '';
+        
+        // Make request to download meters
+        fetch('/download-meters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            meters: selectedMetersData,
+            dcu_number: dcuNumber
+          })
+        })
+        .then(async response => {
+          // Handle error responses (JSON format)
+          console.log(response) 
+          if (!response.ok) {
+            try {
+              const errorData = await response.json();
+              const errorMsg = errorData.error || errorData.detail || `HTTP error! status: ${response.status}`;
+              showToast(errorMsg, "error", 5000);
+              throw new Error(errorMsg);
+            } catch (jsonError) {
+              // If JSON parsing fails, use status text
+              const errorMsg = `HTTP error! status: ${response.status}`;
+              showToast(errorMsg, "error", 5000);
+              throw new Error(errorMsg);
+            }
+          }else{
+            console.log("passed")
+          }
+          
+          // Handle streaming response
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let partial = '';
+          let successCount = 0;
+          let errorCount = 0;
+
+          function processDownloadResultLine(line) {
+            if (!line.trim()) return;
+
+            try {
+              const data = JSON.parse(line);
+              const meterNumber = data.meter_number;
+              const result = data.result;
+
+              if (!meterNumber) {
+                console.log("Skipping response without meter_number:", data);
+                return;
+              }
+
+              if (result === "successful") {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+
+              const rows = document.querySelectorAll('tbody tr');
+              let found = false;
+              rows.forEach(row => {
+                const meterCell = row.querySelector('td:nth-child(4)'); // Meter No column
+                if (meterCell && meterCell.textContent.trim() === meterNumber) {
+                  found = true;
+                  const resultCell = row.querySelector('td:last-child');
+                  if (resultCell) {
+                    if (result === "successful") {
+                      resultCell.textContent = 'successful';
+                      resultCell.style.color = '#28a745';
+                      resultCell.style.fontWeight = 'bold';
+                    } else {
+                      resultCell.textContent = result;
+                      resultCell.style.color = '#dc3545';
+                      resultCell.style.fontWeight = 'bold';
+                    }
+                  }
+                }
+              });
+
+              if (!found) {
+                console.warn(`Meter ${meterNumber} not found in table`);
+              }
+            } catch (e) {
+              console.error("Error parsing JSON:", e, line);
+            }
+          }
+          
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              partial += decoder.decode(value, { stream: true });
+              
+              let lines = partial.split("\n");
+              partial = lines.pop() || "";
+              
+              for (let line of lines) {
+                processDownloadResultLine(line);
+              }
+            }
+
+            processDownloadResultLine(partial);
+            
+            // Show final toast message
+            if (successCount > 0 && errorCount === 0) {
+              showToast(`Download successful for ${successCount} meter(s).`, "success", 3000);
+            } else if (successCount > 0 && errorCount > 0) {
+              showToast(`Download completed: ${successCount} successful, ${errorCount} failed.`, "warning", 4000);
+            } else {
+              showToast(`Download failed for all meters.`, "error", 4000);
+            }
+          } catch (streamError) {
+            console.error("Error reading stream:", streamError);
+            throw streamError;
+          }
+        })
+        .catch(error => {
+          console.error("Error downloading meters:", error);
+          showToast(`Failed to download meters: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+
+    // Check Downloaded button functionality
+    const checkDownloadedButton = document.getElementById('checkDownloadedButton');
+    if (checkDownloadedButton) {
+      checkDownloadedButton.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected DCU number
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        if (!selectedDCU) {
+          showToast("Please select a DCU first.", "warning", 4000);
+          return;
+        }
+        
+        const dcuNumber = selectedDCU.value;
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...`;
+        btn.disabled = true;
+        
+        // Make request to check downloaded meters
+        fetch('/check-downloaded-meters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dcu_number: dcuNumber
+          })
+        })
+        .then(async response => {
+          if (!response.ok) {
+            try {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            } catch (e) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update table Download badges for downloaded meters
+            if (data.meter_numbers && Array.isArray(data.meter_numbers)) {
+              const rows = getMeterTableRows();
+              let updatedCount = 0;
+              const downloadedSet = new Set(data.meter_numbers.map(normalizeMeterNumber));
+              
+              rows.forEach(row => {
+                const meterCell = row.querySelector('td:nth-child(4)'); // Meter No column (4th column)
+                if (meterCell) {
+                  const meterNumber = meterCell.textContent.trim();
+                  const isDownloaded = downloadedSet.has(normalizeMeterNumber(meterNumber));
+                  
+                  const downloadCell = row.querySelector('td:nth-child(7)'); // Download column
+                  setDownloadBadge(downloadCell, isDownloaded);
+                  row.dataset.downloaded = isDownloaded ? '1' : '0';
+                  updatedCount++;
+                }
+              });
+
+              refreshSummaryBadgesFromTable();
+              
+              if (data.meter_numbers.length === 0) {
+                showToast(
+                  `No meters downloaded in DCU ${data.dcu_number}.`,
+                  "info",
+                  5000
+                );
+              } else {
+                showToast(
+                  `Found ${data.meter_numbers.length} downloaded meter(s) in DCU. Updated ${updatedCount} meter(s) in table.`,
+                  "success",
+                  5000
+                );
+              }
+              console.log("Downloaded meters:", data.meter_numbers);
+            } else {
+              showToast(
+                `Response received from DCU. Response length: ${data.response_length} bytes`,
+                "success",
+                5000
+              );
+            }
+            console.log("DCU Response:", data.response_hex);
+          } else {
+            throw new Error(data.error || "Failed to check downloaded meters");
+          }
+        })
+        .catch(error => {
+          console.error("Error checking downloaded meters:", error);
+          showToast(`Failed to check downloaded meters: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+    const checkOnlineButton = document.getElementById('checkOnlineButton');
+    if (checkOnlineButton) {
+      checkOnlineButton.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected DCU number
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        if (!selectedDCU) {
+          showToast("Please select a DCU first.", "warning", 4000);
+          return;
+        }
+        
+        const dcuNumber = selectedDCU.value;
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...`;
+        btn.disabled = true;
+        
+        // Make request to check downloaded meters
+        fetch('/check-online-meters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dcu_number: dcuNumber
+          })
+        })
+        .then(async response => {
+          if (!response.ok) {
+            try {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            } catch (e) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update table Online badges for online meters
+            if (data.meter_numbers && Array.isArray(data.meter_numbers)) {
+              const rows = getMeterTableRows();
+              let updatedCount = 0;
+              const onlineSet = new Set(data.meter_numbers.map(normalizeMeterNumber));
+              
+              rows.forEach(row => {
+                const meterCell = row.querySelector('td:nth-child(4)'); // Meter No column (4th column)
+                if (meterCell) {
+                  const meterNumber = meterCell.textContent.trim();
+                  const isOnline = onlineSet.has(normalizeMeterNumber(meterNumber));
+                  
+                  const onlineCell = row.querySelector('td:nth-child(8)'); // Meter Online Status column
+                  setOnlineBadge(onlineCell, isOnline);
+                  row.dataset.online = isOnline ? '1' : '0';
+                  updatedCount++;
+                }
+              });
+
+              refreshSummaryBadgesFromTable();
+              
+              if (data.meter_numbers.length === 0) {
+                showToast(
+                  `No meters online in DCU ${data.dcu_number}.`,
+                  "info",
+                  5000
+                );
+              } else {
+                showToast(
+                  `Found ${data.meter_numbers.length} online meter(s) in DCU. Updated ${updatedCount} meter(s) in table.`,
+                  "success",
+                  5000
+                );
+              }
+            } else {
+              showToast(
+                `Response received from DCU. Response length: ${data.response_length} bytes`,
+                "success",
+                5000
+              );
+            }
+            console.log("DCU Response:", data.response_hex);
+          } else {
+            throw new Error(data.error || "Failed to check online meters");
+          }
+        })
+        .catch(error => {
+          console.error("Error checking online meters:", error);
+          showToast(`Failed to check online meters: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+
+    // Read Blacklist button functionality
+    const readBlacklistBtn = document.getElementById('read-blacklist-button');
+    if (readBlacklistBtn) {
+      readBlacklistBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected DCU from the DCU list table
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        if (!selectedDCU) {
+          showToast("Please select a DCU first.", "warning", 4000);
+          return;
+        }
+        
+        // Get DCU number from the table row (second column after checkbox)
+        const dcuRow = selectedDCU.closest('tr');
+        const dcuNumber = dcuRow ? dcuRow.querySelector('td:nth-child(2)').textContent.trim() : null;
+        
+        if (!dcuNumber) {
+          showToast("Could not find DCU number.", "error", 4000);
+          return;
+        }
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Reading...`;
+        btn.disabled = true;
+        
+        // Make request to read blacklist
+        fetch('/read-dcu-blacklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dcu_number: dcuNumber
+          })
+        })
+        .then(async response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showToast("Blacklist data read successfully.", "success", 3000);
+            // Update table with received data
+            if (data.blacklist_data && data.blacklist_data.length > 0) {
+              updateBlacklistTable(data.blacklist_data);
+            } else {
+              updateBlacklistTable([]);
+              showToast("No meter is in DCU blacklist", "success", 3000);
+            }
+            
+          } else {
+            throw new Error(data.error || "Failed to read blacklist");
+          }
+        })
+        .catch(error => {
+          console.error("Error reading blacklist:", error);
+          showToast(`Failed to read blacklist: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+
+    function communicationQualityEmptyRow(messageHtml) {
+      return `<tr class="communication-quality-empty-row"><td colspan="7" class="text-center text-muted py-5">${messageHtml}</td></tr>`;
+    }
+
+    function updateCommunicationQualityTable(rows, emptyMessageHtml) {
+      const tbody = document.getElementById('communication-quality-table-body');
+      if (!tbody) return;
+      const defaultEmpty = 'No data yet — select a DCU and click <strong>Read</strong>.';
+      if (!rows || rows.length === 0) {
+        tbody.innerHTML = communicationQualityEmptyRow(emptyMessageHtml || defaultEmpty);
+        return;
+      }
+      tbody.innerHTML = rows.map((r) => `
+        <tr>
+          <td>${escapeHtml(String(r.comm_addr ?? '—'))}</td>
+          <td>${escapeHtml(String(r.node_status ?? '—'))}</td>
+          <td>${escapeHtml(String(r.node_success_rate ?? '—'))}</td>
+          <td>${escapeHtml(String(r.send_frame_count ?? '—'))}</td>
+          <td>${escapeHtml(String(r.receive_frame_count ?? '—'))}</td>
+          <td>${escapeHtml(String(r.relay_level ?? '—'))}</td>
+          <td>${escapeHtml(String(r.node_phase ?? '—'))}</td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    const readCommQualityBtn = document.getElementById('read-communication-quality-button');
+    if (readCommQualityBtn) {
+      readCommQualityBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        if (!selectedDCU) {
+          showToast('Please select a DCU first.', 'warning', 4000);
+          return;
+        }
+        const dcuRow = selectedDCU.closest('tr');
+        const dcuNumber = dcuRow ? dcuRow.querySelector('td:nth-child(2)').textContent.trim() : null;
+        if (!dcuNumber) {
+          showToast('Could not find DCU number.', 'error', 4000);
+          return;
+        }
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Reading...`;
+        btn.disabled = true;
+        fetch('/read-dcu-communication-quality', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dcu_number: dcuNumber })
+        })
+          .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+              throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            const qRows = data.quality_data || [];
+            if (qRows.length === 0) {
+              updateCommunicationQualityTable([], 'Read finished — no rows returned (check DCU / parser).');
+            } else {
+              updateCommunicationQualityTable(qRows);
+            }
+            if (data.parse_warning) {
+              showToast(`DCU replied (${data.response_length || 0} bytes) but parsing may not match your device: ${data.parse_warning}`, 'warning', 8000);
+            } else if (qRows.length > 0) {
+              showToast('Communication quality updated.', 'success', 4000);
+            } else {
+              showToast('Read completed with no table rows.', 'info', 5000);
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            showToast(`Failed to read communication quality: ${err.message}`, 'error', 6000);
+          })
+          .finally(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+          });
+      });
+    }
+
+    // Save Meter button functionality - show modal
+    const saveBlacklistBtn = document.getElementById('save-blacklist-button');
+    if (saveBlacklistBtn) {
+      saveBlacklistBtn.addEventListener('click', function() {
+        // Get selected items
+        const selectedItems = Array.from(document.querySelectorAll('input[name="blacklist_item"]:checked')).map(cb => cb.value);
+        
+        if (selectedItems.length === 0) {
+          showToast("Please select at least one meter to save.", "warning", 4000);
+          return;
+        }
+        
+        // Show the modal — reuse single Bootstrap instance to avoid stale backdrop on close.
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('saveBlacklistMeterModal'));
+        modal.show();
+      });
+    }
+
+    // Function to update blacklist table with new data
+    function updateBlacklistTable(data) {
+      const tbody = document.getElementById('blacklist-table-body');
+      if (!tbody) return;
+      
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-5">No Data</td></tr>';
+        updateBlacklistDataMap([]);
+        return;
+      }
+      
+      // Update the data map
+      updateBlacklistDataMap(data);
+      
+      tbody.innerHTML = data.map((item, index) => `
+        <tr>
+          <td>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="blacklist_item" value="${item.id || index}">
+            </div>
+          </td>
+          <td>${index + 1}</td>
+          <td>${item.comm_addr || '—'}</td>
+          <td>${item.count || '—'}</td>
+          <td>${item.first_time || '—'}</td>
+          <td>${item.current_time || '—'}</td>
+          <td>${item.current_dcu_no || '—'}</td>
+          <td>${item.old_dcu_no || '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Assign Point Numbers button functionality
+    const assignPointNumbersBtn = document.getElementById('assign-point-numbers-btn');
+    if (assignPointNumbersBtn) {
+      assignPointNumbersBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected DCU number from radio buttons (priority)
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        const dcuNumber = selectedDCU ? selectedDCU.value : '';
+        
+        // Get current filter values from URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const filters = {
+          dcu_number: dcuNumber || urlParams.get('dcu_number') || '',
+          zone: urlParams.get('zone') || '',
+          power_grid: urlParams.get('power_grid') || '',
+          meter_number: urlParams.get('meter_number') || ''
+        };
+        
+        // Also try to get from form inputs if URL params are empty
+        if (!filters.zone || !filters.power_grid) {
+          const form = document.querySelector('.filter-bar');
+          if (form) {
+            const formData = new FormData(form);
+            filters.zone = filters.zone || formData.get('zone') || '';
+            filters.power_grid = filters.power_grid || formData.get('power_grid') || '';
+          }
+        }
+        
+        // Get meter_number from the input field in the tab
+        const meterNumberInput = document.querySelector('input[placeholder="Meter number"]');
+        if (meterNumberInput) {
+          filters.meter_number = meterNumberInput.value || '';
+        }
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+        btn.disabled = true;
+        
+        // Make request to assign point numbers
+        fetch('/assign-point-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(filters)
+        })
+        .then(async response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showToast(data.message || `Successfully assigned point numbers to ${data.updated_count || 0} meter(s)`, "success", 3000);
+            // Reload the page after a short delay to show updated point numbers
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            throw new Error(data.error || "Failed to assign point numbers");
+          }
+        })
+        .catch(error => {
+          console.error("Error assigning point numbers:", error);
+          showToast(`Failed to assign point numbers: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+
+    // Clear All Point Numbers button functionality
+    const clearAllPointNumbersBtn = document.getElementById('clear-all-point-numbers-btn');
+    if (clearAllPointNumbersBtn) {
+      clearAllPointNumbersBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected DCU number from radio buttons (priority)
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        const dcuNumber = selectedDCU ? selectedDCU.value : '';
+        
+        // Get current filter values from URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const filters = {
+          dcu_number: dcuNumber || urlParams.get('dcu_number') || '',
+          zone: urlParams.get('zone') || '',
+          power_grid: urlParams.get('power_grid') || '',
+          meter_number: urlParams.get('meter_number') || ''
+        };
+        
+        // Also try to get from form inputs if URL params are empty
+        if (!filters.zone || !filters.power_grid) {
+          const form = document.querySelector('.filter-bar');
+          if (form) {
+            const formData = new FormData(form);
+            filters.zone = filters.zone || formData.get('zone') || '';
+            filters.power_grid = filters.power_grid || formData.get('power_grid') || '';
+          }
+        }
+        
+        // Get meter_number from the input field in the tab
+        const meterNumberInput = document.querySelector('input[placeholder="Meter number"]');
+        if (meterNumberInput) {
+          filters.meter_number = meterNumberInput.value || '';
+        }
+        
+        // Confirm action
+        if (!confirm('Are you sure you want to clear all point numbers? This will set point_no to NONE for all meters in the current selection.')) {
+          return;
+        }
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Clearing...`;
+        btn.disabled = true;
+        
+        // Make request to clear point numbers
+        fetch('/clear-point-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(filters)
+        })
+        .then(async response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            showToast(data.message || `Successfully cleared point numbers for ${data.cleared_count || 0} meter(s)`, "success", 3000);
+            // Reload the page after a short delay to show updated point numbers
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            throw new Error(data.error || "Failed to clear point numbers");
+          }
+        })
+        .catch(error => {
+          console.error("Error clearing point numbers:", error);
+          showToast(`Failed to clear point numbers: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+
+    // Clear Selected Point Numbers button functionality
+    const clearSelectedPointNumbersBtn = document.getElementById('clear-selected-point-numbers-btn');
+    if (clearSelectedPointNumbersBtn) {
+      clearSelectedPointNumbersBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Get selected meters with their point_no values (like download-meters does)
+        const selectedMetersData = Array.from(document.querySelectorAll('input[name="selected_meters"]:checked'))
+          .map(checkbox => ({
+            meter_number: checkbox.value,
+            point_no: parseInt(checkbox.getAttribute('data-point-no')) || 16
+          }));
+        
+        if (selectedMetersData.length === 0) {
+          showToast("Please select at least one meter to clear point numbers.", "warning", 4000);
+          return;
+        }
+        
+        // Confirm action
+        if (!confirm(`Are you sure you want to clear point numbers for ${selectedMetersData.length} selected meter(s)?`)) {
+          return;
+        }
+        
+        // Show spinner and disable button
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Clearing...`;
+        btn.disabled = true;
+        
+        // Get selected DCU number
+        const selectedDCU = document.querySelector('input[name="selected_dcu"]:checked');
+        const dcuNumber = selectedDCU ? selectedDCU.value : '';
+        
+        // Make request to clear point numbers for selected meters
+        fetch('/clear-selected-point-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            meters: selectedMetersData,  // Now sending array of objects with meter_number and point_no
+            dcu_number: dcuNumber
+          })
+        })
+        .then(async response => {
+          if (!response.ok) {
+            // Try to get error message from response
+            try {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            } catch (e) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          }
+          
+          // Handle streaming response (like download-meters)
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let partial = '';
+          let successCount = 0;
+          let errorCount = 0;
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            partial += decoder.decode(value, { stream: true });
+            const lines = partial.split('\n');
+            partial = lines.pop() || '';
+            
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const result = JSON.parse(line);
+                  if (result.result === 'successful') {
+                    successCount++;
+                  } else {
+                    errorCount++;
+                  }
+                } catch (e) {
+                  console.error('Error parsing result:', e);
+                }
+              }
+            }
+          }
+          
+          // Process any remaining partial line
+          if (partial.trim()) {
+            try {
+              const result = JSON.parse(partial);
+              if (result.result === 'successful') {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (e) {
+              console.error('Error parsing result:', e);
+            }
+          }
+          
+          if (errorCount === 0) {
+            showToast(`Successfully cleared point numbers for ${successCount} meter(s)`, "success", 3000);
+            // Reload the page after a short delay to show updated point numbers
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            showToast(`Cleared ${successCount} meter(s), but ${errorCount} failed`, "warning", 5000);
+          }
+        })
+        .catch(error => {
+          console.error("Error clearing point numbers:", error);
+          showToast(`Failed to clear point numbers: ${error.message}`, "error", 5000);
+        })
+        .finally(() => {
+          // Restore original button state
+          btn.innerHTML = originalContent;
+          btn.disabled = false;
+        });
+      });
+    }
+
+    // Store blacklist data globally for modal access
+    let blacklistDataMap = {};
+    
+    // Update blacklistDataMap when table is updated
+    function updateBlacklistDataMap(data) {
+      blacklistDataMap = {};
+      data.forEach((item, index) => {
+        blacklistDataMap[item.id || index] = item;
+      });
+    }
+
+    // Save Meter from Blacklist modal functionality
+    const saveBlacklistModal = document.getElementById('saveBlacklistMeterModal');
+    if (saveBlacklistModal) {
+      saveBlacklistModal.addEventListener('show.bs.modal', function (event) {
+        // Get selected items
+        const selectedCheckboxes = Array.from(document.querySelectorAll('input[name="blacklist_item"]:checked'));
+        const selectedItems = selectedCheckboxes.map(cb => {
+          const itemId = cb.value;
+          return blacklistDataMap[itemId] || { comm_addr: itemId };
+        });
+
+        if (selectedItems.length === 0) {
+          return;
+        }
+
+        // Pre-fill form with first selected meter's data
+        const firstMeter = selectedItems[0];
+        const commAddrInput = saveBlacklistModal.querySelector('input[name="comm_address"]');
+        const meterNumberInput = saveBlacklistModal.querySelector('input[name="meter_number"]');
+        const commAddrGroup = document.getElementById('saveCommAddressGroup');
+        const dcuGroup = document.getElementById('saveDcuNumberGroup');
+        
+        // Since meter type is always PLC, show DCU field and hide comm address
+        if (commAddrGroup) {
+          commAddrGroup.classList.add('d-none');
+        }
+        if (dcuGroup) {
+          dcuGroup.classList.remove('d-none');
+        }
+        
+        if (meterNumberInput) {
+          // If multiple meters selected, show count
+          if (selectedItems.length > 1) {
+            meterNumberInput.value = `${selectedItems.length} meters selected`;
+          } else {
+            meterNumberInput.value = firstMeter.comm_addr || '';
+          }
+        }
+
+        // Pre-fill DCU number if available
+        const dcuInput = saveBlacklistModal.querySelector('input[name="dcu_number"]');
+        if (dcuInput && firstMeter.current_dcu_no) {
+          dcuInput.value = firstMeter.current_dcu_no;
+        }
+        
+        // Load DCU list for dropdown
+        fetch('/get-installed-dcu')
+          .then(r => r.json())
+          .then(dcus => {
+            const dcuList = document.getElementById('save-dcu-number-list');
+            if (dcuList) {
+              dcuList.innerHTML = dcus.map(dcu => 
+                `<li><a class="dropdown-item hoverable-item" href="#" data-value="${dcu}">${dcu}</a></li>`
+              ).join('');
+            }
+          })
+          .catch(err => console.error('Error loading DCU list:', err));
+
+        // Store selected items in modal data attribute
+        saveBlacklistModal.setAttribute('data-selected-items', JSON.stringify(selectedItems));
+      });
+
+      // Initialize dropdowns when modal is fully shown
+      saveBlacklistModal.addEventListener('shown.bs.modal', function() {
+        // Initialize dropdowns when modal is shown
+        initDropdown('save-modem-type-list', '#saveModemType');
+        initDropdown('save-dcu-number-list', '#saveDcuNumberInput');
+      });
+
+      // Meter type is always PLC and readonly, so DCU field should be shown by default
+      // This is already handled in the 'show.bs.modal' event above
+
+      // Handle form submission
+      const saveBlacklistForm = document.getElementById('saveBlacklistMeterForm');
+      const saveSubmitBtn = document.getElementById('saveBlacklistSubmitBtn');
+      
+      // Handle both form submit and button click
+      async function handleSaveSubmission(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        
+        console.log('Form submit triggered'); // Debug log
+        
+        if (!saveBlacklistForm) {
+          console.error('Form not found');
+          return;
+        }
+        
+        const formData = new FormData(saveBlacklistForm);
+        const selectedItemsJson = saveBlacklistModal ? saveBlacklistModal.getAttribute('data-selected-items') : null;
+        if (!selectedItemsJson) {
+          showToast("No meters selected.", "error", 4000);
+          return;
+        }
+
+        const selectedItems = JSON.parse(selectedItemsJson);
+        const formValues = Object.fromEntries(formData);
+
+        // Build request payload with all selected meters
+        // Each selected item gets its own entry with the form values applied
+        const metersToSave = selectedItems.map(item => ({
+          meter_number: item.comm_addr || formValues.meter_number || '',
+          comm_address: item.comm_addr || '', // Use comm_addr from blacklist item for PLC meters
+          device_type: formValues.meter_type || 'PLC Meter',
+          modem_type: formValues.modem_type || 'DDSY283',
+          password: formValues.password || '',
+          CT_ratio: parseInt(formValues.CT_ratio) || 1,
+          VT_ratio: parseInt(formValues.VT_ratio) || 1,
+          remarks: formValues.remarks || '',
+          line: '', // Line field removed from form
+          dcu_number: formValues.dcu_number || item.current_dcu_no || '',
+          Zone: '', // Zone field removed from form
+          station: '' // Station field removed from form
+        }));
+
+        // Find submit button - try multiple ways
+        let submitBtn = document.getElementById('saveBlacklistSubmitBtn');
+        if (!submitBtn && saveBlacklistForm) {
+          submitBtn = saveBlacklistForm.querySelector('button[type="submit"]');
+        }
+        if (!submitBtn && saveBlacklistModal) {
+          submitBtn = saveBlacklistModal.querySelector('button[type="submit"]');
+        }
+        
+        if (!submitBtn) {
+          console.error('Submit button not found');
+          showToast("Error: Submit button not found", "error", 4000);
+          return;
+        }
+        
+        const originalContent = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Saving...';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch('/save-blacklist-meters', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ meters: metersToSave })
+          });
+
+          const data = await response.json();
+          
+          if (data.success) {
+            showToast(`Successfully saved ${data.saved_count} meter(s)`, "success", 3000);
+            // Close modal
+            if (saveBlacklistModal) {
+              const modal = bootstrap.Modal.getInstance(saveBlacklistModal);
+              if (modal) {
+                modal.hide();
+              }
+            }
+            // Reload page after delay
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            throw new Error(data.error || "Failed to save meters");
+          }
+        } catch (error) {
+          console.error("Error saving meters:", error);
+          showToast(`Failed to save meters: ${error.message}`, "error", 5000);
+        } finally {
+          // Only restore button if it still exists
+          if (submitBtn) {
+            submitBtn.innerHTML = originalContent;
+            submitBtn.disabled = false;
+          }
+        }
+      }
+      
+      if (saveBlacklistForm) {
+        saveBlacklistForm.addEventListener('submit', handleSaveSubmission);
+      }
+      
+      if (saveSubmitBtn) {
+        saveSubmitBtn.addEventListener('click', handleSaveSubmission);
+      }
+    }
   });
 </script>
+
+<!-- Save Blacklist Meter Modal -->
+<div class="modal fade" id="saveBlacklistMeterModal" tabindex="-1" aria-labelledby="saveBlacklistMeterModalLabel" aria-hidden="true">
+  <div class="modal-dialog custom-modal modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="saveBlacklistMeterModalLabel">Тоолуур бүртгэх</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="saveBlacklistMeterForm">
+          <!-- Nav tabs -->
+          <ul class="nav nav-tabs mb-3" id="saveBlacklistTab" role="tablist">
+            <li class="nav-item">
+              <button class="nav-link active" id="save-detail-tab" data-bs-toggle="tab" data-bs-target="#save-detail" type="button" role="tab">Дэргэрэнгүй</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" id="save-safety-tab" data-bs-toggle="tab" data-bs-target="#save-safety" type="button" role="tab">Нууцлал</button>
+            </li>
+          </ul>
+
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="save-detail" role="tabpanel">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label>Модулийн төрөл: </label>
+                  <div class="dropdown">
+                    <div class="dropdown-toggle-wrapper position-relative">
+                      <input type="text"
+                             name="meter_type"
+                             id="saveMeterType"
+                             class="form-control dropdown-search-input dimmed-text hoverable-input"
+                             placeholder="Модулийн төрөл сонгох"
+                             autocomplete="off"
+                             value="PLC Meter" 
+                             readonly> 
+                      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                        <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </div>
+                    <ul id="save-meter-type-list" 
+                        class="dropdown-menu w-100"
+                        style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                      <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label>Тоолуурын дугаар:</label>
+                  <input type="text" name="meter_number" class="form-control" placeholder="Автоматаар бөглөгдөнө" readonly>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <div id="saveCommAddressGroup">
+                    <label>Комм хаяг:</label>
+                    <input type="text" name="comm_address" class="form-control" required>
+                  </div>
+                  <div id="saveDcuNumberGroup" class="d-none">
+                    <label>DCU дугаар:</label>
+                    <div class="dropdown">
+                      <div class="dropdown-toggle-wrapper position-relative">
+                        <input type="text"
+                               name="dcu_number"
+                               id="saveDcuNumberInput"
+                               class="form-control dropdown-search-input dimmed-text hoverable-input"
+                               placeholder="DCU дугаарыг сонгох"
+                               autocomplete="off">
+                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                      <ul id="save-dcu-number-list"
+                          class="dropdown-menu w-100"
+                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label>Тоолуурын төрөл:</label>
+                  <div class="dropdown">
+                    <div class="dropdown-toggle-wrapper position-relative">
+                      <input type="text"
+                             name="modem_type"
+                             id="saveModemType"
+                             class="form-control dropdown-search-input dimmed-text hoverable-input"
+                             placeholder="Тоолуурын төрөл сонгох"
+                             autocomplete="off"
+                             value="DDSY283"
+                             required>
+                      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+                        <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </div>
+                    <ul id="save-modem-type-list" 
+                        class="dropdown-menu w-100"
+                        style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
+                      <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
+                      <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+                      <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label>CT харьцаа:</label> 
+                  <input type="number" name="CT_ratio" class="form-control" step="1" min="1" value="1">
+                </div> 
+                <div class="col-md-6">
+                  <label>Тайлбар:</label>
+                  <input type="text" name="remarks" class="form-control">
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label>VT харьцаа:</label> 
+                  <input type="number" name="VT_ratio" class="form-control" step="1" min="1" value="1">
+                </div>
+  
+              </div>
+
+              
+            </div>
+
+            <div class="tab-pane fade" id="save-safety" role="tabpanel">
+              <label>Нууц үг:</label> 
+              <input type="text" name="password" class="form-control" placeholder="Нууц үг оруулах" required>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
+        <button type="submit" id="saveBlacklistSubmitBtn" form="saveBlacklistMeterForm" class="btn btn-primary">Хадгалах</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 

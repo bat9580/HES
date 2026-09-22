@@ -1,6 +1,7 @@
 import sqlite3
 import os
-import sys 
+import sys
+from datetime import datetime
 DATABASE = "connection.db"
 # Create database table if not exists
 def init_db():
@@ -11,6 +12,9 @@ def init_db():
 
     db_path = os.path.join(base_dir, 'connection.db')
     conn = sqlite3.connect(db_path)
+    # Enable WAL - Write Ahead Logging (Хурдан бичихэд)  
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000") # Wait up to 5 sec if DB is locked - avoid deadlock
     cursor = conn.cursor() 
     
     cursor.execute("""
@@ -53,14 +57,16 @@ def init_db():
             type TEXT, 
             remarks TEXT,
             status TEXT,
-            DCU_number TEXT, 
+            DCU_number TEXT,  
             Zone TEXT, 
             station TEXT,
             POWER_grid TEXT, 
             task TEXT, 
             line TEXT, 
             CT_ratio INT, 
-            VT_ratio INT
+            VT_ratio INT, 
+            point_number INT,
+            downloaded_to_dcu INTEGER DEFAULT 0
         )
     """)
 
@@ -86,7 +92,8 @@ def init_db():
             Zone TEXT, 
             station TEXT,
             POWER_grid TEXT, 
-            task TEXT  
+            task TEXT,
+            downloaded_to_dcu INTEGER DEFAULT 0
         )
     """)
     cursor.execute("""
@@ -104,6 +111,37 @@ CREATE TABLE IF NOT EXISTS instantaneous_profile_readings (
     total_reactive_power REAL,-- 3.7.0
     total_apparent_power REAL,-- 9.7.0
     total_power_factor REAL,-- 13.7.0
+    
+    voltage_A_min REAL,        -- 32.7.0
+    voltage_B_min REAL,        -- 52.7.0
+    voltage_C_min REAL,        -- 72.7.0
+    current_A_min REAL,        -- 31.7.0
+    current_B_min REAL,        -- 51.7.0
+    current_C_min REAL,        -- 71.7.0
+    total_active_power_min REAL,-- 15.7.0
+    total_reactive_power_min REAL,-- 3.7.0
+    total_power_factor_min REAL,-- 13.7.0
+    
+    voltage_A_avg REAL,        -- 32.7.0
+    voltage_B_avg REAL,        -- 52.7.0
+    voltage_C_avg REAL,        -- 72.7.0
+    current_A_avg REAL,        -- 31.7.0
+    current_B_avg REAL,        -- 51.7.0
+    current_C_avg REAL,        -- 71.7.0
+    total_active_power_avg REAL,-- 15.7.0
+    total_reactive_power_avg REAL,-- 3.7.0
+    total_power_factor_avg REAL,-- 13.7.0 
+    
+    voltage_A_max REAL,        -- 32.7.0
+    voltage_B_max REAL,        -- 52.7.0
+    voltage_C_max REAL,        -- 72.7.0
+    current_A_max REAL,        -- 31.7.0
+    current_B_max REAL,        -- 51.7.0
+    current_C_max REAL,        -- 71.7.0
+    total_active_power_max REAL,-- 15.7.0
+    total_reactive_power_max REAL,-- 3.7.0
+    total_power_factor_max REAL,-- 13.7.0  
+
     energy_peak REAL,       -- 81.7.10
     energy_offpeak REAL,    -- 81.7.20
     energy_shoulder REAL,   -- 81.7.40
@@ -270,6 +308,70 @@ CREATE TABLE IF NOT EXISTS regular_task_readings (
             PRIMARY KEY (role_name, permission_name) 
         )
     """)
+    
+    # Add downloaded_to_dcu column if it doesn't exist (for existing databases)
+    try:
+        cursor.execute("ALTER TABLE installed_meters ADD COLUMN downloaded_to_dcu INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
+
+    # Add relay status tracking columns if they don't exist
+    try:
+        cursor.execute("ALTER TABLE installed_meters ADD COLUMN relay_status TEXT")
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE installed_meters ADD COLUMN relay_status_updated_at TEXT")
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
+
+    # Add online status tracking columns if they don't exist
+    try:
+        cursor.execute("ALTER TABLE installed_meters ADD COLUMN online_status TEXT")
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE installed_meters ADD COLUMN online_status_updated_at TEXT")
+    except sqlite3.OperationalError:
+        # Column already exists, ignore
+        pass
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS relay_operation_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meter_number TEXT NOT NULL,
+            zone TEXT,
+            power_grid TEXT,
+            dcu_number TEXT,
+            task_name TEXT NOT NULL,
+            task_type TEXT NOT NULL DEFAULT 'Action',
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            process TEXT NOT NULL DEFAULT 'Waiting Processing',
+            try_times INTEGER NOT NULL DEFAULT 1,
+            user_name TEXT,
+            result TEXT,
+            attempts_json TEXT DEFAULT '[]'
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_relay_operation_log_start_time
+        ON relay_operation_log (start_time)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_relay_operation_log_meter_number
+        ON relay_operation_log (meter_number)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_relay_operation_log_dcu_number
+        ON relay_operation_log (dcu_number)
+    """)
 
     conn.commit()
     conn.close()
@@ -284,5 +386,37 @@ def get_db_connection():
 
     db_path = os.path.join(base_dir, 'connection.db')
     conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA journal_mode=WAL")      # Enable WAL - Write Ahead Logging (Хурдан бичихэд) 
+    conn.execute("PRAGMA busy_timeout=5000")     # Wait up to 5 sec if DB is locked - avoid deadlock
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def update_online_status(meter_number: str | int, is_online: bool) -> None:
+    """
+    Persist the latest known online status for a meter.
+
+    is_online=True  -> 'online'
+    is_online=False -> 'offline'
+    """
+    status_value = "online" if is_online else "offline"
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE installed_meters
+            SET online_status = ?, online_status_updated_at = ?
+            WHERE meter_number = ?
+            """,
+            (status_value, datetime.utcnow().isoformat(), str(meter_number)),
+        )
+        conn.commit()
+    except Exception as e:
+        # Avoid breaking real-time operations if DB update fails
+        print(f"Failed to update online status for meter {meter_number}: {e}")
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass

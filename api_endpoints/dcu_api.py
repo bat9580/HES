@@ -1,3 +1,4 @@
+import sqlite3
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -254,3 +255,29 @@ async def get_dcu_meters(dcu_number: str):
         "data": meters
     }
 
+
+@router.get("/dcus/installed")
+async def get_installed_dcus():
+    """Get DCUs that have installed meters (DCUs from installed_meters table)"""
+    conn = get_db_connection()
+    conn.row_factory = sqlite3.Row
+    
+    # Get distinct DCU numbers from installed_meters that are not null
+    rows = conn.execute("""
+        SELECT DISTINCT im.DCU_number as dcu_number, 
+               rd.status, 
+               rd.com_address
+        FROM installed_meters im
+        LEFT JOIN registered_dcus rd ON im.DCU_number = rd.dcu_number
+        WHERE im.DCU_number IS NOT NULL AND im.DCU_number != ''
+        ORDER BY im.DCU_number
+    """).fetchall()
+    conn.close()
+    
+    dcus = [dict(row) for row in rows]
+    
+    return {
+        "status": "success",
+        "total": len(dcus),
+        "data": dcus
+    }

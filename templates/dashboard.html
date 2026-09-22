@@ -3,8 +3,62 @@
 {% block content %}
 
 <div class="container my-4 dash-modern">
-  <h2 class="mb-4 page-title">Хяналтын самбар</h2>
-  
+  <div class="dash-header">
+    <div class="dash-header-text">
+      <h2 class="page-title mb-0">Хяналтын самбар</h2>
+      <p class="dash-header-sub">Нэгдсэн хяналт ба тоолуурын төлөв байдал.</p>
+    </div>
+    <div class="dash-header-meta">
+      <span class="dash-meta-pill">
+        <i class="bi bi-broadcast"></i>
+        <span>Шууд өгөгдөл</span>
+      </span>
+      <span class="dash-meta-pill ghost">
+        <i class="bi bi-clock-history"></i>
+        <span class="numeric" id="dashHeaderClock">—</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3 dash-kpi-strip">
+    <div class="col-6 col-md-3">
+      <div class="dash-kpi">
+        <div class="dash-kpi-icon kpi-primary"><i class="bi bi-collection"></i></div>
+        <div class="dash-kpi-text">
+          <span class="dash-kpi-label">Нийт бүртгэл</span>
+          <span class="dash-kpi-value numeric">{{ registered_meter_count }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-kpi">
+        <div class="dash-kpi-icon kpi-violet"><i class="bi bi-lightning-charge"></i></div>
+        <div class="dash-kpi-text">
+          <span class="dash-kpi-label">Суурилуулсан</span>
+          <span class="dash-kpi-value numeric">{{ total_installations }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-kpi">
+        <div class="dash-kpi-icon kpi-emerald"><i class="bi bi-broadcast-pin"></i></div>
+        <div class="dash-kpi-text">
+          <span class="dash-kpi-label">Онлайн</span>
+          <span class="dash-kpi-value numeric">{{ total_online_meter }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="dash-kpi">
+        <div class="dash-kpi-icon kpi-amber"><i class="bi bi-cloud-slash"></i></div>
+        <div class="dash-kpi-text">
+          <span class="dash-kpi-label">Офлайн</span>
+          <span class="dash-kpi-value numeric">{{ total_installations - total_online_meter }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-12 col-sm-12 dashboard-filter-wrapper">
       <div class="filter-bar-container">
@@ -73,7 +127,7 @@
     <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
             <div class="card shadow-sm stat-card">
                 <div class="card-body text-center">
-                    <h5 class="text-muted">Онлайн</h5>
+                    <h5 class="text-muted stat-card-title">Онлайн</h5>
                     <canvas id="onlineChart" width="165" height="165"></canvas>
                     <div class="d-flex justify-content-center mt-3 gap-3">
                         <!-- Online -->
@@ -93,7 +147,7 @@
         <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
             <div class="card shadow-sm stat-card">
                 <div class="card-body text-center">
-                    <h5 class="text-muted">Төрөл</h5>
+                    <h5 class="text-muted stat-card-title">Төрөл</h5>
                     <canvas id="meterTypeChart" width="165" height="165"></canvas>
                     <div class="d-flex justify-content-center mt-3 gap-3">
                         <!-- Online -->
@@ -113,7 +167,7 @@
         <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
             <div class="card shadow-sm stat-card">
                 <div class="card-body text-center">
-                    <h5 class="text-muted">Суурилуулалт</h5>
+                    <h5 class="text-muted stat-card-title">Суурилуулалт</h5>
                     <canvas id="installationsChart" width="165" height="165"></canvas>
                     <div class="d-flex justify-content-center mt-3 gap-3">
                         <!-- Online -->
@@ -133,7 +187,10 @@
         <div class="col-12 col-xl stats-chart-col">
             <div class="card shadow-sm chart-card">
                 <div class="card-body">
-                    <h5 class="text-muted">Нийт ачаалал (сүүлийн 6 цаг) (кВт)</h5> 
+                    <div class="chart-card-head">
+                      <h5 class="chart-card-title mb-0">Нийт ачаалал</h5>
+                      <span class="chart-card-meta">Сүүлийн 6 цаг · кВт</span>
+                    </div>
                     <canvas id="consumptionLineChart" height="120"></canvas>
                 </div>
             </div>
@@ -147,9 +204,10 @@
 <div class="col-md-6">
   <div class="card shadow-sm section-card chart-card">
     <div class="card-body">
-      <h5 class="text-muted">Сүүлийн 24 цагийн хэрэглээ</h5>
-                  
-        
+      <div class="chart-card-head">
+        <h5 class="chart-card-title mb-0">Сүүлийн 24 цагийн хэрэглээ</h5>
+        <span class="chart-card-meta">Цагаар · кВт.ц</span>
+      </div>
       <canvas id="consumptionBarChart24hour" height="100"></canvas>
     </div>
   </div>
@@ -158,7 +216,10 @@
 <div class="col-md-6">
   <div class="card shadow-sm section-card chart-card">
     <div class="card-body">
-      <h5 class="text-muted">Сүүлийн 30 хоногийн хэрэглээ</h5>
+      <div class="chart-card-head">
+        <h5 class="chart-card-title mb-0">Сүүлийн 30 хоногийн хэрэглээ</h5>
+        <span class="chart-card-meta">Өдрөөр · кВт.ц</span>
+      </div>
       <canvas id="consumptionBarChart30day" height="100"></canvas>
     </div>
   </div>
@@ -737,5 +798,20 @@ function exportTableToExcel() {
     })
     .catch(err => console.error(err));
 }
+
+// Live clock in dashboard header (purely visual)
+(function() {
+  const el = document.getElementById('dashHeaderClock');
+  if (!el) return;
+  const tick = () => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    el.textContent = `${hh}:${mm}:${ss}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+})();
 </script>
 {% endblock %}

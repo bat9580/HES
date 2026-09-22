@@ -3,66 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <title>HES System</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='images/logo.png') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"> 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', path='theme-refresh.css') }}">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/cronstrue@latest/dist/cronstrue.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Turbo Drive: app-like navigation (content swaps, layout stays).
+       Pages are not cached/previewed to keep per-page scripts predictable. -->
+  <meta name="turbo-cache-control" content="no-cache">
+  <script src="{{ url_for('static', path='js/turbo-shim.js') }}"></script>
+  <script type="module">
+    import * as Turbo from "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js";
+    window.Turbo = Turbo;
+    // Forms keep their classic full-page behavior (many POST handlers
+    // return HTML directly, which Turbo's form interception would reject).
+    Turbo.setFormMode("optin");
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="{{ url_for('static', path='js/app-shell.js') }}" defer></script>
 </head>
 <body class="app-body">
 
-<nav class="navbar navbar-expand-lg shadow-sm" aria-label="Top navigation">
-  <div class="container-fluid align-items-center justify-content-between gap-3">
-    <div class="d-flex align-items-center gap-2 navbar-left">
+<nav class="navbar navbar-expand-lg shadow-sm app-topbar" id="appTopbar" data-turbo-permanent aria-label="Top navigation">
+  <div class="container-fluid app-topbar-inner align-items-center justify-content-between gap-3">
+    <!-- LEFT: sidebar toggle + brand -->
+    <div class="d-flex align-items-center gap-3 navbar-left">
+      <button class="btn btn-outline-light btn-sm toggle-btn" type="button" onclick="toggleSidebar()" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
+      </button>
       <a class="navbar-brand app-brand d-inline-flex align-items-center gap-2" href="/Dashboard">
-        <img src="{{ url_for('static', path='images/logo.png') }}" alt="HES System Logo" class="app-logo-img">
+        <span class="app-logo-shell">
+          <img src="{{ url_for('static', path='images/logo.png') }}" alt="HES System Logo" class="app-logo-img">
+        </span>
         <span class="app-brand-text">
-          <span class="app-brand-title">System</span>
-          <span class="app-brand-subtitle">Energy metrix</span>
+          <span class="app-brand-title">Energy Metrix</span>
+          <span class="app-brand-subtitle">Head End System</span>
         </span>
         <span class="visually-hidden">Return to dashboard</span>
       </a>
-      <button class="btn btn-outline-light btn-sm toggle-btn ms-1" type="button" onclick="toggleSidebar()" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-      </button>
     </div>
 
+    <!-- CENTER: in-page search (filters tables on the current page) -->
+    <div class="topbar-search d-none d-lg-flex" role="search">
+      <span class="topbar-search-icon" aria-hidden="true"><i class="bi bi-search"></i></span>
+      <input id="globalPageSearch"
+             type="search"
+             class="topbar-search-input"
+             placeholder="Хуудасны хүснэгтүүдийг шүүх..."
+             aria-label="Filter tables on this page"
+             autocomplete="off">
+      <kbd class="topbar-search-kbd">/</kbd>
+    </div>
+
+    <!-- RIGHT: status, notifications, user, logout -->
     <div class="d-flex align-items-center gap-2 navbar-actions">
-      <form action="/logout" method="post" class="d-inline">
-        <button type="submit" class="btn btn-outline-light btn-sm">
-          <i class="bi bi-box-arrow-right"></i> Гарах 
+
+      <!-- Live status indicator -->
+      <span class="topbar-status d-none d-md-inline-flex" aria-label="System status: online">
+        <span class="topbar-status-dot" aria-hidden="true"></span>
+        <span class="topbar-status-text">Идэвхтэй</span>
+      </span>
+
+      <!-- Notifications -->
+      <div class="dropdown topbar-dropdown">
+        <button class="topbar-icon-btn" type="button" id="topbarNotifBtn"
+                data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+          <i class="bi bi-bell"></i>
+          <span class="topbar-icon-badge" data-count="0">0</span>
         </button>
-      </form>
+        <div class="dropdown-menu dropdown-menu-end topbar-dropdown-menu" aria-labelledby="topbarNotifBtn">
+          <div class="topbar-dropdown-header">
+            <span class="topbar-dropdown-title">Мэдэгдэл</span>
+            <span class="topbar-dropdown-pill">0 шинэ</span>
+          </div>
+          <div class="topbar-dropdown-empty">
+            <i class="bi bi-bell-slash"></i>
+            <p>Танд шинэ мэдэгдэл алга.</p>
+            <small>Систем дээрх үйл явдлууд энд харагдана.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help / docs (visual link to dashboard) -->
+      <a class="topbar-icon-btn d-none d-md-inline-flex" href="/Dashboard" aria-label="Quick home" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Хяналтын самбар">
+        <i class="bi bi-grid-1x2"></i>
+      </a>
+
+      <!-- User profile -->
+      <div class="dropdown topbar-dropdown topbar-user-wrap">
+        <button class="topbar-user-btn" type="button" id="topbarUserBtn"
+                data-bs-toggle="dropdown" aria-expanded="false" aria-label="User menu">
+          <span class="topbar-user-avatar" aria-hidden="true">
+            {% if user and user.username %}{{ user.username[0]|upper }}{% else %}U{% endif %}
+          </span>
+          <span class="topbar-user-meta d-none d-lg-flex">
+            <span class="topbar-user-name">{% if user and user.username %}{{ user.username }}{% else %}Хэрэглэгч{% endif %}</span>
+            <span class="topbar-user-role">{% if user and user.role %}{{ user.role }}{% else %}Guest{% endif %}</span>
+          </span>
+          <i class="bi bi-chevron-down topbar-user-chev d-none d-lg-inline" aria-hidden="true"></i>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end topbar-dropdown-menu topbar-user-menu" aria-labelledby="topbarUserBtn">
+          <div class="topbar-user-card">
+            <span class="topbar-user-avatar lg" aria-hidden="true">
+              {% if user and user.username %}{{ user.username[0]|upper }}{% else %}U{% endif %}
+            </span>
+            <div>
+              <div class="topbar-user-card-name">{% if user and user.username %}{{ user.username }}{% else %}Хэрэглэгч{% endif %}</div>
+              <div class="topbar-user-card-role">{% if user and user.role %}{{ user.role }}{% else %}—{% endif %}</div>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          {% if "System Management" in permissions %}
+          <a class="dropdown-item topbar-dropdown-item" href="/user-management">
+            <i class="bi bi-person-vcard"></i> Хэрэглэгч удирдах
+          </a>
+          <a class="dropdown-item topbar-dropdown-item" href="/role-management">
+            <i class="bi bi-person-gear"></i> Эрхийн тохиргоо
+          </a>
+          <div class="dropdown-divider"></div>
+          {% endif %}
+          <button type="button"
+                  class="dropdown-item topbar-dropdown-item topbar-logout-item"
+                  data-logout-trigger>
+            <i class="bi bi-box-arrow-right"></i> Системээс гарах
+          </button>
+        </div>
+      </div>
+
+      <!-- Compact logout for very narrow screens -->
+      <button type="button"
+              class="btn btn-outline-light btn-sm topbar-logout-compact d-inline d-md-none"
+              aria-label="Logout"
+              data-logout-trigger>
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
     </div>
   </div>
 </nav>
 
-<div class="sidebar" id="sidebar" role="navigation" aria-label="Primary" data-state="expanded">
+<!-- Hidden global logout form: lives at body level so no parent (dropdown, navbar) can swallow the submit. Triggered by any [data-logout-trigger] element. -->
+<form id="globalLogoutForm" action="/logout" method="post" style="display:none;" aria-hidden="true"></form>
+
+<div class="sidebar" id="sidebar" data-turbo-permanent role="navigation" aria-label="Primary" data-state="expanded">
   <div class="sidebar-inner">
-    <div class="sidebar-header"></div>
+    <div class="sidebar-header">
+      <span class="sidebar-section-pill">
+        <i class="bi bi-stars"></i>
+        <span>{% if user and user.role %}{{ user.role }}{% else %}HES{% endif %}</span>
+      </span>
+    </div>
 
     <div class="sidebar-nav" role="menu">
-    <a href="/Dashboard" class="nav-link" data-bs-toggle="tooltip">
-      <i class="bi bi-speedometer"></i> <span class="label">Хяналтын самбар</span> 
-    </a> 
 
-    {% if "Warehouse" in permissions %} 
-    <a href="#" class="nav-link" onclick="toggleMenu('warehouse')" data-bs-toggle="tooltip"  data-menu-target="warehouse" aria-controls="warehouse" aria-expanded="false" role="button">
+    <span class="sidebar-section-label" data-collapsed-glyph="•••">Үндсэн</span>
+    <a href="/Dashboard" class="nav-link" data-bs-toggle="tooltip" data-bs-placement="right" title="Хяналтын самбар">
+      <i class="bi bi-speedometer"></i> <span class="label">Хяналтын самбар</span>
+    </a>
+
+    {% if "Warehouse" in permissions %}
+    <span class="sidebar-section-label" data-collapsed-glyph="•••">Бүртгэл</span>
+    <a href="#" class="nav-link" onclick="toggleMenu('warehouse')" data-bs-toggle="tooltip" data-bs-placement="right" title="Бүртгэл" data-menu-target="warehouse" aria-controls="warehouse" aria-expanded="false" role="button">
       <i class="bi bi-box-seam"></i> <span class="label">Бүртгэл</span><span class="nav-chevron bi bi-chevron-down"></span>
     </a>
     {% endif %}
@@ -71,177 +192,82 @@
       <a href="/DCU-management" class="nav-link"><i class="bi bi-hdd-network"></i> <span class="label">DCU Бүртгэл</span></a>
       <a href="/line-management" class="nav-link"><i class="bi bi-bezier"></i> <span class="label">Шугамын мэдээлэл</span></a>
     </div>
-    {% if "Archive" in permissions %}  
-    <a href="#" class="nav-link" onclick="toggleMenu('archive')" data-bs-toggle="tooltip" data-menu-target="archive" aria-controls="archive" aria-expanded="false" role="button">
+
+    {% if "Archive" in permissions %}
+    <span class="sidebar-section-label" data-collapsed-glyph="•••">Үйл ажиллагаа</span>
+    <a href="#" class="nav-link" onclick="toggleMenu('archive')" data-bs-toggle="tooltip" data-bs-placement="right" title="Суурилуулалт" data-menu-target="archive" aria-controls="archive" aria-expanded="false" role="button">
       <i class="bi bi-archive"></i> <span class="label">Суурилуулалт</span><span class="nav-chevron bi bi-chevron-down"></span>
     </a>
-    {% endif %} 
+    {% endif %}
     <div class="submenu" id="archive" aria-hidden="true">
-      <a href="/meter-installation" class="nav-link"><i class="bi bi-lightning-charge"></i> <span class="label" >Тоолуур суурилуулалт</span></a>
-      <a href="/batch-upload-meter" class="nav-link"><i class="bi bi-boxes"></i> <span class="label" >Багц тоолуур суурилуулах</span></a> 
-      <a href="/meter-download" class="nav-link"><i class="bi bi-pc-display-horizontal"></i> <span class="label">Тоолуур суурилуулалт</span></a>
+      <a href="/meter-installation" class="nav-link"><i class="bi bi-lightning-charge"></i> <span class="label">Тоолуур суурилуулалт</span></a>
+      <a href="/batch-upload-meter" class="nav-link"><i class="bi bi-boxes"></i> <span class="label">Багц тоолуур суурилуулах</span></a>
+      <a href="/meter-download" class="nav-link"><i class="bi bi-pc-display-horizontal"></i> <span class="label">Тоолуур татах</span></a>
     </div>
 
-    <!-- <a href="/unregistered-device" class="nav-link" data-bs-toggle="tooltip" title="Unregistered Device">
-      <i class="bi bi-exclamation-circle"></i> <span class="label">Unregistered Device</span>
-    </a> -->
-    {% if "Remote Maintain" in permissions %}  
-    <a href="#" class="nav-link" onclick="toggleMenu('terminal')" data-bs-toggle="tooltip"  data-menu-target="terminal" aria-controls="terminal" aria-expanded="false" role="button">
+    {% if "Remote Maintain" in permissions %}
+    <a href="#" class="nav-link" onclick="toggleMenu('terminal')" data-bs-toggle="tooltip" data-bs-placement="right" title="Шууд унших" data-menu-target="terminal" aria-controls="terminal" aria-expanded="false" role="button">
       <i class="bi bi-book-half"></i> <span class="label">Шууд унших</span> <span class="nav-chevron bi bi-chevron-down"></span>
     </a>
-    {% endif %} 
+    {% endif %}
     <div class="submenu" id="terminal" aria-hidden="true">
-      <!-- <a href="/read_DCU_parameter" class="nav-link"><i class="bi bi-hdd"></i> <span class="label">DCU параметр</span></a> -->
       <a href="/meter-parameter" class="nav-link"><i class="bi bi-ui-checks-grid"></i> <span class="label">Тоолуурын параметр</span></a>
-      <a href="/ondemand-reading" class="nav-link"><i class="bi bi-clock-history"></i> <span class="label">Нөхөж унших</span></a>  
+      <a href="/ondemand-reading" class="nav-link"><i class="bi bi-clock-history"></i> <span class="label">Нөхөж унших</span></a>
+      <a href="/relay-control" class="nav-link"><i class="bi bi-toggles"></i> <span class="label">Реле удирдлага</span></a>
     </div>
-    {% if "System Task" in permissions %}  
-    <a href="/system-task" class="nav-link" data-bs-toggle="tooltip" >
+
+    {% if "System Task" in permissions %}
+    <a href="/system-task" class="nav-link" data-bs-toggle="tooltip" data-bs-placement="right" title="Хуваариуд">
       <i class="bi bi-card-checklist"></i> <span class="label">Хуваариуд</span>
     </a>
-    {% endif %}  
-    {% if "Data analysis" in permissions %}  
-    <a href="#" class="nav-link" onclick="toggleMenu('data analysis')" data-bs-toggle="tooltip"  data-menu-target="data analysis" aria-controls="data analysis" aria-expanded="false" role="button">
+    {% endif %}
+
+    {% if "Data analysis" in permissions %}
+    <span class="sidebar-section-label" data-collapsed-glyph="•••">Шинжилгээ</span>
+    <a href="#" class="nav-link" onclick="toggleMenu('data analysis')" data-bs-toggle="tooltip" data-bs-placement="right" title="Өгөгдлүүд" data-menu-target="data analysis" aria-controls="data analysis" aria-expanded="false" role="button">
       <i class="bi bi-database"></i> <span class="label">Өгөгдлүүд</span><span class="nav-chevron bi bi-chevron-down"></span>
     </a>
-    {% endif %}  
+    {% endif %}
     <div class="submenu" id="data analysis" aria-hidden="true">
       <a href="/data-read" class="nav-link"><i class="bi bi-eyeglasses"></i> <span class="label">Дангаар унших</span></a>
-      <a href="/energy-profile-read" class="nav-link"><i class="bi bi-hourglass"></i> <span class="label">Энергийн Профайл</span></a> 
-      <a href="/instant-profile-read" class="nav-link"><i class="bi bi-droplet"></i> <span class="label">Агшин зуурын Профайл</span></a> 
+      <a href="/energy-profile-read" class="nav-link"><i class="bi bi-hourglass"></i> <span class="label">Энергийн Профайл</span></a>
+      <a href="/instant-profile-read" class="nav-link"><i class="bi bi-droplet"></i> <span class="label">Агшин зуурын Профайл</span></a>
     </div>
-    {% if "System Management" in permissions %}   
-    <a href="#" class="nav-link" onclick="toggleMenu('system management')" data-bs-toggle="tooltip"  data-menu-target="system management" aria-controls="system management" aria-expanded="false" role="button">
-      <i class="bi bi-gear"></i> <span class="label">Систем</span>  <span class="nav-chevron bi bi-chevron-down"></span>
-    </a> 
-    {% endif %}  
-    <div class="submenu" id="system management" aria-hidden="true"> 
+
+    {% if "System Management" in permissions %}
+    <span class="sidebar-section-label" data-collapsed-glyph="•••">Систем</span>
+    <a href="#" class="nav-link" onclick="toggleMenu('system management')" data-bs-toggle="tooltip" data-bs-placement="right" title="Систем" data-menu-target="system management" aria-controls="system management" aria-expanded="false" role="button">
+      <i class="bi bi-gear"></i> <span class="label">Систем</span> <span class="nav-chevron bi bi-chevron-down"></span>
+    </a>
+    {% endif %}
+    <div class="submenu" id="system management" aria-hidden="true">
       <a href="/user-management" class="nav-link"><i class="bi bi-person-vcard"></i> <span class="label">Хэрэглэгч</span></a>
-      <a href="/role-management" class="nav-link"><i class="bi bi-person-gear"></i> <span class="label">Эрхийн тохиргоо</span></a>  
-    </div> 
+      <a href="/role-management" class="nav-link"><i class="bi bi-person-gear"></i> <span class="label">Эрхийн тохиргоо</span></a>
+    </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-card">
+        <i class="bi bi-shield-check"></i>
+        <div class="sidebar-footer-text">
+          <span class="sidebar-footer-title">Аюулгүй холболт</span>
+          <span class="sidebar-footer-sub">Session шифрлэгдсэн</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Toast Container - Fixed position outside content to stay visible while scrolling -->
+<div class="toast-container" id="toastContainer" data-turbo-permanent></div>
+
 <div class="content" role="main">
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
   {% block content %}
   <!-- Page content here -->
   {% endblock %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.querySelector('.toggle-btn');
-    const isCollapsed = sidebar.classList.toggle('collapsed');
 
-    if (toggleBtn) {
-      toggleBtn.setAttribute('aria-expanded', (!isCollapsed).toString());
-      sidebar.dataset.state = isCollapsed ? 'collapsed' : 'expanded';
-    }
-
-    // Keep top-bar brand text in sync with sidebar state
-    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
-  }
-
-  function toggleMenu(menuId) {
-    const menu = document.getElementById(menuId);
-    if (!menu) return;
-
-    const isOpen = menu.classList.toggle('open');
-    menu.setAttribute('aria-hidden', (!isOpen).toString());
-
-    const trigger = document.querySelector(`[data-menu-target="${menuId}"]`);
-    if (trigger) {
-      trigger.setAttribute('aria-expanded', isOpen.toString());
-    }
-  }
-
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
-
-  document.querySelectorAll('[data-menu-target]').forEach(trigger => {
-    const target = trigger.getAttribute('data-menu-target');
-    const menu = document.getElementById(target);
-
-    if (menu) {
-      const isOpen = menu.classList.contains('open');
-      trigger.setAttribute('aria-expanded', isOpen.toString());
-      menu.setAttribute('aria-hidden', (!isOpen).toString());
-    }
-  });
-  document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll("[title]").forEach(el => {
-          el.removeAttribute("title");
-      });
-
-      // Initialize brand text state based on current sidebar class
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-          document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
-      }
-  });
-
-  // Toast Notification Functions (Global)
-  function showToast(message, type = 'success', duration = 4000) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    
-    // Icon based on type
-    let iconClass = 'bi-check-circle-fill';
-    if (type === 'error') iconClass = 'bi-x-circle-fill';
-    else if (type === 'warning') iconClass = 'bi-exclamation-triangle-fill';
-    else if (type === 'info') iconClass = 'bi-info-circle-fill';
-
-    toast.innerHTML = `
-      <div class="toast-icon">
-        <i class="bi ${iconClass}"></i>
-      </div>
-      <div class="toast-content">
-        <p class="toast-message">${message}</p>
-      </div>
-      <button class="toast-close" aria-label="Close">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    `;
-
-    container.appendChild(toast);
-
-    // Trigger animation
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-
-    // Close button handler
-    const closeBtn = toast.querySelector('.toast-close');
-    closeBtn.addEventListener('click', () => {
-      hideToast(toast);
-    });
-
-    // Auto-hide after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        hideToast(toast);
-      }, duration);
-    }
-  }
-
-  function hideToast(toast) {
-    toast.classList.remove('show');
-    toast.classList.add('hide');
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
-      }
-    }, 300);
-  }
-</script>
 
 </body>
 </html>

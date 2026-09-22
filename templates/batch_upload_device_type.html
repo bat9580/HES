@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wizard-steps">
+  <div data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
+  <div class="active" data-step="2">Төхөөрөмжийн төрөл</div>
+  <div data-step="3">Баталгаажуулах</div>  
+</div>
+
+<div class="container">
+  <h4 id="deviceTypeTitle">Төхөөрөмжийн тохиргоо</h4>
+  
+  <!-- GPRS Meter Configuration -->
+  <div id="gprsConfig" class="device-config" style="display: none;">
+    <div class="row">
+      <div class="col-md-6 col-lg-5">
+        <div class="mb-3">
+          <label for="gprsCommAddress" class="form-label">Коммуникацийн хаяг (GPRS)</label>
+          <input type="text" id="gprsCommAddress" class="form-control form-control-sm" placeholder="Коммуникацийн хаяг оруулах">
+          <small class="text-muted">GPRS тоолуурын коммуникацийн хаяг</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6 col-lg-5">
+        <div class="mb-3">
+          <label class="form-label">GPRS тоолуурын нэмэлт мэдээлэл</label>
+          <p class="text-muted small">GPRS тоолуурууд нь шууд интернэт холболттой байдаг тул DCU шаардлагагүй.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLC Meter Configuration -->
+  <div id="plcConfig" class="device-config" style="display: none;">
+    <div class="row">
+      <div class="col-md-6 col-lg-5">
+        <div class="mb-3">
+          <label for="plcDcuNumber" class="form-label">DCU дугаар <span class="text-danger">*</span></label>
+          <div class="dropdown position-relative">
+            <select id="plcDcuNumber" 
+                    class="form-select form-select-sm" 
+                    required>
+              <option value="">DCU дугаар сонгох</option>
+              <!-- DCU options will be populated here -->
+            </select>
+          </div>
+          <small class="text-muted">PLC тоолуурууд DCU-тай холбогддог тул DCU дугаар шаардлагатай</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6 col-lg-5">
+        <div class="mb-3">
+          <label for="plcCommAddress" class="form-label">Коммуникацийн хаяг (PLC)</label>
+          <input type="text" id="plcCommAddress" class="form-control form-control-sm" placeholder="Коммуникацийн хаяг (DCU дугаартай ижил байж болно)">
+          <small class="text-muted">PLC тоолуурын коммуникацийн хаяг</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="buttons mt-4">
+    <a href="/batch-upload-meter" class="btn btn-secondary">← Өмнөх</a>
+    <a href="/step2" id="nextToStep3" class="btn btn-success">Дараах →</a>  
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const deviceType = localStorage.getItem("deviceType");
+    const deviceTypeTitle = document.getElementById("deviceTypeTitle");
+    const gprsConfig = document.getElementById("gprsConfig");
+    const plcConfig = document.getElementById("plcConfig");
+    
+    // Show appropriate configuration based on device type
+    if (deviceType && deviceType.toLowerCase().includes("gprs")) {
+        deviceTypeTitle.textContent = "GPRS Тоолуурын тохиргоо";
+        gprsConfig.style.display = "block";
+        plcConfig.style.display = "none";
+    } else if (deviceType && deviceType.toLowerCase().includes("plc")) {
+        deviceTypeTitle.textContent = "PLC Тоолуурын тохиргоо";
+        gprsConfig.style.display = "none";
+        plcConfig.style.display = "block";
+        
+        // DCU list will be loaded when needed
+    } else {
+        // Default or unknown device type
+        deviceTypeTitle.textContent = "Төхөөрөмжийн тохиргоо";
+        gprsConfig.style.display = "none";
+        plcConfig.style.display = "none";
+    }
+    
+    // Handle DCU selection for PLC
+    const dcuSelect = document.getElementById("plcDcuNumber");
+    
+    if (dcuSelect) {
+        // Load DCU list when PLC config is shown
+        loadDCUList();
+        
+        // Auto-fill comm address when DCU is selected
+        dcuSelect.addEventListener("change", function() {
+            const selectedDcu = this.value;
+            const commAddressInput = document.getElementById("plcCommAddress");
+            if (commAddressInput && selectedDcu && !commAddressInput.value) {
+                commAddressInput.value = selectedDcu;
+            }
+        });
+    }
+    
+    // Handle next button click
+    const nextButton = document.getElementById("nextToStep3");
+    if (nextButton) {
+        nextButton.addEventListener("click", function(e) {
+            e.preventDefault();
+            
+            // Validate and save configuration
+            if (deviceType && deviceType.toLowerCase().includes("plc")) {
+                const dcuNumber = document.getElementById("plcDcuNumber").value;
+                if (!dcuNumber) {
+                    showToast("DCU дугаар сонгох шаардлагатай!", "error", 4000);
+                    return;
+                }
+                
+                // Save PLC configuration
+                localStorage.setItem("dcuNumber", dcuNumber);
+                const commAddress = document.getElementById("plcCommAddress").value || dcuNumber;
+                localStorage.setItem("commAddress", commAddress);
+            } else if (deviceType && deviceType.toLowerCase().includes("gprs")) {
+                // Save GPRS configuration
+                const commAddress = document.getElementById("gprsCommAddress").value;
+                if (commAddress) {
+                    localStorage.setItem("commAddress", commAddress);
+                }
+            }
+            
+            // Proceed to next step
+            proceedToStep3();
+        });
+    }
+});
+
+function loadDCUList() {
+    // Fetch installed DCU list from server (DCUs that have installed meters)
+    fetch("/api/dcus/installed")
+        .then(res => res.json())
+        .then(response => {
+            const dcuSelect = document.getElementById("plcDcuNumber");
+            if (!dcuSelect) return;
+            
+            // Clear existing options except the first placeholder
+            dcuSelect.innerHTML = '<option value="">DCU дугаар сонгох</option>';
+            
+            // Handle API response format: { status: "success", data: [...] }
+            const dcus = response.data || response;
+            
+            if (dcus && Array.isArray(dcus) && dcus.length > 0) {
+                dcus.forEach(dcu => {
+                    const option = document.createElement("option");
+                    const dcuNumber = dcu.dcu_number || dcu.number || dcu;
+                    option.value = dcuNumber;
+                    option.textContent = dcuNumber;
+                    dcuSelect.appendChild(option);
+                });
+            } else {
+                // If no installed DCUs, try to load from registered DCUs as fallback
+                fetch("/api/dcus/registered")
+                    .then(res => res.json())
+                    .then(regResponse => {
+                        const regDcus = regResponse.data || regResponse;
+                        if (regDcus && Array.isArray(regDcus) && regDcus.length > 0) {
+                            regDcus.forEach(dcu => {
+                                const option = document.createElement("option");
+                                const dcuNumber = dcu.dcu_number || dcu.number || dcu;
+                                option.value = dcuNumber;
+                                option.textContent = dcuNumber;
+                                dcuSelect.appendChild(option);
+                            });
+                        } else {
+                            const option = document.createElement("option");
+                            option.value = "";
+                            option.textContent = "DCU олдсонгүй";
+                            option.disabled = true;
+                            dcuSelect.appendChild(option);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error loading registered DCU list:", err);
+                        const option = document.createElement("option");
+                        option.value = "";
+                        option.textContent = "DCU жагсаалт ачаалахад алдаа гарлаа";
+                        option.disabled = true;
+                        dcuSelect.appendChild(option);
+                    });
+            }
+        })
+        .catch(err => {
+            console.error("Error loading installed DCU list:", err);
+            const dcuSelect = document.getElementById("plcDcuNumber");
+            if (dcuSelect) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "DCU жагсаалт ачаалахад алдаа гарлаа";
+                option.disabled = true;
+                dcuSelect.appendChild(option);
+            }
+        });
+}
+
+function proceedToStep3() {
+    // Get meter numbers from localStorage
+    const meterNumbers = JSON.parse(localStorage.getItem("meterNumbers") || "[]");
+    
+    if (meterNumbers.length === 0) {
+        showToast("Тоолуурын дугаар олдсонгүй!", "error", 4000);
+        return;
+    }
+    
+    // Call next_step API
+    fetch("/next_step", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meters: meterNumbers })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Server response:", data);
+        localStorage.setItem("meters", JSON.stringify(data)); 
+        // Navigate to step 3
+        window.location.href = "/step2";
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        showToast("Алдаа гарлаа: " + err.message, "error", 5000);
+    });
+}
+</script>
+{% endblock %}
+

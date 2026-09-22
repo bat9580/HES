@@ -178,6 +178,7 @@ async def meter_writer(meter_number):
     client = connected_clients[meter_number]
     queue = client['queue']
     writer = client['writer']
+    print("meter_writer started") 
 
     while True:
         try:

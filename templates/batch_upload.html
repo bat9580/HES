@@ -3,13 +3,15 @@
 {% block content %}
 <div class="wizard-steps">
   <div class="active" data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
-  <div data-step="2">Баталгаажуулах</div>  
+  <div data-step="2">Төхөөрөмжийн төрөл</div>
+  <div data-step="3">Баталгаажуулах</div>  
 </div>
 
 <div class="container">
-  <label for="deviceType">Төхөөрөмжийн төрөл</label>
+  <label for="deviceType">Тоолуурын төрөл</label>
   <select id="deviceType">
-    <option value="Meter">Тоолуур</option> 
+    <option value="GPRS Meter">GPRS Meter</option> 
+    <option value="PLC Meter">PLC Meter</option>  
   </select>
 
   <label for="uploadFile">Файл оруулах</label> 
@@ -17,14 +19,17 @@
   <small>Зөвхөн .xls эсвэл .xlsx форматын 10мб-аас ихгүй файлыг оруулна уу</small> 
  
   <div class="buttons">
-    <a href="{{ url_for('next_step') }}" id="nextLink" class="btn btn-success">Дараах →</a>  
+    <a href="/batch-upload-device-type" id="nextLink" class="btn btn-success">Дараах →</a>  
     <button class="btn btn-secondary">Дахин эхлэх</button> 
   </div>
 
   <div class="downloads">
     <strong>Загвар файл татах</strong>
-        <a href="{{ url_for('static', path='excel/Meter_format.xlsx') }}" download>
-        📥Meter Format    
+        <a href="{{ url_for('static', path='excel/GPRS_Meter_format.xlsx') }}" download>
+        📥GPRS Meter Format    
+        </a> 
+        <a href="{{ url_for('static', path='excel/PLC_Meter_format.xlsx') }}" download>
+        📥PLC Meter Format    
         </a> 
   </div>
 </div>
@@ -64,25 +69,25 @@ document.getElementById('uploadFile').addEventListener('change', function (e) {
 
 document.getElementById("nextLink").addEventListener("click", function (e) {
     e.preventDefault(); // stop immediate navigation
-    console.log("medx"); 
+    
+    const deviceTypeSelect = document.getElementById("deviceType");
+    const selectedDeviceType = deviceTypeSelect.options[deviceTypeSelect.selectedIndex].text;
+    const deviceTypeValue = deviceTypeSelect.value;
+    
+    // Store device type in localStorage
+    localStorage.setItem("deviceType", selectedDeviceType);
+    localStorage.setItem("deviceTypeValue", deviceTypeValue);
+    
     if (meterNumbers.length === 0) {
         showToast("Excel файлаас тоолуурын дугаар ачаалаагүй байна!", "warning", 5000);
         return;
     }
 
-    fetch("/next_step", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meters: meterNumbers })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log("Server response:", data);
-        localStorage.setItem("meters", JSON.stringify(data)); 
-        // ✅ after saving, navigate to the page
-        window.location.href = this.href;
-    })
-    .catch(err => console.error("Error:", err));
+    // Store meter numbers for next step
+    localStorage.setItem("meterNumbers", JSON.stringify(meterNumbers));
+    
+    // Navigate to step 2
+    window.location.href = this.href;
 }); 
 </script> 
 {% endblock %}

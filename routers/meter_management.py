@@ -75,28 +75,52 @@ async def add_meter(
     finally: 
         conn.close() 
     return RedirectResponse(url=f"/meter-management?message={message}", status_code=303) 
-@router.post("/delete-meter") 
-async def delete_meter( meter_number : str = Form(...)):   
+@router.post("/delete-meter")
+async def delete_meter(meter_number: str = Form(...)):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    query = "SELECT * FROM registered_meters WHERE 1=1"  
-    params = [] 
-    if meter_number: 
-        query+= " AND meter_number LIKE ?"   
-        params.append(f"%{meter_number}%")  
+    meter = conn.execute(
+        "SELECT * FROM registered_meters WHERE meter_number = ?",
+        (meter_number,),
+    ).fetchone()
 
-    meter = conn.execute(query, params).fetchone()  
-    if meter["status"]  == "installed": 
-        message = f"⚠️ please dismantle the METER first." 
-    else:
-          
-        cursor.execute("DELETE FROM registered_meters WHERE meter_number = ?", (meter_number,)) 
+    if not meter:
+        conn.close()
+        message = "⚠️ Meter not found."
+        return RedirectResponse(url=f"/meter-management?message={message}", status_code=303)
+
+    was_installed = (meter["status"] or "").lower() == "installed"
+    installed_row = conn.execute(
+        "SELECT 1 FROM installed_meters WHERE meter_number = ?",
+        (meter_number,),
+    ).fetchone()
+
+    try:
+        if was_installed or installed_row:
+            cursor.execute(
+                "DELETE FROM installed_meters WHERE meter_number = ?",
+                (meter_number,),
+            )
+            was_installed = True
+
+        cursor.execute(
+            "DELETE FROM registered_meters WHERE meter_number = ?",
+            (meter_number,),
+        )
         conn.commit()
-        message = f"✅ METER is successfully deleted."   
 
-    conn.close()
-    return RedirectResponse(url=f"/meter-management?message={message}", status_code=303) 
+        if was_installed:
+            message = "✅ Meter was dismantled and deleted successfully."
+        else:
+            message = "✅ METER is successfully deleted."
+    except Exception as e:
+        conn.rollback()
+        message = f"⚠️ Failed to delete meter: {e}"
+    finally:
+        conn.close()
+
+    return RedirectResponse(url=f"/meter-management?message={message}", status_code=303)
 
 @router.get("/search-meter", response_class=HTMLResponse)
 async def search_meter(request:Request, meter_number: str = "", device_type: str = "",user: dict = Depends(require_permission("Warehouse"))):  

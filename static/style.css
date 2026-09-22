@@ -33,14 +33,14 @@
 }
 
 body {
-     margin: 0;
+  margin: 0;
   padding: 0;
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--color-body);
   color: var(--color-text);
-  line-height: 1.5;
+  line-height: 1.55;
   overflow-x: hidden;
-  }
+}
 
 .app-body {
   min-height: 100vh;
@@ -51,10 +51,10 @@ body {
 h2.page-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #9ca3af;
-  letter-spacing: 0.01em;
+  color: #0f172a;
+  letter-spacing: -0.02em;
   margin-bottom: 0;
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Sora", "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 img {
@@ -1464,11 +1464,6 @@ input::placeholder {
   flex-shrink: 0;
 }
 
-/* Reduce gap between the two action buttons (search and add) */
-.filter-bar .col-md-auto[style*="width: 4.166666%"]:has(button[type="submit"]) {
-  margin-right: -0.85rem !important;
-}
-
 /* Preserve inline width styles */
 .filter-bar .col-md-auto[style*="width"] {
   flex: 0 0 auto !important;
@@ -2846,7 +2841,7 @@ small {
 
 /* ---------- Toast Notifications ---------- */
 .toast-container {
-  position: fixed;
+  position: fixed !important;
   top: 80px;
   right: 20px;
   z-index: 1100;
@@ -2854,6 +2849,8 @@ small {
   flex-direction: column;
   gap: 12px;
   pointer-events: none;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 
 .toast-notification {
@@ -3189,5 +3186,53 @@ small {
 .meter-download-page .col-lg-3 .badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
+}
+
+/* DCU Black List Table Styling */
+.meter-download-page #tab-blacklist .table th {
+  font-size: 0.85rem;
+  font-weight: 600;
+  background-color: #f8f9fa;
+  user-select: none;
+}
+
+.meter-download-page #tab-blacklist .table th:hover {
+  background-color: #e9ecef;
+}
+
+.meter-download-page #tab-blacklist .table td {
+  font-size: 0.85rem;
+}
+
+.meter-download-page #tab-blacklist .form-check-input {
+  cursor: pointer;
+}
+
+/* DCU Communication Quality — wide Comm Addr, compact metric columns */
+.meter-download-page #communication-quality-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.meter-download-page #communication-quality-table th.communication-quality-comm-col,
+.meter-download-page #communication-quality-table tbody tr:not(.communication-quality-empty-row) td:first-child {
+  width: 20%;
+  min-width: 100px;
+  text-align: center;
+  word-break: break-all;
+  vertical-align: middle;
+}
+
+.meter-download-page #communication-quality-table thead th:nth-child(n + 2),
+.meter-download-page #communication-quality-table tbody tr:not(.communication-quality-empty-row) td:nth-child(n + 2) {
+  width: calc(80% / 6);
+  max-width: none;
+  min-width: 0;
+  padding: 0.35rem 0.25rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: normal;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 

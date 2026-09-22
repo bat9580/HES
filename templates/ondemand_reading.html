@@ -2,7 +2,12 @@
 
 {% block content %}
 
-<h2 class="page-title mb-4">Заалт нөхөж унших</h2> 
+<div class="page-header mb-4">
+  <div class="page-header-text">
+    <h2 class="page-title mb-1">Заалт нөхөж унших</h2>
+    <p class="page-header-sub">Тоолуурын тодорхой огнооны заалтыг тусгайлан унших.</p>
+  </div>
+</div>
 <div class="filter-bar-container">
 <form method="GET" action="/search-meters-ondemand" class="filter-bar"> 
     <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;"> 
@@ -39,7 +44,7 @@
                  placeholder="Профайл сонгох"
                  autocomplete="off"
                  value="{% if profile == 'energy profile' %}Энергийн Профайл{% elif profile == 'instant profile' %}Агшин зуурын Профайл{% else %}{{ profile | default('') }}{% endif %}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
           <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
             <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -74,10 +79,10 @@
                  value="{{ line | default('') }}"
                  autocomplete="off">
           <span class="dropdown-chevron line-dropdown-icon">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           <div id="parentNodeDropdown" class="line-tree-panel"></div>
         </div>
       </div>
@@ -123,11 +128,20 @@
         <td>{{ meter['device_type'] }}</td>
         <td>{{ meter['line'] or '-' }}</td>
         <td>
-          {% if meter['meter_number']|int in connected_clients %}   
-          <span class="badge bg-success">Online</span> 
-          {% else %}
-          <span class="badge bg-secondary">Offline</span>
-          {% endif %}
+          {%if meter['device_type'] == 'PLC Meter' %}
+
+            {% if meter['dcu_number']|int in connected_clients %}   
+            <span class="badge bg-success">Online</span> 
+            {% else %}
+            <span class="badge bg-secondary">Offline</span>
+            {% endif %}
+          {% else %} 
+            {% if meter['meter_number']|int in connected_clients %}   
+            <span class="badge bg-success">Online</span> 
+            {% else %}
+            <span class="badge bg-secondary">Offline</span>
+            {% endif %}
+          {% endif %} 
         </td>
         <td>
           {% if meter['status'] == 'installed' %}
@@ -180,12 +194,12 @@
       <div class="modal-body result-modal-body">
         <!-- Original table -->
         <div id="originalTableWrapper" class="result-table-wrapper">
-          <!-- Injected via JS -->
+              <!-- Injected via JS -->
         </div>
 
         <!-- Calculated table (hidden initially) -->
         <div id="calculatedTableWrapper" class="result-table-wrapper" style="display:none;">
-          <!-- Injected via JS -->
+              <!-- Injected via JS -->
         </div>
       </div>
     </div>
@@ -197,6 +211,115 @@
   th, td { text-align: center; vertical-align: middle; }
   .btn-sm { padding: 4px 10px; font-size: 13px; }
   .form-control, .form-select { height: 32px; font-size: 14px; }
+  
+  /* Result table wrapper styling */
+  .result-table-wrapper {
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  /* Modal body styling */
+  .result-modal-body {
+    max-height: calc(100vh - 200px);
+    overflow: hidden;
+    padding: 15px;
+  }
+  
+  /* Table responsive with better styling */
+  .result-table-wrapper .table-responsive {
+    max-height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    border-radius: 8px;
+  }
+  
+  /* Table styling inside result modal */
+  .result-table-wrapper table {
+    width: 100%;
+    min-width: max-content;
+    font-size: 12px;
+    border-collapse: collapse;
+  }
+  
+  .result-table-wrapper th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 10px 8px;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .result-table-wrapper td {
+    padding: 8px;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 11px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .result-table-wrapper tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  
+  /* Better column width handling - sticky first column */
+  .result-table-wrapper table th:first-child,
+  .result-table-wrapper table td:first-child {
+    position: sticky;
+    left: 0;
+    background-color: #fff;
+    z-index: 5;
+    min-width: 180px;
+    max-width: 180px;
+    text-align: left;
+    padding-left: 12px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  }
+  
+  .result-table-wrapper table thead th:first-child {
+    background-color: #f8f9fa;
+    z-index: 15;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .result-table-wrapper table tbody tr:hover td:first-child {
+    background-color: #f8f9fa;
+  }
+  
+  .result-table-wrapper table tbody tr:nth-child(even) td:first-child {
+    background-color: #fff;
+  }
+  
+  .result-table-wrapper table tbody tr:nth-child(even):hover td:first-child {
+    background-color: #f8f9fa;
+  }
+  
+  /* Scrollbar styling */
+  .result-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .result-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  .result-table-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+  
+  .result-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 </style>
 
 <script>
@@ -236,66 +359,137 @@ function showResultModal(button) {
   const meterNumber = button.getAttribute("data-meter");
   const data = resultMap[meterNumber];
   const data_calculated = resultMap_calculated[meterNumber];  
-  console.log(data)  
-  if (!data || data.length === 0) {
+  console.log('Data:', data);
+  console.log('Data type:', typeof data);
+  console.log('Is array:', Array.isArray(data));
+  
+  // Check if data is missing or invalid
+  if (!data) {
     document.getElementById("originalTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result found</p>';
     document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result found</p>';
-  }else if(data == "Error: meter is offline") {
-    document.getElementById("originalTableWrapper").innerHTML = '<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>Meter is offline</p>';
-    document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>Meter is offline</p>';
   }
-   else {
+  // Check if data is an error string
+  else if (typeof data === 'string' && (data.startsWith('Error:') || data.includes('Error'))) {
+    const errorMessage = data.replace('Error: ', '');
+    document.getElementById("originalTableWrapper").innerHTML = `<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>${errorMessage}</p>`;
+    document.getElementById("calculatedTableWrapper").innerHTML = `<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>${errorMessage}</p>`;
+  }
+  // Check if data is an array
+  else if (Array.isArray(data) && data.length > 0) {
     // ===== Original Table =====
-    let originalTable = `<div class="table-responsive">
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>Timestamp</th>`;
+    let originalTable = `<table class="table table-hover table-sm">
+      <thead>
+        <tr>
+          <th>Timestamp</th>`;
     
     const fieldKeys = Object.keys(data[0]).filter(key => key !== 'timestamp');
     fieldKeys.forEach(key => {
-      originalTable += `<th>${key}</th>`;
+      // Truncate very long column names and add title attribute for full text
+      const displayKey = key.length > 50 ? key.substring(0, 47) + '...' : key;
+      originalTable += `<th title="${key}">${displayKey}</th>`;
     });
 
     originalTable += `</tr></thead><tbody>`;
 
     data.forEach(entry => {
-      originalTable += `<tr><td>${entry.timestamp}</td>`;
+      originalTable += `<tr><td title="${entry.timestamp || '-'}">${entry.timestamp || '-'}</td>`;
       fieldKeys.forEach(key => {
-        originalTable += `<td>${entry[key]}</td>`;
+        const value = entry[key];
+        const displayValue = value !== null && value !== undefined ? 
+          (typeof value === 'number' ? value.toLocaleString('en-US', {maximumFractionDigits: 3}) : value) : '-';
+        // Truncate very long values for display
+        const truncatedValue = String(displayValue).length > 30 ? 
+          String(displayValue).substring(0, 27) + '...' : displayValue;
+        originalTable += `<td title="${displayValue}">${truncatedValue}</td>`;
       });
       originalTable += `</tr>`;
     });
 
-    originalTable += `</tbody></table></div>`;
+    originalTable += `</tbody></table>`;
     document.getElementById("originalTableWrapper").innerHTML = originalTable;
 
     // ===== Calculated Table =====
-    let calculatedTable = `<div class="table-responsive">
-      <table class="table table-hover">
+    if (Array.isArray(data_calculated) && data_calculated.length > 0) {
+      let calculatedTable = `<table class="table table-hover table-sm">
         <thead>
           <tr>
             <th>Timestamp</th>`; 
-    const fieldKeys_cal = Object.keys(data_calculated[0]).filter(key => key !== 'timestamp');
-    fieldKeys_cal.forEach(key => {
-      calculatedTable += `<th>${key}</th>`;
-    });
-    calculatedTable += `</tr></thead><tbody>`;
-
-    data_calculated.forEach(entry => {
-      calculatedTable += `<tr><td>${entry.timestamp}</td>`;
+      const fieldKeys_cal = Object.keys(data_calculated[0]).filter(key => key !== 'timestamp');
       fieldKeys_cal.forEach(key => {
-        calculatedTable += `<td>${entry[key]}</td>`;
+        // Truncate very long column names and add title attribute for full text
+        const displayKey = key.length > 50 ? key.substring(0, 47) + '...' : key;
+        calculatedTable += `<th title="${key}">${displayKey}</th>`;
       });
-      calculatedTable += `</tr>`;
-    });
+      calculatedTable += `</tr></thead><tbody>`;
 
-    calculatedTable += `</tbody></table></div>`;
-    document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
+      data_calculated.forEach(entry => {
+        calculatedTable += `<tr><td title="${entry.timestamp || '-'}">${entry.timestamp || '-'}</td>`;
+        fieldKeys_cal.forEach(key => {
+          const value = entry[key];
+          const displayValue = value !== null && value !== undefined ? 
+            (typeof value === 'number' ? value.toLocaleString('en-US', {maximumFractionDigits: 3}) : value) : '-';
+          // Truncate very long values for display
+          const truncatedValue = String(displayValue).length > 30 ? 
+            String(displayValue).substring(0, 27) + '...' : displayValue;
+          calculatedTable += `<td title="${displayValue}">${truncatedValue}</td>`;
+        });
+        calculatedTable += `</tr>`;
+      });
+
+      calculatedTable += `</tbody></table>`;
+      document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
+    } else {
+      document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No calculated data available</p>';
+    }
+  }
+  // If data is an object but not an array
+  else if (typeof data === 'object' && !Array.isArray(data)) {
+    // Try to display as key-value pairs
+    let originalTable = `<table class="table table-hover table-sm">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    
+    Object.entries(data).forEach(([key, value]) => {
+      originalTable += `<tr><td>${key}</td><td>${value !== null && value !== undefined ? value : '-'}</td></tr>`;
+    });
+    
+    originalTable += `</tbody></table>`;
+    document.getElementById("originalTableWrapper").innerHTML = originalTable;
+    
+    if (data_calculated && typeof data_calculated === 'object' && !Array.isArray(data_calculated)) {
+      let calculatedTable = `<table class="table table-hover table-sm">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      
+      Object.entries(data_calculated).forEach(([key, value]) => {
+        calculatedTable += `<tr><td>${key}</td><td>${value !== null && value !== undefined ? value : '-'}</td></tr>`;
+      });
+      
+      calculatedTable += `</tbody></table>`;
+      document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
+    } else {
+      document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No calculated data available</p>';
+    }
+  }
+  // Fallback for empty array or unknown format
+  else {
+    document.getElementById("originalTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result data available</p>';
+    document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No calculated data available</p>';
   }
 
-  // Show modal
-  new bootstrap.Modal(document.getElementById('resultModal')).show();
+  // Show modal — reuse the single Bootstrap instance for this element so
+  // we never accumulate stale instances + orphaned backdrops between clicks.
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('resultModal')).show();
 
   // Default view: Original table
   document.getElementById('originalTableWrapper').style.display = 'block';
@@ -315,7 +509,7 @@ document.getElementById('read-button').addEventListener('click', function () {
 
   const selectedMeters = Array.from(document.querySelectorAll('.meter-checkbox:checked')).map(cb => cb.value);
   //const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value); 
-  const selectedProfile = document.querySelector('select[name="profile"]').value; 
+  const selectedProfile = document.querySelector('#profile-hidden').value; 
   const startDate = document.getElementById('start_date').value;
   const endDate = document.getElementById('end_date').value;
 
@@ -341,18 +535,61 @@ document.getElementById('read-button').addEventListener('click', function () {
       end_date: endDate
     })
   })
-  .then(response => response.json())
-  .then(data => {
-    console.log(data); 
-  data.forEach(item => {
-    const btn = document.getElementById(`result-${item.meter_number}`);
-    if (btn) {
-      btn.classList.remove("d-none");
-      resultMap[item.meter_number] = item.result;
-      resultMap_calculated[item.meter_number]=item.result_calculated;      
+  .then(async response => {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let partial = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      partial += decoder.decode(value, { stream: true });
+      
+      let lines = partial.split("\n");
+      partial = lines.pop(); // last part might be incomplete
+
+      for (let line of lines) {
+        if (!line.trim()) continue; // skip empty lines
+        try {
+          const item = JSON.parse(line);
+          console.log('Received item:', item);
+          console.log('Item result type:', typeof item.result);
+          console.log('Item result is array:', Array.isArray(item.result));
+          
+          // Find the result button (for modal trigger)
+          const btn = document.querySelector(`button#result-${item.meter_number}.result-button`);
+          // Find the result span (for status display)
+          const resultSpan = document.querySelector(`span#result-${item.meter_number}`);
+          
+          if (btn) {
+            btn.classList.remove("d-none");
+            // Store the result data - ensure we store it as-is from the backend
+            resultMap[item.meter_number] = item.result;
+            resultMap_calculated[item.meter_number] = item.result_calculated || {};
+            
+            console.log('Stored in resultMap:', resultMap[item.meter_number]);
+            console.log('Stored type:', typeof resultMap[item.meter_number]);
+          }
+          
+          // Update status in the result span
+          if (resultSpan) {
+            if (item.result && Array.isArray(item.result) && item.result.length > 0) {
+              resultSpan.innerHTML = '<span class="badge bg-success">Success</span>';
+            } else if (typeof item.result === 'string' && (item.result.startsWith('Error:') || item.result.includes('Error'))) {
+              resultSpan.innerHTML = '<span class="badge bg-danger">Error</span>';
+            } else if (item.result && typeof item.result === 'object' && !Array.isArray(item.result) && Object.keys(item.result).length > 0) {
+              resultSpan.innerHTML = '<span class="badge bg-success">Success</span>';
+            } else {
+              resultSpan.innerHTML = '<span class="badge bg-warning">No Data</span>';
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing JSON line:', parseError, 'Line:', line);
+        }
+      }
     }
-  });
-})
+  })
   .catch(error => {
     console.error("Error:", error);
     showToast("Failed to send read command.", "error", 5000);
@@ -441,45 +678,45 @@ $(function() {
     if (searchInput && list) {
   // Check if this is a static dropdown (already has items)
   const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
-  
+   
   if (!hasStaticItems) {
     // Fetch meters when input is focused (only for dynamic dropdowns)
-    searchInput.addEventListener('focus', function () {
-      console.log(list.getAttribute("aria-labelledby")); 
-      var path = '' ; 
-      if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-        path = '/get-installed-meters'; 
-      }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-        path = '/get-zone';  
-      }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-        path = '/get-station';
-      }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-        path = '/get-installed-dcu';  
-      }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-        path = '/get-archived-meter'; 
-      }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-        path = '/get-installed-meters';
-      }
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '' ; 
+    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+      path = '/get-installed-meters'; 
+    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+      path = '/get-zone';  
+    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+      path = '/get-station';
+    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+      path = '/get-installed-dcu';  
+    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+      path = '/get-archived-meter'; 
+    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+      path = '/get-installed-meters';
+    }
       if (path) {
-        fetch(path)
-          .then(response => response.json())
-          .then(data => {
-            list.innerHTML = ''; // clear old items
-            console.log(data); 
-            data.forEach(element => {
-              const li = document.createElement('li');
-              const a = document.createElement('a');
-              a.className = 'dropdown-item hoverable-item';
-              a.href = '#';
-              a.textContent = element;
-              a.setAttribute('data-value', element);  
-              li.appendChild(a);
-              list.appendChild(li);
-            });
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
 
-            dropdown.classList.add('show');
-            dropdown.classList.remove('hover-show');
-          });
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
       }
     });
   } else {
@@ -487,7 +724,7 @@ $(function() {
     searchInput.addEventListener('focus', function () {
       dropdown.classList.add('show');
       dropdown.classList.remove('hover-show');
-    });
+  });
   }
 
   // Real-time filtering — delegate to input
@@ -541,7 +778,7 @@ $(function() {
     // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show');
+        dropdown.classList.remove('show'); 
         if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
       }
     });
@@ -554,21 +791,21 @@ $(document).ready(function () {
 
     if ($treePanel.length) {
       $treePanel.jstree({
-          core: {
-              data: {
-                  url: '/line-tree-data',
-                  dataType: 'json'
-              },
-              themes: {
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
                   stripes: true,
                   icons: false
-              }
-          },
-          plugins: ["search"] // enable search
-      })
-      .on("select_node.jstree", function (e, data) {
-          // Store node text
-          $('#parent_node_input').val(data.node.text);
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
           $treeSearch.val(data.node.text); 
 
           $treePanel.removeClass('open');
@@ -577,16 +814,16 @@ $(document).ready(function () {
 
       if ($treeSearch.length) {
         $treeSearch
-          .on('focus', function () {
+        .on('focus', function () {
               $treePanel.addClass('open');
-          })
-          .on('keyup', function () {
+        })
+        .on('keyup', function () {
               $treePanel.jstree(true).search($(this).val());
-          });
+        });
       }
 
-      // Hide dropdown when clicking outside
-      $(document).click(function(e) {
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
           if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
               $treePanel.removeClass('open');
           }
@@ -636,7 +873,7 @@ $(document).ready(function () {
           profileDropdown.classList.remove('show');
           if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(0deg)';
         }
-      });
+    });
     }
 });
 

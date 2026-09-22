@@ -10,7 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %} 
-  <h2 class="page-title mb-4">Хэрэглэгчид</h2>
+  <div class="page-header mb-4">
+    <div class="page-header-text">
+      <h2 class="page-title mb-1">Хэрэглэгчид</h2>
+      <p class="page-header-sub">Хэрэглэгчийн бүртгэл, эрх болон төлөвийг удирдах.</p>
+    </div>
+  </div>
 <div class="filter-bar-container">
   <form method="GET" action="/search-user" class="filter-bar"> 
     <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
@@ -31,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <div class="col-md-auto">
       <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addUserModal">
-          <i class="bi bi-plus-lg"></i>
+          <i class="bi bi-plus" aria-hidden="true"></i>
       </button>
     </div>
     <div class="col-md-auto" >

@@ -173,8 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
           </label>
         </div>
       </div>
-    </div>
   </div>
+</div>
 </section>
 <div class="p-4">
 
@@ -216,10 +216,10 @@ document.addEventListener('DOMContentLoaded', function() {
                  value="{{ line | default('') }}"
                  autocomplete="off">
           <span class="dropdown-chevron line-dropdown-icon">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           <div id="parentNodeDropdown" class="line-tree-panel"></div>
         </div>
       </div>
@@ -257,9 +257,11 @@ document.addEventListener('DOMContentLoaded', function() {
   <table class="table table-bordered">
     <thead class="table-light">
       <tr>
-        <th><input type="checkbox" id="select-all-meters"></th>
-        <th>#</th>
+        <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;"><input type="checkbox" id="select-all-meters"></th>
+        <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">#</th>
         <th>Тоолуурын дугаар</th>
+        <th>Комм хаяг</th> 
+        <th>Төрөл</th> 
         <th>CT харьцаа</th>
         <th>VT харьцаа</th> 
         <th>Шугам</th> 
@@ -271,21 +273,32 @@ document.addEventListener('DOMContentLoaded', function() {
     <tbody>
       {% for meter in installed_meters %}
       <tr>
-        <td>
+        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">
             <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
         </td>
-        <td>{{ loop.index }}</td>
+        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">{{ loop.index }}</td>
         <td>{{ meter['meter_number'] }}</td>
+        <td>{{ meter['com_address'] }}</td> 
+        <td>{{ meter['device_type'] }}</td>
         <td>{{ meter['CT_ratio'] }}</td>
         <td>{{ meter['VT_ratio'] }}</td>
         <td>{{ meter['line'] }}</td>
         <td>{{ meter['remarks'] or '-' }}</td>
         <td>
-          {% if meter['meter_number']|int in connected_clients %}   
-          <span class="badge bg-success">Online</span> 
-          {% else %}
-          <span class="badge bg-secondary">Offline</span>
-          {% endif %}
+          {%if meter['device_type'] == 'PLC Meter' %}
+
+            {% if meter['dcu_number']|int in connected_clients %}   
+            <span class="badge bg-success">Online</span> 
+            {% else %}
+            <span class="badge bg-secondary">Offline</span>
+            {% endif %}
+          {% else %} 
+            {% if meter['meter_number']|int in connected_clients %}   
+            <span class="badge bg-success">Online</span> 
+            {% else %}
+            <span class="badge bg-secondary">Offline</span>
+            {% endif %}
+          {% endif %} 
         </td>
         
         <td>
@@ -376,6 +389,7 @@ document.getElementById('showCalculatedBtn').addEventListener('click', function(
 
 function formatResult(result) {
   if (typeof result === 'object' && result !== null) {
+    
     const entries = Object.entries(result);
     if (entries.length === 0) {
       return '<p class="text-muted text-center py-4">No data available</p>';
@@ -426,7 +440,8 @@ function showResultModal(button) {
   const resultHtml_calculated = resultMap_calculated[meterNumber] || "No result found";
   document.getElementById("calculatedTableWrapper").innerHTML = resultHtml_calculated;
   document.getElementById("originalTableWrapper").innerHTML = resultHtml; 
-  new bootstrap.Modal(document.getElementById('resultModal')).show(); 
+  // Reuse single Bootstrap instance to avoid stale backdrop / unclickable page on close.
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('resultModal')).show(); 
 }
 document.getElementById('read-button').addEventListener('click', function () {
   const readBtn = this; // Reference to button
@@ -608,21 +623,21 @@ $(document).ready(function () {
 
     if ($treePanel.length) {
       $treePanel.jstree({
-          core: {
-              data: {
-                  url: '/line-tree-data',
-                  dataType: 'json'
-              },
-              themes: {
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
+            themes: {
                   stripes: true,
                   icons: false
-              }
-          },
-          plugins: ["search"] // enable search
-      })
-      .on("select_node.jstree", function (e, data) {
-          // Store node text
-          $('#parent_node_input').val(data.node.text);
+            }
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
           $treeSearch.val(data.node.text); 
 
           $treePanel.removeClass('open');
@@ -631,20 +646,20 @@ $(document).ready(function () {
 
       if ($treeSearch.length) {
         $treeSearch
-          .on('focus', function () {
+        .on('focus', function () {
               $treePanel.addClass('open');
-          })
-          .on('keyup', function () {
+        })
+        .on('keyup', function () {
               $treePanel.jstree(true).search($(this).val());
-          });
+        });
       }
 
-      // Hide dropdown when clicking outside
-      $(document).click(function(e) {
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
           if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
               $treePanel.removeClass('open');
-          }
-      });
+        }
+    });
     }
 });
 

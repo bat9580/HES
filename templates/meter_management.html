@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="p-4">
-  <h2 class="page-title mb-4">Бүртгэсэн тоолуурууд</h2> 
+  <div class="page-header mb-4">
+    <div class="page-header-text">
+      <h2 class="page-title mb-1">Бүртгэсэн тоолуурууд</h2>
+      <p class="page-header-sub">Тоолуурын мэдээллийг хайх, нэмэх, засах, устгах.</p>
+    </div>
+  </div>
 
   <div class="filter-bar-container">
     <form method = "GET" action = "/search-meter" class="filter-bar">
@@ -105,7 +110,7 @@
 
     <div class="col-md-auto" style="width: 4.166666%;"> 
         <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
-          <i class="bi bi-plus-lg"></i>
+          <i class="bi bi-plus" aria-hidden="true"></i>
         </button>
     </div>
     </form>
@@ -159,7 +164,7 @@
                 <i class="bi bi-pencil-square"></i>
           </button> 
           <!-- <button class="btn btn-sm btn-danger">🗑️ Delete</button> -->
-          <form method="POST" action="/delete-meter" style="display:inline;" onsubmit="return confirmDelete();">  
+          <form method="POST" action="/delete-meter" style="display:inline;" class="delete-meter-form" data-is-installed="{{ 'true' if meter['status'] == 'installed' else 'false' }}">  
             <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}"> 
             <button type="submit" class="btn btn-sm btn-danger">
                 <i class="bi bi-trash"></i>
@@ -223,6 +228,8 @@
                           style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li> 
                       </ul>
                     </div>
                   </div>
@@ -247,7 +254,7 @@
                                class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
                                placeholder="Тоолуурын төрөл сонгох"
                                autocomplete="off"
-                               value="DDSY283SR"
+                               value="DDSY283"
                                required>
                         <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
                           <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -258,9 +265,10 @@
                       <ul id="add-type-list" 
                           class="dropdown-menu w-100"
                           style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="C2000">C2000</a></li>      
                       </ul>
                     </div>
                   </div>
@@ -269,7 +277,7 @@
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label>Бүртгэлийн төлөв:</label>
-                    <input type="text" name="status" class="form-control"  value="archived" readonly> 
+                    <input type="text" name="status" class="form-control"  value="Archived" readonly> 
                   </div>
                   <div class="col-md-6">
                     <label>Тайлбар:</label>
@@ -382,7 +390,7 @@
                       <ul id="edit-type-list" 
                           class="dropdown-menu w-100"
                           style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
                       </ul>
@@ -434,9 +442,17 @@
       document.getElementById('editPassword').value = button.getAttribute('data-password');
       document.getElementById('editRemarks').value = button.getAttribute('data-remarks');
     });
-    function confirmDelete(){
-      return confirm("⚠️ Are you sure you want to delete this meter?");
-    }
+    document.querySelectorAll('.delete-meter-form').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        const isInstalled = form.dataset.isInstalled === 'true';
+        const prompt = isInstalled
+          ? "⚠️ This meter is currently installed. It will be dismantled automatically and then removed from registration. Continue?"
+          : "⚠️ Are you sure you want to delete this meter?";
+        if (!confirm(prompt)) {
+          e.preventDefault();
+        }
+      });
+    });
 
     // Custom dropdown handlers for all selectors
     document.addEventListener('DOMContentLoaded', function() {

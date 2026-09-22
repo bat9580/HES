@@ -1,0 +1,2904 @@
+/* ===========================================================
+   THEME REFRESH — "Aurora Command Center"
+   A polished, data-forward visual layer for the HES
+   Head End System. Additive only — no logic changes.
+   Loaded AFTER style.css to refine, not replace.
+   =========================================================== */
+
+/* ---------- Global Density ----------
+   Shrink the root font-size so everything rem-based (Bootstrap,
+   existing styles, and this theme) renders ~10% smaller by default.
+   Matches the "90% browser zoom" feel the team prefers.
+   Fixed-px chrome (sidebar / navbar / filter bar) is scaled to match.
+*/
+html {
+  font-size: 90%; /* 16px -> 14.4px base */
+}
+
+/* Sidebar width + navbar height scaled to match the denser baseline.
+   These override the values in style.css (:root + .sidebar + .content). */
+:root {
+  --navbar-h: 58px; /* was 64px */
+}
+
+.sidebar { width: 225px; }
+.sidebar.collapsed { width: 64px; }
+
+/* Unified, smoothed transition timing across sidebar + content. One easing
+   curve for everything that moves on collapse so nothing races ahead.
+   Snappier ease-out feels less laggy than the default 260ms ease-in-out. */
+:root {
+  --aurora-sidebar-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --aurora-sidebar-dur: 200ms;
+}
+
+/* Isolate paint + layout so width changes don't ripple through the whole
+   document tree every frame. Critical for perceived smoothness. */
+.sidebar {
+  transition:
+    width var(--aurora-sidebar-dur) var(--aurora-sidebar-ease),
+    transform var(--aurora-sidebar-dur) var(--aurora-sidebar-ease);
+  will-change: width;
+  contain: layout paint style;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0); /* Promote to its own compositor layer. */
+}
+
+.content {
+  margin-left: 225px;
+  width: calc(100vw - 225px);
+  transition:
+    margin-left var(--aurora-sidebar-dur) var(--aurora-sidebar-ease),
+    width var(--aurora-sidebar-dur) var(--aurora-sidebar-ease);
+  will-change: margin-left, width;
+  /* NOTE: do NOT use `contain: layout` here — it would make .content the
+     containing block for any position: fixed descendant (per CSS spec),
+     which would trap Bootstrap modals + their backdrops inside .content
+     instead of covering the viewport. */
+  contain: style;
+}
+
+.sidebar.collapsed ~ .content {
+  margin-left: 64px;
+  width: calc(100vw - 64px);
+}
+
+/* While the sidebar is mid-collapse, freeze every child transition. The
+   width animation is a single, calm motion — not a chorus of concurrent
+   200ms transitions on every nav-link, icon, label, chevron and submenu. */
+body.sidebar-animating .sidebar,
+body.sidebar-animating .sidebar *,
+body.sidebar-animating .content,
+body.sidebar-animating .content * {
+  transition: none !important;
+  animation: none !important;
+}
+/* Re-enable the width transition itself so the actual collapse still animates. */
+body.sidebar-animating .sidebar {
+  transition:
+    width var(--aurora-sidebar-dur) var(--aurora-sidebar-ease),
+    transform var(--aurora-sidebar-dur) var(--aurora-sidebar-ease) !important;
+}
+body.sidebar-animating .content {
+  transition:
+    margin-left var(--aurora-sidebar-dur) var(--aurora-sidebar-ease),
+    width var(--aurora-sidebar-dur) var(--aurora-sidebar-ease) !important;
+}
+
+@media (max-width: 992px) {
+  .content,
+  .sidebar.collapsed ~ .content {
+    margin-left: 64px;
+    width: calc(100vw - 64px);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 190px; }
+  .content {
+    margin-left: 190px;
+    width: calc(100vw - 190px);
+  }
+  .sidebar.collapsed ~ .content {
+    margin-left: 64px;
+    width: calc(100vw - 64px);
+  }
+}
+
+/* Honour reduced-motion for the sidebar transition group. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .content {
+    transition: none !important;
+  }
+}
+
+/* Stat-card donut charts were hard-sized in style.css — bring them in. */
+.stat-card canvas {
+  width: 145px !important;
+  height: 145px !important;
+}
+
+/* Filter bar inputs / buttons were hard-sized at 36px — slightly tighter. */
+.filter-bar .form-control,
+.filter-bar .form-select,
+.filter-bar .dropdown-search-input,
+.filter-bar .btn,
+.filter-bar-date-input {
+  height: 34px !important;
+  min-height: 32px !important;
+  max-height: 34px !important;
+}
+.filter-bar .btn {
+  width: 34px !important;
+}
+
+/* ---------- Design Tokens ---------- */
+:root {
+  /* Typography */
+  --font-display: "Sora", "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Core palette — Aurora */
+  --aurora-ink: #0b1020;
+  --aurora-ink-2: #111834;
+  --aurora-ink-3: #1b2447;
+
+  --aurora-primary: #4f46e5;
+  --aurora-primary-2: #6366f1;
+  --aurora-primary-soft: #eef2ff;
+  --aurora-violet: #8b5cf6;
+  --aurora-violet-2: #a855f7;
+
+  --aurora-accent: #f59e0b;
+  --aurora-accent-2: #fbbf24;
+  --aurora-accent-soft: #fef3c7;
+
+  --aurora-cyan: #06b6d4;
+  --aurora-emerald: #10b981;
+  --aurora-rose: #f43f5e;
+  --aurora-sky: #0ea5e9;
+
+  /* Surfaces */
+  --aurora-bg: #f4f5fb;         /* page canvas: pale lavender-tint */
+  --aurora-surface: #ffffff;
+  --aurora-surface-2: #fafbff;
+  --aurora-surface-3: #f1f3fb;
+  --aurora-border: #e4e7f1;
+  --aurora-border-soft: #edeff6;
+
+  /* Text */
+  --aurora-text: #0f172a;
+  --aurora-text-soft: #334155;
+  --aurora-text-muted: #64748b;
+  --aurora-text-dim: #94a3b8;
+
+  /* Shadows — layered, soft */
+  --aurora-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --aurora-shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --aurora-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.05);
+  --aurora-shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.06);
+  --aurora-shadow-glow: 0 10px 30px rgba(79, 70, 229, 0.18);
+
+  /* Motion */
+  --aurora-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --aurora-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --aurora-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Radii */
+  --aurora-radius-sm: 8px;
+  --aurora-radius: 12px;
+  --aurora-radius-lg: 16px;
+  --aurora-radius-xl: 20px;
+
+  /* Remap existing tokens so legacy rules also improve */
+  --color-body: var(--aurora-bg);
+  --color-surface: var(--aurora-surface);
+  --color-surface-alt: var(--aurora-surface-2);
+  --color-border: var(--aurora-border);
+  --color-muted: var(--aurora-text-muted);
+  --color-text: var(--aurora-text);
+  --color-accent: var(--aurora-accent);
+  --panel-bg: radial-gradient(130% 120% at 10% -20%, #111834 0%, #0b1020 70%, #070a17 100%);
+}
+
+/* ---------- Global Typography ---------- */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body,
+body.app-body {
+  font-family: var(--font-body);
+  font-feature-settings: "ss01", "cv11";
+  background:
+    radial-gradient(1100px 500px at 85% -10%, rgba(99, 102, 241, 0.06), transparent 60%),
+    radial-gradient(900px 400px at -10% 110%, rgba(245, 158, 11, 0.05), transparent 60%),
+    var(--aurora-bg);
+  color: var(--aurora-text);
+  letter-spacing: -0.005em;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--aurora-text);
+  letter-spacing: -0.02em;
+}
+
+/* Universal page title — refined */
+.page-title,
+h2.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.85rem);
+  font-weight: 700;
+  color: var(--aurora-text);
+  letter-spacing: -0.025em;
+  position: relative;
+  padding-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.page-title::before {
+  content: "";
+  width: 5px;
+  height: 1.25em;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--aurora-primary) 0%, var(--aurora-violet) 100%);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  flex-shrink: 0;
+}
+
+.dash-modern .page-title {
+  color: var(--aurora-text) !important;
+}
+
+/* Numeric data (KPIs, values) feels at home in mono */
+.stat-card h3,
+.stat-card h2,
+.stat-value,
+.metric-value,
+.numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+small, .small {
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Top Navigation ---------- */
+.navbar,
+.navbar.navbar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    linear-gradient(120deg, #0b1020 0%, #111834 55%, #1b2447 100%);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  backdrop-filter: saturate(1.1);
+  box-shadow: 0 4px 24px rgba(8, 15, 40, 0.25);
+}
+
+.app-brand-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.app-brand-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--aurora-accent-2);
+  text-transform: uppercase;
+}
+
+.navbar .toggle-btn,
+.toggle-btn {
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s var(--aurora-ease), background 0.2s var(--aurora-ease), border-color 0.2s var(--aurora-ease);
+}
+
+.toggle-btn:hover {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: var(--aurora-accent-2);
+}
+
+.navbar-actions .btn {
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  padding: 0.4rem 0.9rem;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.2s var(--aurora-ease);
+}
+
+.navbar-actions .btn:hover {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: rgba(244, 63, 94, 0.55);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(244, 63, 94, 0.25);
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 20%),
+    linear-gradient(180deg, #0b1020 0%, #0f1528 50%, #111834 100%);
+  border-right: 1px solid rgba(148, 163, 184, 0.08);
+  box-shadow: 2px 0 32px rgba(8, 15, 40, 0.25);
+}
+
+/* During the collapse animation, drop the expensive 32px-blur shadow to a
+   crisp 1px edge. Removes the dominant per-frame paint cost without changing
+   the resting visual. */
+body.sidebar-animating .sidebar {
+  box-shadow: 2px 0 0 rgba(8, 15, 40, 0.35) !important;
+}
+
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, rgba(245, 158, 11, 0.3), transparent);
+  pointer-events: none;
+}
+
+.sidebar .nav-link {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: -0.005em;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  color: rgba(226, 232, 240, 0.78);
+  transition: background 0.2s var(--aurora-ease), color 0.2s var(--aurora-ease), transform 0.2s var(--aurora-ease);
+}
+
+.sidebar .nav-link:hover {
+  background: rgba(99, 102, 241, 0.12);
+  color: #fff;
+}
+
+.sidebar .nav-link:hover i {
+  color: var(--aurora-accent-2);
+}
+
+.sidebar .nav-link.active {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.16));
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .nav-link.active::before {
+  background: linear-gradient(180deg, var(--aurora-accent-2), var(--aurora-accent));
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+.sidebar .nav-link i {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+.submenu {
+  background-color: rgba(11, 16, 32, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.06);
+  border-radius: 12px;
+  padding: 0.15rem 0;
+}
+
+.submenu .nav-link {
+  padding-left: 2.6rem;
+  font-size: 0.85rem;
+  color: rgba(203, 213, 225, 0.78);
+  border-radius: 8px;
+  margin: 0.1rem 0.4rem;
+}
+
+.submenu .nav-link:hover {
+  background: rgba(99, 102, 241, 0.18);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.28);
+  border-radius: 8px;
+}
+
+/* ---------- Main Content ---------- */
+.content {
+  padding: calc(1.25rem + var(--navbar-h)) clamp(1.25rem, 3vw, 2.25rem) 2rem;
+}
+
+.content > * + * {
+  margin-top: 1.5rem;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  border: 1px solid var(--aurora-border-soft);
+  border-radius: var(--aurora-radius-lg);
+  background: var(--aurora-surface);
+  box-shadow: var(--aurora-shadow-sm);
+  transition: box-shadow 0.25s var(--aurora-ease), transform 0.25s var(--aurora-ease), border-color 0.25s var(--aurora-ease);
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--aurora-shadow-md);
+  border-color: rgba(99, 102, 241, 0.18);
+}
+
+.card .card-header {
+  background: linear-gradient(180deg, var(--aurora-surface-2), var(--aurora-surface));
+  border-bottom: 1px solid var(--aurora-border-soft);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.card h5, .card h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+/* Stat cards — crisp, uplifted */
+.stat-card {
+  border-radius: var(--aurora-radius-lg);
+  border: 1px solid var(--aurora-border-soft);
+  background:
+    radial-gradient(100% 140% at 100% 0%, rgba(99, 102, 241, 0.05), transparent 60%),
+    var(--aurora-surface);
+  box-shadow: var(--aurora-shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.28s var(--aurora-ease-out), box-shadow 0.28s var(--aurora-ease-out);
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--aurora-primary), var(--aurora-violet), var(--aurora-accent));
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--aurora-shadow-lg);
+}
+
+.stat-card h5,
+.stat-card h6,
+.stat-card .text-muted {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--aurora-text-muted) !important;
+  margin-bottom: 0.65rem;
+}
+
+/* Dashboard dark panels — refined */
+.dash-modern .card,
+.dash-modern .stat-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 22px 50px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dash-modern .chart-card,
+.dash-modern .stat-card {
+  background: var(--panel-bg) !important;
+}
+
+.dash-modern .stat-card::before {
+  opacity: 1;
+}
+
+.dash-modern .card h5,
+.dash-modern .card h6,
+.dash-modern .card .text-muted,
+.dash-modern .stat-card h5,
+.dash-modern .stat-card h6,
+.dash-modern .stat-card .text-muted {
+  color: #cbd5e1 !important;
+}
+
+.dash-modern .stat-card canvas {
+  filter: drop-shadow(0 10px 22px rgba(99, 102, 241, 0.25));
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: -0.005em;
+  border-radius: 10px;
+  padding: 0.5rem 1.05rem;
+  transition: transform 0.2s var(--aurora-ease), box-shadow 0.2s var(--aurora-ease), filter 0.2s var(--aurora-ease), background 0.2s var(--aurora-ease);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--aurora-primary);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--aurora-primary) 0%, var(--aurora-violet) 100%);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.28);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.38);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #34d399, var(--aurora-emerald));
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #fb7185, var(--aurora-rose));
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.25);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--aurora-accent-2), var(--aurora-accent));
+  color: #2a1a02 !important;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.28);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #22d3ee, var(--aurora-cyan));
+  box-shadow: 0 6px 16px rgba(6, 182, 212, 0.25);
+}
+
+.btn-submit,
+.btn-batch {
+  background: linear-gradient(135deg, var(--aurora-accent-2) 0%, var(--aurora-accent) 100%);
+  color: #2a1a02;
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.3);
+}
+
+.btn-submit:hover,
+.btn-batch:hover {
+  background: linear-gradient(135deg, var(--aurora-accent) 0%, #d97706 100%);
+  color: #fff;
+}
+
+/* Outline variants */
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-warning,
+.btn-outline-info {
+  background: transparent;
+  border-width: 1.5px;
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  font-family: var(--font-body);
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem !important;
+}
+
+/* ---------- Forms ---------- */
+.form-control,
+.form-select {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--aurora-text);
+  border: 1.5px solid var(--aurora-border);
+  border-radius: 10px;
+  background-color: var(--aurora-surface);
+  transition: border-color 0.2s var(--aurora-ease), box-shadow 0.2s var(--aurora-ease), background 0.2s var(--aurora-ease);
+}
+
+.form-control:hover:not(:focus):not(:disabled),
+.form-select:hover:not(:focus):not(:disabled) {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--aurora-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+  background-color: #fff;
+}
+
+::placeholder,
+input::placeholder {
+  color: var(--aurora-text-dim);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.form-label,
+label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--aurora-text-soft);
+  letter-spacing: -0.005em;
+}
+
+/* ---------- Filter Bar ---------- */
+.filter-bar-container {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.75)),
+    linear-gradient(135deg, #eef2ff 0%, #f0f4ff 50%, #faf5ff 100%);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 14px;
+  box-shadow:
+    0 4px 14px rgba(15, 23, 42, 0.05),
+    0 1px 3px rgba(99, 102, 241, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.filter-bar .form-control,
+.filter-bar .form-select,
+.filter-bar .dropdown-search-input {
+  font-family: var(--font-body) !important;
+  font-weight: 500 !important;
+  border-radius: 9px !important;
+  border: 1.5px solid rgba(148, 163, 184, 0.28) !important;
+}
+
+/* ---------- Tables ---------- */
+.table-responsive {
+  border: 1px solid var(--aurora-border-soft);
+  border-radius: 14px;
+  background: var(--aurora-surface);
+  box-shadow: var(--aurora-shadow-sm);
+}
+
+.table {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--aurora-text-soft);
+}
+
+.table thead th {
+  background: linear-gradient(180deg, #fafbff 0%, #f1f3fb 100%) !important;
+  color: var(--aurora-text-muted) !important;
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.09em !important;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--aurora-border) !important;
+}
+
+.table tbody td {
+  color: var(--aurora-text-soft);
+  border-bottom: 1px solid var(--aurora-border-soft) !important;
+}
+
+.table tbody tr {
+  transition: background-color 0.18s var(--aurora-ease), box-shadow 0.18s var(--aurora-ease);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.045) !important;
+  transform: none;
+  box-shadow: inset 3px 0 0 var(--aurora-primary);
+}
+
+.table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(244, 245, 251, 0.55);
+}
+
+/* Numbers in tables lean into the mono face */
+.table td.numeric,
+.table td .numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Modals ---------- */
+.modal-content,
+.custom-modal .modal-content {
+  border-radius: 18px;
+  border: 1px solid var(--aurora-border);
+  background: linear-gradient(160deg, #ffffff 0%, #fafbff 40%, #f5f6fd 100%);
+  box-shadow:
+    0 30px 70px rgba(15, 23, 42, 0.22),
+    0 10px 20px rgba(99, 102, 241, 0.1);
+}
+
+.custom-modal .modal-header,
+.modal-header {
+  border-bottom: 1px solid var(--aurora-border-soft);
+  padding: 1rem 1.5rem;
+}
+
+.modal-title,
+.custom-modal .modal-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--aurora-text);
+  letter-spacing: -0.015em;
+}
+
+.custom-modal .modal-body {
+  background: transparent;
+}
+
+.modal-backdrop.show {
+  opacity: 0.55;
+}
+
+/* ---------- Toast ---------- */
+.toast-notification {
+  font-family: var(--font-body);
+  border-radius: 14px;
+  border: 1px solid var(--aurora-border);
+  box-shadow: var(--aurora-shadow-lg);
+}
+
+.toast-message {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--aurora-text);
+}
+
+/* ---------- Metric Badges (dashboard) ---------- */
+.metric-badge {
+  font-family: var(--font-body);
+  border-radius: 10px;
+  border: 1px solid var(--aurora-border-soft);
+  background: var(--aurora-surface);
+  box-shadow: var(--aurora-shadow-xs);
+}
+
+.metric-badge strong {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Switch toggle (dashboard) ---------- */
+.switch-toggle-input:checked + .switch-toggle-label .switch-toggle-track {
+  background: linear-gradient(135deg, var(--aurora-primary) 0%, var(--aurora-violet) 100%);
+  border-color: var(--aurora-primary);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.switch-toggle-text {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--aurora-text);
+}
+
+/* ---------- Daterangepicker polish ---------- */
+.daterangepicker {
+  font-family: var(--font-body) !important;
+  border: 1px solid var(--aurora-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--aurora-shadow-lg) !important;
+  padding: 0.75rem !important;
+}
+
+.daterangepicker td.active,
+.daterangepicker td.active:hover {
+  background: linear-gradient(135deg, var(--aurora-primary), var(--aurora-violet)) !important;
+  border-radius: 8px;
+}
+
+.daterangepicker td.in-range {
+  background: rgba(99, 102, 241, 0.08) !important;
+}
+
+.daterangepicker .btn-primary,
+.daterangepicker .applyBtn {
+  background: linear-gradient(135deg, var(--aurora-primary), var(--aurora-violet)) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+/* ---------- Datatables polish ---------- */
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+  border: 1.5px solid var(--aurora-border) !important;
+  border-radius: 10px !important;
+  padding: 0.35rem 0.7rem !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.85rem !important;
+  background: var(--aurora-surface);
+  transition: border-color 0.2s var(--aurora-ease), box-shadow 0.2s var(--aurora-ease);
+}
+
+.dataTables_wrapper .dataTables_filter input:focus,
+.dataTables_wrapper .dataTables_length select:focus {
+  border-color: var(--aurora-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  border-radius: 8px !important;
+  border: 1px solid var(--aurora-border-soft) !important;
+  padding: 0.35rem 0.7rem !important;
+  font-family: var(--font-body) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s var(--aurora-ease);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background: linear-gradient(135deg, var(--aurora-primary), var(--aurora-violet)) !important;
+  border-color: var(--aurora-primary) !important;
+  color: #fff !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: var(--aurora-primary) !important;
+}
+
+/* ---------- jsTree polish ---------- */
+.jstree-default .jstree-anchor {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--aurora-text-soft);
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  transition: background 0.15s var(--aurora-ease);
+}
+
+.jstree-default .jstree-hovered,
+.jstree-default .jstree-wholerow-hovered {
+  background: rgba(99, 102, 241, 0.08) !important;
+  color: var(--aurora-text) !important;
+  border-radius: 8px;
+}
+
+.jstree-default .jstree-clicked,
+.jstree-default .jstree-wholerow-clicked {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(139, 92, 246, 0.12)) !important;
+  color: var(--aurora-primary) !important;
+  border-radius: 8px;
+}
+
+/* ---------- Accordion (parameter panel) ---------- */
+.parameter-accordion-btn {
+  font-family: var(--font-display);
+  background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 55%, #fdf2f8 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 6px rgba(99, 102, 241, 0.06);
+  border-radius: 12px !important;
+}
+
+.parameter-check {
+  font-family: var(--font-body);
+  border-radius: 10px;
+  border: 1px solid var(--aurora-border);
+  background: var(--aurora-surface);
+  box-shadow: var(--aurora-shadow-xs);
+  transition: border-color 0.18s var(--aurora-ease), transform 0.18s var(--aurora-ease), box-shadow 0.18s var(--aurora-ease);
+}
+
+.parameter-check:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: var(--aurora-shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* ---------- Wizard stepper ---------- */
+.wizard-steps {
+  font-family: var(--font-body);
+  padding: 1rem 0.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(139, 92, 246, 0.03));
+  border-radius: 14px;
+  border: 1px solid var(--aurora-border-soft);
+}
+
+.wizard-steps div {
+  color: var(--aurora-text-muted);
+  font-weight: 600;
+}
+
+.wizard-steps div:before {
+  background: #fff;
+  border: 2px solid var(--aurora-border);
+  color: var(--aurora-text-muted);
+  font-family: var(--font-mono);
+  transition: all 0.25s var(--aurora-ease);
+}
+
+.wizard-steps .active {
+  color: var(--aurora-text);
+}
+
+.wizard-steps .active:before {
+  background: linear-gradient(135deg, var(--aurora-primary), var(--aurora-violet));
+  color: #fff;
+  border-color: var(--aurora-primary);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.32), 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+/* ---------- Alerts ---------- */
+.alert {
+  font-family: var(--font-body);
+  border-radius: 12px;
+  border-width: 1px;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.28);
+  color: #047857;
+}
+
+.alert-danger {
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.28);
+  color: #be123c;
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #b45309;
+}
+
+.alert-info {
+  background: rgba(14, 165, 233, 0.08);
+  border-color: rgba(14, 165, 233, 0.28);
+  color: #0369a1;
+}
+
+/* ---------- Focus rings (accessibility) ---------- */
+a:focus-visible,
+button:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 2px solid var(--aurora-primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Sidebar focus color inverted */
+.sidebar a:focus-visible,
+.sidebar button:focus-visible {
+  outline-color: var(--aurora-accent-2);
+}
+
+/* ---------- Scrollbars (global refinement) ---------- */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.55);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* ---------- Empty states / loaders ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--aurora-text-muted);
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  color: var(--aurora-text-dim);
+  opacity: 0.7;
+}
+
+.empty-state h5 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--aurora-text-soft);
+}
+
+.loading-spinner,
+.spinner-border {
+  border-color: rgba(99, 102, 241, 0.2);
+  border-top-color: var(--aurora-primary);
+}
+
+/* ---------- Micro animations ---------- */
+@keyframes aurora-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.content > .card,
+.content > .row,
+.content > .container,
+.content > .container-fluid {
+  animation: aurora-fade-in 0.35s var(--aurora-ease-out);
+}
+
+/* ---------- Responsive refinements ---------- */
+@media (max-width: 992px) {
+  .page-title::before { height: 1.1em; }
+  .content { padding-left: clamp(0.9rem, 3vw, 1.5rem); padding-right: clamp(0.9rem, 3vw, 1.5rem); }
+}
+
+@media (max-width: 768px) {
+  body,
+  body.app-body { font-size: 0.94rem; }
+
+  .page-title,
+  h2.page-title { font-size: 1.3rem; }
+
+  .filter-bar-container { padding: 0.55rem 0.7rem; }
+  .card { border-radius: 14px; }
+  .stat-card h3 { font-size: 1.6rem; }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+  .toast-notification {
+    min-width: calc(100vw - 40px);
+    max-width: calc(100vw - 40px);
+  }
+}
+
+/* ---------- Print ---------- */
+@media print {
+  .sidebar,
+  .navbar,
+  .toast-container { display: none !important; }
+  .content { margin-left: 0 !important; width: 100% !important; }
+  .card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .content > .card,
+  .content > .row,
+  .content > .container,
+  .content > .container-fluid {
+    animation: none !important;
+  }
+}
+
+/* ===========================================================
+   PHASE 2 — Top bar, sidebar, dashboard polish
+   Adds visual hierarchy without touching backend logic.
+   =========================================================== */
+
+/* ---------- Top bar layout ---------- */
+.app-topbar.navbar {
+  padding: 0.5rem 1.25rem;
+}
+
+.app-topbar-inner {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+}
+
+.app-topbar .navbar-left {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.app-topbar .navbar-actions {
+  flex-shrink: 0;
+}
+
+/* Tighter brand spacing in the top bar */
+.app-topbar .app-brand {
+  gap: 0.6rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 12px;
+  transition: background 0.2s var(--aurora-ease);
+}
+
+.app-topbar .app-brand:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.app-logo-shell {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(245, 158, 11, 0.35), transparent 60%),
+    rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 6px 18px rgba(245, 158, 11, 0.18);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-logo-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(80% 60% at 80% 20%, rgba(255, 255, 255, 0.15), transparent 60%);
+  pointer-events: none;
+}
+
+.app-topbar .app-logo-img {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Top bar global search ---------- */
+.topbar-search {
+  position: relative;
+  flex: 1 1 420px;
+  max-width: 480px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 0 0.85rem;
+  transition: border-color 0.2s var(--aurora-ease), background 0.2s var(--aurora-ease), box-shadow 0.2s var(--aurora-ease);
+}
+
+.topbar-search:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.topbar-search:focus-within {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.18),
+    0 6px 18px rgba(8, 15, 40, 0.25);
+}
+
+.topbar-search-icon {
+  color: rgba(226, 232, 240, 0.55);
+  font-size: 0.95rem;
+  margin-right: 0.55rem;
+  flex-shrink: 0;
+}
+
+.topbar-search:focus-within .topbar-search-icon {
+  color: var(--aurora-accent-2);
+}
+
+.topbar-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  letter-spacing: -0.005em;
+}
+
+.topbar-search-input::placeholder {
+  color: rgba(226, 232, 240, 0.45);
+  font-weight: 500;
+}
+
+.topbar-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.topbar-search-kbd {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(226, 232, 240, 0.78);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.18rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-left: 0.5rem;
+  letter-spacing: 0;
+}
+
+/* ---------- Top bar status pill ---------- */
+.topbar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  color: #6ee7b7;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.topbar-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  animation: topbar-status-pulse 2s var(--aurora-ease-out) infinite;
+}
+
+@keyframes topbar-status-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+/* ---------- Top bar icon buttons (notifications, quick links) ---------- */
+.topbar-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.2s var(--aurora-ease),
+    border-color 0.2s var(--aurora-ease),
+    color 0.2s var(--aurora-ease),
+    transform 0.2s var(--aurora-ease);
+}
+
+.topbar-icon-btn:hover {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.topbar-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+}
+
+.topbar-icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--aurora-rose);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0b1020;
+  line-height: 1;
+}
+
+.topbar-icon-badge[data-count="0"] {
+  display: none;
+}
+
+/* ---------- Top bar user pill ---------- */
+.topbar-user-wrap { position: relative; }
+
+.topbar-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.3rem;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s var(--aurora-ease), border-color 0.2s var(--aurora-ease), transform 0.2s var(--aurora-ease);
+}
+
+.topbar-user-btn:hover {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.45);
+  transform: translateY(-1px);
+}
+
+.topbar-user-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.32);
+}
+
+.topbar-user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #fff;
+  background:
+    linear-gradient(135deg, var(--aurora-primary) 0%, var(--aurora-violet) 50%, var(--aurora-accent) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 4px 12px rgba(99, 102, 241, 0.35);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.topbar-user-avatar.lg {
+  width: 44px;
+  height: 44px;
+  font-size: 1.05rem;
+}
+
+.topbar-user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  text-align: left;
+  min-width: 0;
+}
+
+.topbar-user-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: #fff;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12ch;
+}
+
+.topbar-user-role {
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--aurora-accent-2);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 14ch;
+}
+
+.topbar-user-chev {
+  font-size: 0.72rem;
+  color: rgba(226, 232, 240, 0.6);
+  margin-left: 0.1rem;
+  transition: transform 0.2s var(--aurora-ease);
+}
+
+.topbar-user-btn[aria-expanded="true"] .topbar-user-chev {
+  transform: rotate(180deg);
+  color: var(--aurora-accent-2);
+}
+
+/* Compact logout button on mobile (visual polish only) */
+.topbar-logout-compact {
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Top bar dropdowns (notifications, user menu) ---------- */
+.topbar-dropdown { position: relative; }
+
+.topbar-dropdown-menu {
+  --bs-dropdown-link-active-bg: rgba(99, 102, 241, 0.12);
+  --bs-dropdown-link-active-color: var(--aurora-text);
+  min-width: 280px;
+  padding: 0.5rem;
+  border: 1px solid var(--aurora-border-soft);
+  border-radius: 14px;
+  background: var(--aurora-surface);
+  box-shadow:
+    0 24px 60px -20px rgba(8, 15, 40, 0.35),
+    0 8px 22px -8px rgba(8, 15, 40, 0.25);
+  margin-top: 0.5rem !important;
+  z-index: 1100;
+}
+
+.topbar-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.6rem 0.5rem;
+  border-bottom: 1px dashed var(--aurora-border-soft);
+  margin-bottom: 0.35rem;
+}
+
+.topbar-dropdown-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--aurora-text);
+  letter-spacing: -0.01em;
+}
+
+.topbar-dropdown-pill {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--aurora-primary-soft);
+  color: var(--aurora-primary);
+  border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.topbar-dropdown-empty {
+  padding: 1.4rem 0.85rem 1.1rem;
+  text-align: center;
+  color: var(--aurora-text-muted);
+}
+
+.topbar-dropdown-empty i {
+  display: block;
+  font-size: 1.6rem;
+  color: var(--aurora-text-dim);
+  margin-bottom: 0.3rem;
+}
+
+.topbar-dropdown-empty p {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--aurora-text);
+  margin: 0 0 0.15rem;
+}
+
+.topbar-dropdown-empty small {
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.topbar-dropdown-item {
+  display: flex !important;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.65rem !important;
+  border-radius: 9px;
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  color: var(--aurora-text-soft) !important;
+  transition: background 0.18s var(--aurora-ease), color 0.18s var(--aurora-ease);
+  border: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.topbar-dropdown-item i {
+  font-size: 0.95rem;
+  color: var(--aurora-text-muted);
+  width: 1.05rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.topbar-dropdown-item:hover,
+.topbar-dropdown-item:focus {
+  background: var(--aurora-primary-soft) !important;
+  color: var(--aurora-primary) !important;
+}
+
+.topbar-dropdown-item:hover i,
+.topbar-dropdown-item:focus i {
+  color: var(--aurora-primary);
+}
+
+.topbar-logout-item {
+  color: var(--aurora-rose) !important;
+}
+
+.topbar-logout-item:hover,
+.topbar-logout-item:focus {
+  background: rgba(244, 63, 94, 0.1) !important;
+  color: var(--aurora-rose) !important;
+}
+
+.topbar-logout-item:hover i,
+.topbar-logout-item:focus i {
+  color: var(--aurora-rose) !important;
+}
+
+.topbar-logout-form { margin: 0; padding: 0; }
+
+.topbar-user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.7rem 0.85rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(245, 158, 11, 0.06) 100%);
+  margin-bottom: 0.35rem;
+}
+
+.topbar-user-card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--aurora-text);
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+
+.topbar-user-card-role {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--aurora-primary);
+}
+
+.topbar-dropdown-menu .dropdown-divider {
+  margin: 0.35rem 0;
+  border-color: var(--aurora-border-soft);
+}
+
+/* ---------- Sidebar refinements ---------- */
+.sidebar-section-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(245, 158, 11, 0.16));
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.sidebar-section-pill i {
+  color: var(--aurora-accent-2);
+  font-size: 0.78rem;
+}
+
+.sidebar-section-label {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(148, 163, 184, 0.6);
+  padding: 0.85rem 0.95rem 0.4rem;
+  margin-top: 0.1rem;
+  white-space: nowrap;
+}
+
+.sidebar-section-label:first-child {
+  padding-top: 0.25rem;
+}
+
+.sidebar.collapsed .sidebar-section-label {
+  text-align: center;
+  padding: 0.65rem 0 0.25rem;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  color: rgba(148, 163, 184, 0.45);
+}
+
+.sidebar.collapsed .sidebar-section-label::after {
+  content: attr(data-collapsed-glyph);
+  display: block;
+}
+
+.sidebar.collapsed .sidebar-section-label > * {
+  display: none;
+}
+
+/* Sidebar nav content fills remaining space so footer stays at the bottom */
+.sidebar-nav { flex: 1 1 auto; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.sidebar-footer-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(16, 185, 129, 0.06));
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.sidebar-footer-card i {
+  font-size: 1.2rem;
+  color: #6ee7b7;
+  flex-shrink: 0;
+}
+
+.sidebar-footer-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.sidebar-footer-title {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.74rem;
+  color: #ecfdf5;
+  letter-spacing: -0.005em;
+}
+
+.sidebar-footer-sub {
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  color: rgba(167, 243, 208, 0.78);
+  letter-spacing: 0.04em;
+}
+
+.sidebar.collapsed .sidebar-footer-text { display: none; }
+.sidebar.collapsed .sidebar-footer-card { justify-content: center; padding: 0.7rem 0; }
+.sidebar.collapsed .sidebar-section-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  padding: 0;
+  justify-content: center;
+}
+.sidebar.collapsed .sidebar-section-pill > span:not(:first-child) { display: none; }
+
+/* Sidebar nav-link enhancements: smoother active highlight */
+.sidebar .nav-link {
+  position: relative;
+}
+
+.sidebar .nav-link.active {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.28) 0%, rgba(139, 92, 246, 0.18) 60%, transparent 100%);
+}
+
+.sidebar .nav-link.active i {
+  color: var(--aurora-accent-2);
+}
+
+.sidebar .nav-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45);
+}
+
+.sidebar .nav-link:hover {
+  transform: none;
+}
+
+/* Submenu item gets a discreet rail */
+.submenu .nav-link {
+  position: relative;
+}
+
+.submenu .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 1.55rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.submenu .nav-link.active::after {
+  background: var(--aurora-accent-2);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.45);
+}
+
+/* ---------- Dashboard polish (visual only) ---------- */
+
+/* Dashboard filter bar — more presence */
+.dash-modern .filter-bar-container,
+.content > .container .filter-bar-container,
+.content > .container-fluid .filter-bar-container,
+.filter-bar-container {
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--aurora-surface) 0%, var(--aurora-surface-2) 100%);
+  border: 1px solid var(--aurora-border-soft);
+  box-shadow: var(--aurora-shadow-xs);
+}
+
+/* Stronger override against inline styles on filter inputs */
+.filter-bar-container input.form-control[style*="border-radius"],
+.filter-bar-container input.dropdown-search-input[style*="border-radius"],
+.filter-bar-container .btn[style*="border-radius"] {
+  border-radius: 10px !important;
+}
+
+.filter-bar-container input.form-control[style*="height"],
+.filter-bar-container input.dropdown-search-input[style*="height"],
+.filter-bar-container .btn[style*="height"] {
+  height: 36px !important;
+}
+
+/* Filter bar action buttons — subtle gradient rather than flat btn-light */
+.filter-bar-container .btn.btn-light {
+  background: linear-gradient(180deg, #ffffff 0%, #f5f7fc 100%);
+  border-color: var(--aurora-border);
+  color: var(--aurora-text-soft) !important;
+  font-weight: 600;
+  transition: background 0.18s var(--aurora-ease), border-color 0.18s var(--aurora-ease), color 0.18s var(--aurora-ease), transform 0.18s var(--aurora-ease);
+}
+
+.filter-bar-container .btn.btn-light:hover {
+  background: var(--aurora-primary-soft);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: var(--aurora-primary) !important;
+  transform: translateY(-1px);
+}
+
+.filter-bar-container .btn.btn-light:focus-visible {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* The "Add" / plus action stands out as the primary action */
+.filter-bar-container .btn.btn-light[data-bs-target^="#add"],
+.filter-bar .btn.btn-light[data-bs-target^="#add"] {
+  background: linear-gradient(135deg, var(--aurora-primary) 0%, var(--aurora-violet) 100%) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px -4px rgba(99, 102, 241, 0.45);
+}
+
+.filter-bar-container .btn.btn-light[data-bs-target^="#add"]:hover,
+.filter-bar .btn.btn-light[data-bs-target^="#add"]:hover {
+  background: linear-gradient(135deg, var(--aurora-primary-2) 0%, var(--aurora-violet-2) 100%) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -6px rgba(99, 102, 241, 0.55);
+}
+
+.filter-bar-container .btn.btn-light[data-bs-target^="#add"] i,
+.filter-bar-container .btn.btn-light[data-bs-target^="#add"] i.bi::before,
+.filter-bar .btn.btn-light[data-bs-target^="#add"] i,
+.filter-bar .btn.btn-light[data-bs-target^="#add"] i.bi::before {
+  color: #fff !important;
+}
+
+/* Glyph icons render via ::before — reassert the icon font inside compact toolbar buttons */
+.filter-bar .btn i.bi::before,
+.filter-bar-container .btn i.bi::before {
+  font-family: "bootstrap-icons" !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Universal page wrapper: when a page uses <div class="p-4"> directly */
+.content > .p-4,
+.content > .container,
+.content > .container-fluid {
+  position: relative;
+}
+
+/* Page title — give it more breathing room and a subtle lockup */
+.content .page-title.mb-4 {
+  margin-bottom: 1.4rem;
+}
+
+/* ---------- Dashboard stat cards (donut KPIs) ---------- */
+.dash-modern .stat-card {
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(120% 120% at 100% 100%, rgba(245, 158, 11, 0.08), transparent 55%),
+    linear-gradient(160deg, #0f1730 0%, #0a0f24 100%);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  color: #f8fafc;
+}
+
+.dash-modern .stat-card .stat-card-title,
+.dash-modern .stat-card .stat-title,
+.dash-modern .stat-card h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.dash-modern .stat-card .stat-value,
+.dash-modern .stat-card h3 {
+  color: #fff;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Donut center text already drawn by Chart.js; keep canvas crisp */
+.stat-card canvas { image-rendering: -webkit-optimize-contrast; }
+
+/* Chart cards in the dashboard get nicer headers */
+.dash-modern .card .card-body h6,
+.dash-modern .card-title,
+.dash-modern .card h5 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  color: var(--aurora-text);
+  font-weight: 700;
+}
+
+/* Tiny trend "tags" inside dashboard widgets if present */
+.dash-modern .badge,
+.content .badge {
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.32em 0.7em;
+}
+
+/* ---------- Inner page consistency ---------- */
+/* Tables: every page uses .table .table-bordered. Override inline gaps */
+.content table.table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.content table.table thead.table-light th {
+  background: linear-gradient(180deg, var(--aurora-surface-3) 0%, var(--aurora-surface-2) 100%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--aurora-text-soft);
+  border-bottom: 1.5px solid var(--aurora-border);
+  padding: 0.85rem 0.85rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.content table.table tbody td {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.86rem;
+  color: var(--aurora-text);
+  vertical-align: middle;
+  padding: 0.7rem 0.85rem;
+  border-color: var(--aurora-border-soft);
+}
+
+.content table.table tbody tr {
+  transition: background 0.15s var(--aurora-ease);
+}
+
+.content table.table tbody tr:hover {
+  background: var(--aurora-primary-soft) !important;
+}
+
+/* DataTables wrapper polish (used in some pages) */
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+  border-radius: 10px !important;
+}
+
+/* Action icon buttons in tables — small, refined */
+.content table.table .btn.btn-sm {
+  border-radius: 8px;
+  padding: 0.32rem 0.55rem;
+  border: 1px solid transparent;
+  transition: transform 0.15s var(--aurora-ease), background 0.15s var(--aurora-ease);
+}
+
+.content table.table .btn-secondary.btn-sm {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.22);
+  color: var(--aurora-primary);
+}
+
+.content table.table .btn-secondary.btn-sm:hover {
+  background: var(--aurora-primary);
+  color: #fff;
+  border-color: var(--aurora-primary);
+  transform: translateY(-1px);
+}
+
+.content table.table .btn-danger.btn-sm {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.22);
+  color: var(--aurora-rose);
+}
+
+.content table.table .btn-danger.btn-sm:hover {
+  background: var(--aurora-rose);
+  color: #fff;
+  border-color: var(--aurora-rose);
+  transform: translateY(-1px);
+}
+
+/* Table badges: clean & small */
+.content table.table .badge.bg-success {
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #059669 !important;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.content table.table .badge.bg-secondary {
+  background: rgba(100, 116, 139, 0.14) !important;
+  color: #475569 !important;
+  border: 1px solid rgba(100, 116, 139, 0.22);
+}
+
+.content table.table .badge.bg-light {
+  background: var(--aurora-surface-3) !important;
+  color: var(--aurora-text-muted) !important;
+  border: 1px solid var(--aurora-border);
+}
+
+/* When a row is hidden by the topbar quick-filter, add a tiny visual hint at empty body */
+.content table.table tbody:has(tr:not([data-topbar-hidden]):not([style*="display: none"]))
+  + .topbar-empty-hint { display: none; }
+
+/* ---------- Top bar: small-screen tweaks ---------- */
+@media (max-width: 1199.98px) {
+  .topbar-search { flex-basis: 280px; max-width: 320px; }
+  .topbar-search-kbd { display: none; }
+}
+
+@media (max-width: 991.98px) {
+  .app-topbar.navbar { padding: 0.45rem 0.85rem; }
+  .topbar-search { display: none !important; }
+  .app-brand-text { display: none; }
+  .topbar-status { display: none !important; }
+}
+
+@media (max-width: 575.98px) {
+  .topbar-user-meta { display: none !important; }
+  .topbar-user-chev { display: none !important; }
+  .topbar-icon-btn { width: 34px; height: 34px; }
+  .topbar-user-btn { padding-right: 0.35rem; }
+  .app-topbar.navbar { padding: 0.45rem 0.65rem; }
+}
+
+/* Make sidebar hidden submenus invisible to layout when collapsed */
+.sidebar.collapsed .submenu {
+  display: none !important;
+}
+
+/* Bootstrap dropdown alignment fix when used inside the topbar */
+.app-topbar .dropdown-menu.show { display: block; }
+
+/* ---------- Visual polish: consistent dropdown menus across app ---------- */
+.dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid var(--aurora-border-soft);
+  box-shadow: var(--aurora-shadow-md);
+  padding: 0.35rem;
+}
+
+.dropdown-menu .dropdown-item {
+  font-family: var(--font-body);
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  color: var(--aurora-text-soft);
+  transition: background 0.15s var(--aurora-ease), color 0.15s var(--aurora-ease);
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+  background: var(--aurora-primary-soft);
+  color: var(--aurora-primary);
+}
+
+/* Filter-bar dropdown menu inputs (search-as-dropdown patterns) get the same look */
+.filter-bar-container .dropdown-menu {
+  border-radius: 10px !important;
+  margin-top: 4px;
+}
+
+/* ===========================================================
+   Dashboard hero header + KPI summary strip
+   =========================================================== */
+.dash-modern .dash-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px dashed var(--aurora-border);
+}
+
+.dash-modern .dash-header-text { min-width: 0; }
+
+.dash-modern .dash-header-text .page-title {
+  margin-bottom: 0.2rem !important;
+  padding-bottom: 0;
+}
+
+.dash-modern .dash-header-sub {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--aurora-text-muted);
+  letter-spacing: -0.005em;
+}
+
+.dash-modern .dash-header-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dash-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+  color: var(--aurora-primary);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.dash-meta-pill i { font-size: 0.85rem; }
+
+.dash-meta-pill.ghost {
+  background: var(--aurora-surface);
+  color: var(--aurora-text-soft);
+  border-color: var(--aurora-border);
+}
+
+.dash-meta-pill.ghost .numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  font-weight: 700;
+  color: var(--aurora-text);
+}
+
+/* KPI summary strip */
+.dash-modern .dash-kpi-strip { margin-bottom: 1rem; }
+
+.dash-kpi {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+  background: var(--aurora-surface);
+  border: 1px solid var(--aurora-border-soft);
+  border-radius: 14px;
+  box-shadow: var(--aurora-shadow-xs);
+  transition: transform 0.2s var(--aurora-ease), box-shadow 0.2s var(--aurora-ease), border-color 0.2s var(--aurora-ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-kpi::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--aurora-primary), var(--aurora-violet));
+  opacity: 0.85;
+}
+
+.dash-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--aurora-shadow-md);
+  border-color: rgba(99, 102, 241, 0.22);
+}
+
+.dash-kpi-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--aurora-primary), var(--aurora-violet));
+  box-shadow: 0 6px 16px -4px rgba(99, 102, 241, 0.45);
+}
+
+.dash-kpi-icon.kpi-violet {
+  background: linear-gradient(135deg, var(--aurora-violet), var(--aurora-violet-2));
+  box-shadow: 0 6px 16px -4px rgba(168, 85, 247, 0.4);
+}
+.dash-kpi-icon.kpi-emerald {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.4);
+}
+.dash-kpi-icon.kpi-amber {
+  background: linear-gradient(135deg, var(--aurora-accent), #fbbf24);
+  box-shadow: 0 6px 16px -4px rgba(245, 158, 11, 0.4);
+}
+.dash-kpi-icon.kpi-rose {
+  background: linear-gradient(135deg, var(--aurora-rose), #fb7185);
+  box-shadow: 0 6px 16px -4px rgba(244, 63, 94, 0.4);
+}
+
+.dash-kpi-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.dash-kpi-label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aurora-text-muted);
+}
+
+.dash-kpi-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--aurora-text);
+  letter-spacing: -0.01em;
+  margin-top: 0.15rem;
+}
+
+/* Dashboard chart-card head: title + tiny meta tag */
+.chart-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.chart-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.015em;
+  color: var(--aurora-text);
+}
+
+.chart-card-meta {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--aurora-text-muted);
+  padding: 0.18rem 0.55rem;
+  background: var(--aurora-surface-3);
+  border-radius: 999px;
+  border: 1px solid var(--aurora-border-soft);
+  white-space: nowrap;
+}
+
+/* Donut stat-card titles inside dashboard */
+.dash-modern .stat-card .stat-card-title {
+  color: rgba(226, 232, 240, 0.78) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 0.6rem;
+}
+
+/* Legend mini-rows under donut charts: small typography polish */
+.dash-modern .stat-card small {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.74rem;
+  color: rgba(226, 232, 240, 0.85);
+  letter-spacing: 0.02em;
+}
+
+/* Filter bar inside dashboard: tighter date input */
+.dash-modern .filter-bar-date-input {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--aurora-text);
+}
+
+@media (max-width: 575.98px) {
+  .dash-modern .dash-header { padding-bottom: 0.6rem; }
+  .dash-modern .dash-header-meta { width: 100%; }
+  .dash-kpi { padding: 0.8rem 0.85rem; }
+  .dash-kpi-icon { width: 38px; height: 38px; font-size: 1rem; }
+  .dash-kpi-value { font-size: 1.15rem; }
+}
+
+/* ===========================================================
+   Inner page consistency — strong overrides for inline styles
+   =========================================================== */
+
+/* All inputs and dropdowns in filter bars: kill the 2px corners */
+.filter-bar input[style*="border-radius: 2px"],
+.filter-bar input[style*="border-radius:2px"],
+.filter-bar-container input[style*="border-radius: 2px"],
+.filter-bar-container input[style*="border-radius:2px"],
+.filter-bar-container ul.dropdown-menu[style*="border-radius: 2px"],
+.filter-bar-container ul.dropdown-menu[style*="border-radius:2px"] {
+  border-radius: 10px !important;
+}
+
+/* All buttons in filter bars: matching corners and a subtle lift */
+.filter-bar button[style*="border-radius: 2px"],
+.filter-bar button[style*="border-radius:2px"],
+.filter-bar-container button[style*="border-radius: 2px"],
+.filter-bar-container button[style*="border-radius:2px"] {
+  border-radius: 10px !important;
+}
+
+/* All filter-bar inputs that hard-set 33px tall: bring to 36px */
+.filter-bar input[style*="height: 33px"],
+.filter-bar input[style*="height:33px"],
+.filter-bar-container input[style*="height: 33px"],
+.filter-bar-container input[style*="height:33px"],
+.filter-bar button[style*="height: 33px"],
+.filter-bar button[style*="height:33px"],
+.filter-bar-container button[style*="height: 33px"],
+.filter-bar-container button[style*="height:33px"] {
+  height: 36px !important;
+  min-height: 36px !important;
+}
+
+/* Generic `.dropdown-search-input` polish (used by 17 pages) */
+.dropdown-search-input,
+input.dropdown-search-input.form-control {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--aurora-text);
+  background: var(--aurora-surface);
+  border: 1px solid var(--aurora-border);
+  transition: border-color 0.18s var(--aurora-ease), box-shadow 0.18s var(--aurora-ease), background 0.18s var(--aurora-ease);
+}
+
+.dropdown-search-input::placeholder,
+input.dropdown-search-input.form-control::placeholder {
+  color: var(--aurora-text-dim);
+  font-weight: 500;
+}
+
+.dropdown-search-input:focus,
+input.dropdown-search-input.form-control:focus {
+  border-color: rgba(99, 102, 241, 0.55);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+  outline: none;
+}
+
+/* Generic dropdown-menu items used by many filter-bar dropdowns */
+.dropdown-menu .hoverable-item {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--aurora-text-soft);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  transition: background 0.15s var(--aurora-ease), color 0.15s var(--aurora-ease);
+}
+
+.dropdown-menu .hoverable-item:hover,
+.dropdown-menu .hoverable-item:focus {
+  background: var(--aurora-primary-soft);
+  color: var(--aurora-primary);
+}
+
+/* Nav-tabs inside modals: refined active state */
+.custom-modal .nav-tabs .nav-link {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--aurora-text-muted);
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  padding: 0.5rem 1rem;
+}
+
+.custom-modal .nav-tabs .nav-link:hover {
+  color: var(--aurora-primary);
+  background: var(--aurora-primary-soft);
+}
+
+.custom-modal .nav-tabs .nav-link.active {
+  color: var(--aurora-primary);
+  background: var(--aurora-primary-soft);
+  border: 0;
+  position: relative;
+}
+
+.custom-modal .nav-tabs .nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0.7rem;
+  right: 0.7rem;
+  height: 2px;
+  background: var(--aurora-primary);
+  border-radius: 2px;
+}
+
+/* Modal labels */
+.custom-modal .modal-body label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--aurora-text-soft);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.3rem;
+}
+
+/* Modal form inputs */
+.custom-modal .form-control,
+.custom-modal .form-select,
+.custom-modal .dropdown-search-input {
+  border-radius: 10px;
+  border: 1px solid var(--aurora-border);
+  font-family: var(--font-body);
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.86rem;
+}
+
+.custom-modal .form-control:focus,
+.custom-modal .form-select:focus,
+.custom-modal .dropdown-search-input:focus {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+}
+
+/* Modal footer buttons (when present) */
+.custom-modal .modal-footer .btn {
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.5rem 1.1rem;
+}
+
+/* Page-title spacing on inner pages: add a hair of breathing room above */
+.content > .p-4 .page-title:first-child,
+.content > .container .page-title:first-child,
+.content > .container-fluid .page-title:first-child {
+  margin-top: 0.15rem;
+}
+
+/* Visual hint when topbar search filters all rows out */
+.content table.table tbody:empty::before {
+  content: "Тохирох утга алга — хайлтын утгаа шалгана уу.";
+  display: block;
+  padding: 1.25rem;
+  color: var(--aurora-text-muted);
+  font-style: italic;
+}
+
+/* Subtle hover for rows that aren't already styled */
+.content table.table-hover tbody tr:hover {
+  background: var(--aurora-primary-soft) !important;
+}
+
+/* When a `.container my-4` is the outer wrapper (dashboard, role-management, user-management, line-management), keep it spacious but consistent */
+.content > .container.my-4 {
+  margin-top: 0.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Scrollable modals don't squeeze their inner inputs */
+.custom-modal .modal-body { max-height: calc(100vh - 200px); overflow-y: auto; }
+
+/* ---------- Page section card (used by parameter pages) ---------- */
+.section-card {
+  border-radius: 16px;
+  border: 1px solid var(--aurora-border-soft);
+  background: var(--aurora-surface);
+  box-shadow: var(--aurora-shadow-xs);
+}
+
+/* ---------- Forms in inner pages: consistent labels ---------- */
+.content label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--aurora-text-soft);
+  letter-spacing: 0.02em;
+}
+
+/* Inputs in pages that use plain Bootstrap (not the .filter-bar wrapper) */
+.content .form-control:not(.dropdown-search-input):not([class*="filter-bar"]) {
+  border-radius: 10px;
+  border: 1px solid var(--aurora-border);
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  transition: border-color 0.18s var(--aurora-ease), box-shadow 0.18s var(--aurora-ease);
+}
+
+.content .form-control:not(.dropdown-search-input):not([class*="filter-bar"]):focus {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+}
+
+/* Bootstrap select-style dropdowns */
+.content .form-select {
+  border-radius: 10px;
+  border: 1px solid var(--aurora-border);
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+}
+
+.content .form-select:focus {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+}
+
+/* ---------- Subtle entrance animation for inner pages ---------- */
+.content > .p-4 {
+  animation: aurora-fade-in 0.35s var(--aurora-ease-out);
+}
+
+/* ---------- Empty / loading states polish ---------- */
+.content .empty-page-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--aurora-text-muted);
+}
+
+/* Helper: small "step pill" used in batch upload / wizard */
+.wizard-steps .step-pill {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+/* ===========================================================
+   Page header pattern (used by all inner pages)
+   =========================================================== */
+.content .page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--aurora-border);
+}
+
+.content .page-header-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.content .page-header-text .page-title {
+  margin-bottom: 0 !important;
+  padding-bottom: 0;
+}
+
+.content .page-header-sub {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.83rem;
+  color: var(--aurora-text-muted);
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+.content .page-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 575.98px) {
+  .content .page-header { padding-bottom: 0.5rem; }
+  .content .page-header-sub { font-size: 0.78rem; }
+}
+
+/* =====================================================================
+   Aurora Pagination — sticky, statically positioned bar used by the
+   data-heavy listing pages (Energy Profile, Instant Profile, Data Read).
+
+   Design intent
+   - The bar is pinned to the bottom of the viewport via position: sticky,
+     so it stays in the same screen location as content scrolls. It does
+     not shift when the table grows / shrinks.
+   - Edge buttons (Prev / Next) are visually weighted, with an obvious
+     disabled state. Page numbers sit between them in a clean inline list.
+   - Component lives below the horizontal-scroll wrapper, so it never
+     scrolls sideways with wide tables.
+   ===================================================================== */
+
+/* Page-level layout helpers used alongside the pagination ----------- */
+
+/* Holds table + sticky pagination together. The bottom padding keeps the
+   last data row from being obscured by the sticky bar. */
+.aurora-page-data {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--navbar-h, 64px) - 12rem);
+  padding-bottom: clamp(5.5rem, 8vw, 6.5rem);
+}
+
+/* Component ---------------------------------------------------------- */
+
+.aurora-pagination {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 6;
+  margin-top: 1.25rem;
+  padding: 0;
+  pointer-events: none; /* inner element re-enables to keep the gutter clickable-through */
+  font-family: var(--font-body, "Plus Jakarta Sans", system-ui, sans-serif);
+}
+
+.aurora-pagination-inner {
+  pointer-events: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem 0.5rem;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  border-radius: 14px;
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.04),
+    0 16px 40px rgba(15, 23, 42, 0.10);
+  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  backdrop-filter: saturate(1.4) blur(12px);
+  min-height: 52px;
+}
+
+/* Prev / Next edge buttons ------------------------------------------- */
+
+.aurora-pagination .aurora-pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 38px;
+  padding: 0 0.95rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  color: #fff;
+  background: linear-gradient(135deg,
+              var(--aurora-primary-1, #6366f1) 0%,
+              var(--aurora-primary-2, #8b5cf6) 100%);
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s var(--aurora-ease, cubic-bezier(0.32, 0.72, 0, 1)),
+              box-shadow 0.18s var(--aurora-ease, cubic-bezier(0.32, 0.72, 0, 1)),
+              filter 0.18s ease,
+              opacity 0.18s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.22);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.aurora-pagination .aurora-pg-btn i {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.aurora-pagination .aurora-pg-btn:hover:not(:disabled),
+.aurora-pagination .aurora-pg-btn:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.32);
+  color: #fff;
+}
+
+.aurora-pagination .aurora-pg-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.28),
+    0 8px 22px rgba(99, 102, 241, 0.32);
+}
+
+.aurora-pagination .aurora-pg-btn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.96);
+}
+
+/* Disabled — clearly muted, not a gradient */
+.aurora-pagination .aurora-pg-btn:disabled,
+.aurora-pagination .aurora-pg-btn[aria-disabled="true"] {
+  background: rgba(148, 163, 184, 0.18);
+  color: rgba(71, 85, 105, 0.55);
+  border-color: rgba(148, 163, 184, 0.22);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 1;
+  filter: none;
+  pointer-events: none;
+}
+
+.aurora-pagination .aurora-pg-btn:disabled i,
+.aurora-pagination .aurora-pg-btn[aria-disabled="true"] i {
+  opacity: 0.6;
+}
+
+/* Numbered page list ------------------------------------------------- */
+
+.aurora-pagination .aurora-pg-pages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.aurora-pagination .aurora-pg-pages li {
+  display: inline-flex;
+}
+
+.aurora-pagination .aurora-pg-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.55rem;
+  border-radius: 9px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--aurora-text-strong, #0f172a);
+  background: transparent;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease,
+              color 0.15s ease,
+              border-color 0.15s ease,
+              transform 0.15s ease;
+  user-select: none;
+}
+
+.aurora-pagination .aurora-pg-num:hover,
+.aurora-pagination .aurora-pg-num:focus-visible {
+  background: rgba(99, 102, 241, 0.10);
+  color: var(--aurora-primary-1, #4f46e5);
+  border-color: rgba(99, 102, 241, 0.18);
+  outline: none;
+}
+
+.aurora-pagination .aurora-pg-num:focus-visible {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+}
+
+.aurora-pagination .aurora-pg-num.is-current {
+  background: linear-gradient(135deg,
+              var(--aurora-primary-1, #6366f1) 0%,
+              var(--aurora-primary-2, #8b5cf6) 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.30);
+  cursor: default;
+}
+
+.aurora-pagination .aurora-pg-num.is-current:hover {
+  transform: none;
+  filter: none;
+}
+
+.aurora-pagination .aurora-pg-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 36px;
+  color: rgba(71, 85, 105, 0.55);
+  font-size: 0.95rem;
+  font-weight: 600;
+  user-select: none;
+}
+
+/* Status text -------------------------------------------------------- */
+
+.aurora-pagination .aurora-pg-status {
+  font-size: 0.78rem;
+  color: rgba(71, 85, 105, 0.78);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  padding-inline: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.aurora-pagination .aurora-pg-status strong {
+  font-weight: 700;
+  color: var(--aurora-text-strong, #0f172a);
+}
+
+/* Responsive --------------------------------------------------------- */
+
+/* Tablet: keep button text but tighten paddings. */
+@media (max-width: 991.98px) {
+  .aurora-pagination-inner {
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+  }
+  .aurora-pagination .aurora-pg-btn {
+    padding: 0 0.7rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* Phone: hide the secondary status text and the button labels — chevrons
+   and numbered pages remain. The bar reflows into a single tight line. */
+@media (max-width: 575.98px) {
+  .aurora-pagination-inner {
+    gap: 0.35rem;
+    padding: 0.45rem 0.55rem;
+  }
+  .aurora-pagination .aurora-pg-btn {
+    padding: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+  }
+  .aurora-pagination .aurora-pg-btn-text {
+    display: none;
+  }
+  .aurora-pagination .aurora-pg-status {
+    display: none;
+  }
+  .aurora-pagination .aurora-pg-num {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.4rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Reduced motion ----------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-pagination .aurora-pg-btn,
+  .aurora-pagination .aurora-pg-num {
+    transition: none;
+  }
+}
+
+/* Turbo Drive navigation progress bar --------------------------------- */
+.turbo-progress-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--aurora-primary, #4f46e5), var(--aurora-violet, #8b5cf6));
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.55);
+  z-index: 2147483647;
+}
+
+/* Soft fade-in of the swapped page content on each Turbo visit */
+@keyframes turbo-content-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+html[data-turbo-visited] .content {
+  animation: turbo-content-in 180ms ease-out;
+}
+/* Form-driven renders (search/filter): no animation, so unchanged regions
+   (page header, filter bar) appear untouched and only the table changes. */
+html[data-turbo-form-nav] .content {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-turbo-visited] .content {
+    animation: none;
+  }
+}
+

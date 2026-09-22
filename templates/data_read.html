@@ -1,8 +1,15 @@
 {% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
 
 {% block content %}
+<div class="aurora-page-data">
 
-<h2 class="page-title mb-4">Татсан өгөгдөл унших</h2>
+<div class="page-header mb-4">
+  <div class="page-header-text">
+    <h2 class="page-title mb-1">Татсан өгөгдөл унших</h2>
+    <p class="page-header-sub">Шугам ба огнооны хүрээгээр уншсан өгөгдлийг үзэх.</p>
+  </div>
+</div>
 <div class="filter-bar-container">
 <form method="GET" action="/search-one-reading" class="filter-bar"> 
 <input type="hidden" name="page" value="1">
@@ -40,7 +47,7 @@
              placeholder="OBIS код сонгох"
              autocomplete="off"
              value="{% if selected_obis_code %}{% if selected_obis_code == '1.8.0' %}Нийт импортын актив энерги (1.8.0){% elif selected_obis_code == '1.8.1' %}Импортын актив энерги T1 (1.8.1){% elif selected_obis_code == '1.8.2' %}Импортын актив энерги T2 (1.8.2){% elif selected_obis_code == '1.8.3' %}Импортын актив энерги T3 (1.8.3){% elif selected_obis_code == '2.8.0' %}Нийт экспортын актив энерги (2.8.0){% elif selected_obis_code == '2.8.1' %}Экспортын актив энерги T1 (2.8.1){% elif selected_obis_code == '2.8.2' %}Экспортын актив энерги T2 (2.8.2){% elif selected_obis_code == '2.8.3' %}Экспортын актив энерги T3 (2.8.3){% elif selected_obis_code == '3.8.0' %}Нийт импортын реактив энерги (3.8.0){% elif selected_obis_code == '3.8.1' %}Импортын реактив энерги T1 (3.8.1){% elif selected_obis_code == '3.8.2' %}Импортын реактив энерги T2 (3.8.2){% elif selected_obis_code == '3.8.3' %}Импортын реактив энерги T3 (3.8.3){% elif selected_obis_code == '4.8.0' %}Нийт экспортын реактив энерги (4.8.0){% elif selected_obis_code == '4.8.1' %}Экспортын реактив энерги T1 (4.8.1){% elif selected_obis_code == '4.8.2' %}Экспортын реактив энерги T2 (4.8.2){% elif selected_obis_code == '4.8.3' %}Экспортын реактив энерги T3 (4.8.3){% elif selected_obis_code == '32.7.0' %}A фазын хүчдэл (32.7.0){% elif selected_obis_code == '52.7.0' %}Б фазын хүчдэл (52.7.0){% elif selected_obis_code == '72.7.0' %}С фазын хүчдэл (72.7.0){% elif selected_obis_code == '31.7.0' %}A фазын гүйдэл (31.7.0){% elif selected_obis_code == '51.7.0' %}Б фазын гүйдэл (51.7.0){% elif selected_obis_code == '71.7.0' %}С фазын гүйдэл (71.7.0){% elif selected_obis_code == '15.7.0' %}Нийт актив чадал (15.7.0){% elif selected_obis_code == '21.7.0' %}A фазын актив чадал (21.7.0){% elif selected_obis_code == '41.7.0' %}Б фазын актив чадал (41.7.0){% elif selected_obis_code == '61.7.0' %}С фазын актив чадал (61.7.0){% elif selected_obis_code == '3.7.0' %}Нийт реактив чадал (3.7.0){% elif selected_obis_code == '23.7.0' %}A фазын реактив чадал (23.7.0){% elif selected_obis_code == '43.7.0' %}Б фазын реактив чадал (43.7.0){% elif selected_obis_code == '63.7.0' %}С фазын реактив чадал (63.7.0){% elif selected_obis_code == '14.7.0' %}Давтамж (14.7.0){% endif %}{% endif %}"
-             style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+      style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
       <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
         <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
@@ -130,7 +137,7 @@
                  placeholder="Type"
                  autocomplete="off"
                  value="{% if selected_type == 'Original' %}Original{% elif selected_type == 'Calculated' %}Calculated{% else %}{{ selected_type | default('') }}{% endif %}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
           <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
             <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -181,21 +188,11 @@
     <!-- dynamic rows here -->
   </tbody>
 </table>
-<div class="d-flex justify-content-between align-items-center mt-3">
-  {% if page > 1 %}
-    <a href="?page={{ page - 1 }}" class="btn btn-outline-primary btn-sm">Previous</a>
-  {% else %}
-    <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
-  {% endif %}
 
-  <span>Page {{ page }} of {{ total_pages }}</span>
+{{ render_pagination(page, total_pages) }}
 
-  {% if page < total_pages %}
-    <a href="?page={{ page + 1 }}" class="btn btn-outline-primary btn-sm">Next</a>
-  {% else %}
-    <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
-  {% endif %}
-</div>  
+</div><!-- /.aurora-page-data -->
+  
 
 <!-- {% set current_page = page | default(1) %}
 {% set total_pages_val = total_pages | default(0) %}
@@ -270,8 +267,8 @@ $(document).ready(function () {
             }
         },
         plugins: ["search"] // enable search
-        })
-        .on("select_node.jstree", function (e, data) {
+    })
+    .on("select_node.jstree", function (e, data) {
         // Store node text
         $('#parent_node_input').val(data.node.text);
         $treeSearch.val(data.node.text); 
@@ -371,45 +368,45 @@ $(function() {
     if (searchInput && list) {
   // Check if this is a static dropdown (already has items)
   const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
-  
+   
   if (!hasStaticItems) {
     // Fetch meters when input is focused (only for dynamic dropdowns)
-    searchInput.addEventListener('focus', function () {
-      console.log(list.getAttribute("aria-labelledby")); 
-      var path = '' ; 
-      if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-        path = '/get-installed-meters'; 
-      }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-        path = '/get-zone';  
-      }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-        path = '/get-station';
-      }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-        path = '/get-installed-dcu';  
-      }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-        path = '/get-archived-meter'; 
-      }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-        path = '/get-installed-meters';
-      }
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '' ; 
+    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+      path = '/get-installed-meters'; 
+    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+      path = '/get-zone';  
+    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+      path = '/get-station';
+    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+      path = '/get-installed-dcu';  
+    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+      path = '/get-archived-meter'; 
+    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+      path = '/get-installed-meters';
+    }
       if (path) {
-        fetch(path)
-          .then(response => response.json())
-          .then(data => {
-            list.innerHTML = ''; // clear old items
-            console.log(data); 
-            data.forEach(element => {
-              const li = document.createElement('li');
-              const a = document.createElement('a');
-              a.className = 'dropdown-item hoverable-item';
-              a.href = '#';
-              a.textContent = element;
-              a.setAttribute('data-value', element);  
-              li.appendChild(a);
-              list.appendChild(li);
-            });
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
 
-            dropdown.classList.add('show');
-            dropdown.classList.remove('hover-show');
-          });
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
       }
     });
   } else {
@@ -417,7 +414,7 @@ $(function() {
     searchInput.addEventListener('focus', function () {
       dropdown.classList.add('show');
       dropdown.classList.remove('hover-show');
-    });
+  });
   }
 
   // Real-time filtering — delegate to input
@@ -473,7 +470,7 @@ $(function() {
     // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show');
+        dropdown.classList.remove('show'); 
         if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
       }
     });

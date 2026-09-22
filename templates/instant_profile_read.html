@@ -1,8 +1,15 @@
 {% extends "base.html" %}
+{% from "_pagination.html" import render_pagination %}
 
 {% block content %}
+<div class="aurora-page-data">
 
-<h2 class="page-title mb-4">Агшин зуурын Профайл унших</h2>
+<div class="page-header mb-4">
+  <div class="page-header-text">
+    <h2 class="page-title mb-1">Агшин зуурын Профайл унших</h2>
+    <p class="page-header-sub">Тухайн агшинд хэмжсэн хэрэглээний утгуудын дэлгэрэнгүй.</p>
+  </div>
+</div>
 <div class="filter-bar-container">
 <form method="GET" action="/search-instant-profile" class="filter-bar"> 
     <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
@@ -66,7 +73,7 @@
         </div>
       </div>
     <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
+        <div class="dropdown" style="height: 35px;">
         <div class="dropdown-toggle-wrapper position-relative">
           <input type="text" 
                  class="form-control dropdown-search-input dimmed-text hoverable-input" 
@@ -75,12 +82,12 @@
                  autocomplete="off"
                  value="{% if selected_type == 'Original' %}Original{% elif selected_type == 'Calculated' %}Calculated{% else %}{{ selected_type | default('') }}{% endif %}"
                  style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
+            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
+              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
         
         <ul id="type-list" 
             class="dropdown-menu w-100"
@@ -90,7 +97,7 @@
           <li><a class="dropdown-item hoverable-item" href="#" data-value="Calculated">Calculated</a></li>
         </ul>
         <input type="hidden" name="type" id="type-hidden" value="{{ selected_type | default('') }}">
-      </div>
+        </div>
     </div> 
 
     
@@ -156,24 +163,11 @@
     {% endfor %}
   </tbody>
 </table>
-
-<!-- 📌 Pagination Controls -->
-<div class="d-flex justify-content-between align-items-center mt-3">
-  {% if page > 1 %}
-    <a href="?page={{ page - 1 }}" class="btn btn-outline-primary btn-sm">Previous</a>
-  {% else %}
-    <button class="btn btn-outline-secondary btn-sm" disabled>Previous</button>
-  {% endif %}
-
-  <span>Page {{ page }} of {{ total_pages }}</span>
-
-  {% if page < total_pages %}
-    <a href="?page={{ page + 1 }}" class="btn btn-outline-primary btn-sm">Next</a>
-  {% else %}
-    <button class="btn btn-outline-secondary btn-sm" disabled>Next</button>
-  {% endif %}
-</div>
   </div>
+
+{{ render_pagination(page, total_pages) }}
+
+</div><!-- /.aurora-page-data -->
 
 <style>
   th, td { text-align: center; vertical-align: middle; }
@@ -188,21 +182,21 @@ $(document).ready(function () {
 
     if ($treePanel.length) {
       $treePanel.jstree({
-          core: {
-              data: {
-                  url: '/line-tree-data',
-                  dataType: 'json'
-              },
+        core: {
+            data: {
+                url: '/line-tree-data',
+                dataType: 'json'
+            },
             themes: {
                 stripes: true,
                 icons: false
             }
-          },
-          plugins: ["search"] // enable search
-      })
-      .on("select_node.jstree", function (e, data) {
-          // Store node text
-          $('#parent_node_input').val(data.node.text);
+        },
+        plugins: ["search"] // enable search
+    })
+    .on("select_node.jstree", function (e, data) {
+        // Store node text
+        $('#parent_node_input').val(data.node.text);
           $treeSearch.val(data.node.text); 
 
           $treePanel.removeClass('open');
@@ -211,22 +205,22 @@ $(document).ready(function () {
 
       if ($treeSearch.length) {
         $treeSearch
-          .on('focus', function () {
+        .on('focus', function () {
               $treePanel.addClass('open');
-          })
-          .on('keyup', function () {
+        })
+        .on('keyup', function () {
               $treePanel.jstree(true).search($(this).val());
-          });
+        });
       }
 
-      // Hide dropdown when clicking outside
-      $(document).click(function(e) {
+    // Hide dropdown when clicking outside
+    $(document).click(function(e) {
           if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
               $treePanel.removeClass('open');
-          }
-      });
+        }
+    });
     }
-});
+}); 
 $(function() {
   // Parse dates from server or fallback to current hour
   const startDateStr = "{{ start_date | default('') }}";
@@ -349,45 +343,45 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput && list) {
   // Check if this is a static dropdown (already has items)
   const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
-  
+   
   if (!hasStaticItems) {
     // Fetch meters when input is focused (only for dynamic dropdowns)
-    searchInput.addEventListener('focus', function () {
-      console.log(list.getAttribute("aria-labelledby")); 
-      var path = '' ; 
-      if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-        path = '/get-installed-meters'; 
-      }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-        path = '/get-zone';  
-      }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-        path = '/get-station';
-      }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-        path = '/get-installed-dcu';  
-      }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-        path = '/get-archived-meter'; 
-      }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-        path = '/get-installed-meters';
-      }
+  searchInput.addEventListener('focus', function () {
+    console.log(list.getAttribute("aria-labelledby")); 
+    var path = '' ; 
+    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
+      path = '/get-installed-meters'; 
+    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
+      path = '/get-zone';  
+    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
+      path = '/get-station';
+    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
+      path = '/get-installed-dcu';  
+    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
+      path = '/get-archived-meter'; 
+    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
+      path = '/get-installed-meters';
+    }
       if (path) {
-        fetch(path)
-          .then(response => response.json())
-          .then(data => {
-            list.innerHTML = ''; // clear old items
-            console.log(data); 
-            data.forEach(element => {
-              const li = document.createElement('li');
-              const a = document.createElement('a');
-              a.className = 'dropdown-item hoverable-item';
-              a.href = '#';
-              a.textContent = element;
-              a.setAttribute('data-value', element);  
-              li.appendChild(a);
-              list.appendChild(li);
-            });
+    fetch(path)
+      .then(response => response.json())
+      .then(data => {
+        list.innerHTML = ''; // clear old items
+        console.log(data); 
+        data.forEach(element => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.className = 'dropdown-item hoverable-item';
+          a.href = '#';
+          a.textContent = element;
+          a.setAttribute('data-value', element);  
+          li.appendChild(a);
+          list.appendChild(li);
+        });
 
-            dropdown.classList.add('show');
-            dropdown.classList.remove('hover-show');
-          });
+        dropdown.classList.add('show');
+        dropdown.classList.remove('hover-show');
+      });
       }
     });
   } else {
@@ -395,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('focus', function () {
       dropdown.classList.add('show');
       dropdown.classList.remove('hover-show');
-    });
+  });
   }
 
   // Real-time filtering — delegate to input
@@ -449,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show');
+        dropdown.classList.remove('show'); 
         if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
       }
     });

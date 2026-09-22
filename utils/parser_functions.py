@@ -1,11 +1,27 @@
 import binascii
 from datetime import datetime
 from collections import defaultdict
+from ssl import Purpose
 from utils.parameters import obis_scaling, obis_name_map, current_obis, voltage_obis, energy_obis 
 
 
 
 
+
+
+def extract_dlms_from_hdlc(data: bytes) -> bytes:
+    """
+    Extract DLMS APDU from HDLC frame (for EDAT/RS485 meters).
+    HDLC format: 7E [header][hcs][llc E6E600][dlms...][fcs] 7E
+    Returns the DLMS payload for parse_dlms_frame with header_length=0.
+    """
+    if not data or data[0] != 0x7E:
+        return data  # Not HDLC, return as-is
+    llc = b'\xe6\xe6\x00'
+    idx = data.find(llc)
+    if idx == -1:
+        return data
+    return data[idx + len(llc):]  # Skip LLC, return DLMS
 
 
 def parse_dlms_frame(hex_data,header_length=11):  # array eer irsen datag parse hiih 
@@ -15,6 +31,9 @@ def parse_dlms_frame(hex_data,header_length=11):  # array eer irsen datag parse 
     # except binascii.Error:
     #     return {"error": "Invalid hex data"}
     data = hex_data 
+    if isinstance(data, bytes) and len(data) > 0 and data[0] == 0x7E:
+        data = extract_dlms_from_hdlc(data)
+        header_length = 0
     if len(data) <= header_length:
         return {"error": "Frame too short - missing payload"}
     if b'\x00\x00\x00\x00\x01\x00\x82\x01' in data:
@@ -125,6 +144,7 @@ def parse_dlms_frame(hex_data,header_length=11):  # array eer irsen datag parse 
     return result
 
 def process_dlms_data(parsed_data):
+    print("entering") 
     if "error" in parsed_data:
         return parsed_data
 
@@ -144,7 +164,7 @@ def process_dlms_data(parsed_data):
                 item[field_name] = field.get("value", field.get("tag", None))
 
         processed.append(item)
-
+    print("exiting")  
     return processed
 def map_meter_data(definition_list, data_list):
     mapped_readings = []
@@ -217,8 +237,34 @@ def get_real_value(data):
     else: 
         real_number = float(int(data[pos+2:], 16))
         return str(real_number)  
-
-
+def get_real_value_plc(data):  
+    array_start = 0  
+    data = data.lower()
+    array_start = data.index("c4")
+    if(data[array_start+2:array_start+4] == "01"): 
+        pos = array_start + 4 + 2  
+    else: 
+        pos = array_start + 4 + 4  
+    results = []
+    while pos < len(data): 
+        tag = data[pos:pos+4]  
+        if tag == "0006":  # Uint32 
+            real_number = float(int(data[pos+4:pos+12], 16))/1000 
+            pos = pos + 12  
+            results.append(str(real_number)) 
+        elif tag == "0012": # Uint16   
+            real_number = float(int(data[pos+4:pos+8], 16))/100
+            pos = pos + 8  
+            results.append(str(real_number))  
+        elif tag == "0005": # int32  
+            real_number = float(int(data[pos+4:pos+12], 16))/10000
+            pos = pos + 12  
+            results.append(str(real_number)) 
+        else: 
+            real_number = float(int(data[pos+2:], 16))
+            results.append(str(real_number))  
+            break
+    return results 
 def replace_obis_with_names(data_list):
     renamed_data = []
     for entry in data_list:
