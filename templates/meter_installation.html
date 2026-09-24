@@ -254,7 +254,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li> 
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li> 
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li> 
                           
                       </ul>
                     </div>
@@ -303,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
                           <!-- dynamically populated -->
                         </ul>
                       </div>
-                      <small class="text-muted">PLC төрлийн тоолуур дээр DCU-г сонгоно уу</small>
+                      <small class="text-muted">PLC, EDAT эсвэл ESP32 төхөөрөмжийн дугаарыг сонгоно уу</small>
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -330,6 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
                       </ul>
                     </div>
                   </div>
@@ -437,6 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
                   <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
                   <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                  <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
                 </ul>
               </div>
             </div>
@@ -516,6 +519,9 @@ document.addEventListener('DOMContentLoaded', function() {
                           style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li>
                       </ul>
                     </div>
                   </div>
@@ -553,6 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
                         <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
                       </ul>
                     </div>
                   </div>
@@ -680,10 +687,13 @@ const dcuNumberInput = document.getElementById('addDcuNumberInput');
 function toggleCommFields() {
   if (!meterTypeInput || !commAddressGroup || !dcuNumberGroup) return;
   const typeValue = meterTypeInput.value.trim().toLowerCase();
+  const modemInput = document.getElementById('addModemType');
+  const modemValue = modemInput ? modemInput.value.trim().toLowerCase() : '';
   const isPLC = typeValue.includes('plc'); 
   const isRS485withEDAT = typeValue.includes('rs485 with edat');
+  const isESP32 = typeValue.includes('esp32') || modemValue === 'ddsd285_2018';
 
-  if (isPLC || isRS485withEDAT) {
+  if (isPLC || isRS485withEDAT || isESP32) {
     commAddressGroup.classList.add('d-none');
     dcuNumberGroup.classList.remove('d-none');
     commAddressInput && commAddressInput.removeAttribute('required');
@@ -707,6 +717,11 @@ function toggleCommFields() {
 if (meterTypeInput) {
   meterTypeInput.addEventListener('input', toggleCommFields);
   meterTypeInput.addEventListener('change', toggleCommFields);
+}
+const addModemTypeInput = document.getElementById('addModemType');
+if (addModemTypeInput) {
+  addModemTypeInput.addEventListener('input', toggleCommFields);
+  addModemTypeInput.addEventListener('change', toggleCommFields);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -798,7 +813,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target && e.target.matches('.dropdown-item')) {
       if (searchInput) {
         searchInput.value = e.target.textContent;
-        if (searchInput === meterTypeInput) {
+        if (searchInput === meterTypeInput || searchInput.id === 'addModemType') {
           toggleCommFields();
         }
       }

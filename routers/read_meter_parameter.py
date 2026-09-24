@@ -19,6 +19,7 @@ from utils.reader_functions import read_meter_manual
 from fastapi.responses import StreamingResponse 
 import utils.Microstar_EDAT_parser_functions as Microstar_EDAT_parser_functions   
 from api_endpoints.Lorawan_api import send_downlink, incoming_responses 
+from utils.esp32_gateway import enqueue_obis_read, uses_esp32
 import json 
 templates = Jinja2Templates(directory="templates")
 
@@ -67,16 +68,18 @@ async def read_Meter_parameter(request: Request):
             conn = get_db_connection()
             conn.row_factory = sqlite3.Row
             meter_info = conn.execute(
-                "SELECT device_type, DCU_number, com_address FROM installed_meters WHERE meter_number = ?",
+                "SELECT device_type, DCU_number, com_address, type, password FROM installed_meters WHERE meter_number = ?",
                 (meter,)
             ).fetchone()
             meter_info_registered = conn.execute(
                 "SELECT device_type, com_address FROM registered_meters WHERE meter_number = ?", 
                 (meter,)
             ).fetchone() 
-            HDLC_addr =  meter_info_registered['com_address']  
-            print("HDLC_addr:")  
-            print(HDLC_addr)   
+            ddsd285_meter = bool(meter_info) and uses_esp32(meter_info["device_type"], meter_info["type"])
+            if not ddsd285_meter:
+                HDLC_addr =  meter_info_registered['com_address']  
+                print("HDLC_addr:")  
+                print(HDLC_addr)   
             conn.close()
             
             if not meter_info:
@@ -94,7 +97,74 @@ async def read_Meter_parameter(request: Request):
             is_plc_meter = "plc" in device_type.lower() 
             is_lorawan_meter = "lorawan" in device_type.lower()  
             is_rs485_with_edat = "rs485 with edat" in device_type.lower() 
-            if is_plc_meter:
+            if ddsd285_meter:
+                print(f"Processing DDSD285_2018 meter via ESP32: {meter}")
+                password = str(meter_info["password"] or "").strip().replace(" ", "") or "00000000"
+                bus_address = str(meter).strip()
+                if not dcu_number:
+                    update_online_status(meter, False)
+                    yield json.dumps({
+                        "meter_number": meter,
+                        "result": "Error: no ESP32"
+                    }) + "\n"
+                    continue
+                elif dcu_number not in connected_clients:
+                    update_online_status(meter, False)
+                    yield json.dumps({
+                        "meter_number": meter,
+                        "result": "Error: ESP32 is offline"
+                    }) + "\n"
+                    continue
+                try:
+                    result_queue = connected_clients[dcu_number]["real_time_result"]
+                    ratios = get_ratios(str(meter_id)) or (1, 1)
+                    result_data = {
+                        "meter_number": meter,
+                        "result": {},
+                        "result_calculated": {}
+                    }
+                    while True:
+                        try:
+                            result_queue.get_nowait()
+                        except asyncio.QueueEmpty:
+                            break
+                    for parameter in selected_parameters:
+                        queued = await enqueue_obis_read(dcu_number, bus_address, parameter, password)
+                        if queued and queued.get("error"):
+                            update_online_status(meter_id, False)
+                            yield json.dumps({
+                                "meter_number": meter,
+                                "result": f"Error: {queued['error']}"
+                            }) + "\n"
+                            break
+                        response = await asyncio.wait_for(result_queue.get(), timeout=50)
+                        print(f"ESP32 response: {response}")
+                        if response.get("error"):
+                            update_online_status(meter_id, False)
+                            yield json.dumps({
+                                "meter_number": meter,
+                                "result": f"Error: {response['error']}"
+                            }) + "\n"
+                            break
+                        value = response.get("value")
+                        new_key = obis_name_map.get(parameter, parameter)
+                        result_data["result"][new_key] = value
+                        try:
+                            result_data["result_calculated"][new_key] = calculate_value_with_ratio_single(
+                                value, parameter, ratios[0], ratios[1]
+                            )
+                        except (TypeError, ValueError):
+                            result_data["result_calculated"][new_key] = value
+                    else:
+                        update_online_status(meter_id, True)
+                        yield json.dumps(result_data) + "\n"
+                except asyncio.TimeoutError:
+                    update_online_status(meter_id, False)
+                    yield json.dumps({
+                        "meter_number": meter,
+                        "result": "Error: Timed out waiting for METER response"
+                    }) + "\n"
+            elif is_plc_meter:
                 dcu_number = int(dcu_number)    
                 print("PLC meter") 
                 print(f"dcu_number: {dcu_number}") 

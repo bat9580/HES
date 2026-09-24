@@ -60,6 +60,13 @@ async def install_meter(
             url="/meter-installation?message=⚠️ DCU number is required for PLC meters.",
             status_code=303,
         )
+    needs_esp32 = "esp32" in meter_type_normalized or modem_type.strip().lower() == "ddsd285_2018"
+    if needs_esp32 and not dcu_value:
+        conn.close()
+        return RedirectResponse(
+            url="/meter-installation?message=⚠️ ESP32 device address is required for DDSD285_2018.",
+            status_code=303,
+        )
 
     try:
         cursor.execute(

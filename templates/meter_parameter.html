@@ -292,6 +292,12 @@ document.addEventListener('DOMContentLoaded', function() {
             {% else %}
             <span class="badge bg-secondary">Offline</span>
             {% endif %}
+          {% elif (meter['type'] or '')|lower == 'ddsd285_2018' or 'esp32' in (meter['device_type'] or '')|lower %}
+            {% if meter['dcu_number'] and (meter['dcu_number'] in connected_clients) %}
+            <span class="badge bg-success">Online</span>
+            {% else %}
+            <span class="badge bg-secondary">Offline</span>
+            {% endif %}
           {% else %} 
             {% if meter['meter_number']|int in connected_clients %}   
             <span class="badge bg-success">Online</span> 

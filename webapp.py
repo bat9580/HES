@@ -35,7 +35,7 @@ import json
 from pathlib import Path 
 from fastapi.requests import Request
 import asyncio
-from utils import DCU_functions, Mictostar_EDAT_utility_functions
+from utils import DCU_functions, Mictostar_EDAT_utility_functions, esp32_gateway
 import utils.frames as frames 
 import utils.utility_functions as utility_functions
 from starlette.middleware.sessions import SessionMiddleware  
@@ -111,6 +111,7 @@ async def handle_client(reader, writer):
     meter_number = None 
     DCU_number = None
     EDAT_dev_addr = None
+    esp_id = None
     reply = None
     addr = writer.get_extra_info('peername')
     print(f"✅ Connected: {addr}") 
@@ -120,7 +121,10 @@ async def handle_client(reader, writer):
     print(len(data)) 
     # if is_expected_frame(data):  
 
-    if utility_functions.is_heartbeat_frame(data): #  daraa ni zasah  
+    if esp32_gateway.is_esp_hello(data):
+        esp_id = esp32_gateway.esp_device_id(data)
+        print(f"ESP32 id: {esp_id}")
+    elif utility_functions.is_heartbeat_frame(data): #  daraa ni zasah  
         meter_number = int(data[-8:].decode('utf-8', errors='ignore').strip()) 
     elif utility_functions.is_heartbeat_frame_DCU(data):
         try:
@@ -165,8 +169,17 @@ async def handle_client(reader, writer):
         Mictostar_EDAT_utility_functions.creat_edat_task(EDAT_dev_addr)
         connected_clients[EDAT_dev_addr]['pause_event'].set() 
         device_number = EDAT_dev_addr 
+    elif esp_id and esp32_gateway.is_esp_installed(esp_id):
+        await esp32_gateway.drop_previous_connection(esp_id)
+        utility_functions.add_DCU_to_connected_clients(esp_id, addr, access_time, reader, writer)
+        esp32_gateway.creat_esp_task(esp_id)
+        if b"\n" in data:
+            connected_clients[esp_id]["esp_rx_buf"] = data.split(b"\n", 1)[1]
+        connected_clients[esp_id]['pause_event'].set()
+        device_number = esp_id
+        reply = b"OK\n"
     else:
-        print(f"this  Meter or DCU {meter_number} or {DCU_number} is not installed")  
+        print(f"this  Meter or DCU {meter_number} or {DCU_number} or ESP {esp_id} is not installed")  
         writer.close()
         await writer.wait_closed()   
         return
@@ -176,6 +189,8 @@ async def handle_client(reader, writer):
     # reply = data[0:2] + data[4:6] + data[2:4] + data[6:8] + b'\xDA' + data[9:10] + b'\x00\x00' + data[12:]
     if reply: 
         writer.write(reply) 
+        if esp_id:
+            await writer.drain()
         print("sent reply ")
 
     try:
@@ -196,18 +211,29 @@ async def handle_client(reader, writer):
                     daily_log_dir = os.path.join(LOG_DIR, current_date_str)
                     os.makedirs(daily_log_dir, exist_ok=True) 
 
-                log_file_path = os.path.join(daily_log_dir, f"{meter_number}.log") 
+                log_key = esp_id if esp_id else meter_number
+                log_file_path = os.path.join(daily_log_dir, f"{log_key}.log") 
 
                 if not data:
                     # 👇 create empty log file anyway if it doesn't exist yet
                     open(log_file_path, "a").close()
                     break 
 
-                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 📥[meter_reader] From meter {meter_number} or DCU {DCU_number}: {data.hex()}") 
+                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 📥[meter_reader] From meter {meter_number} or DCU {DCU_number} or ESP {esp_id}: {data.hex()}") 
                 with open(log_file_path, "a", encoding="utf-8") as f:
                     f.write(f"{timestamp} | from METER:  {data.hex()}\n")   
 
-                if utility_functions.is_heartbeat_frame(data): 
+                if esp_id and device_number in connected_clients:
+                    pending = connected_clients[device_number].get("esp_rx_buf", b"") + data
+                    lines, leftover = esp32_gateway.split_lines(pending)
+                    connected_clients[device_number]["esp_rx_buf"] = leftover
+                    for line in lines:
+                        if esp32_gateway.is_hello_line(line):
+                            await keep_connection_queue.put(line)
+                        else:
+                            print("ESP32 response line")
+                            await response_queue.put(line)
+                elif utility_functions.is_heartbeat_frame(data): 
                     await keep_connection_queue.put(data)   
                 elif utility_functions.is_heartbeat_frame_DCU(data): 
                     await keep_connection_queue.put(data)  
@@ -225,12 +251,14 @@ async def handle_client(reader, writer):
     finally:
         print(f"❌ Disconnected: {addr}") 
         try:
-            if device_number in connected_clients:   # ? 
+            if device_number in connected_clients and connected_clients[device_number].get("writer") is writer:
 
                 client = connected_clients[device_number]
                 if meter_number:
                     await utility_functions.clear_tasks(client)
                     utility_functions.clear_scheduled_jobs(device_number)
+                elif esp_id:
+                    await utility_functions.clear_tasks(client)
                 writer.close()
                 await writer.wait_closed()
                 del connected_clients[device_number] 
