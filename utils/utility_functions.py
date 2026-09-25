@@ -166,16 +166,41 @@ def add_DCU_to_connected_clients(DCU_number,addr, access_time,reader,writer):
                 'pause_event': asyncio.Event(),
                 'task_queue': asyncio.PriorityQueue(),
             }
-def add_cron_job(task_function, cronExpression, meter_number,ID):
+def add_cron_job(task_function, cronExpression, meter_number, ID, extra_args=None):
+    args = [meter_number]
+    if extra_args:
+        args.extend(extra_args)
     scheduler.add_job(
-            task_function,   
-            CronTrigger.from_crontab(cronExpression), 
-            args=[meter_number], 
-            id=ID, 
+            task_function,
+            CronTrigger.from_crontab(cronExpression),
+            args=args,
+            id=ID,
             replace_existing=True
             )
-    connected_clients[meter_number]['scheduled_jobs'].append(ID)   # scheduled Jobuudiig hadgalah 
-def add_job(cronExpression, meter_number,invoke_target): 
+    jobs = connected_clients[meter_number]['scheduled_jobs']
+    if ID not in jobs:
+        jobs.append(ID)
+def add_job(cronExpression, meter_number,invoke_target):
+    client = connected_clients.get(meter_number)
+    if client and client.get("link") == "esp32":
+        from utils.esp32_gateway import schedule_esp_reading
+        job_id = f"{invoke_target}_{cronExpression}_{meter_number}"
+        if invoke_target not in (
+            "Energy load profile",
+            "Instantanious load profile",
+            "Voltage read",
+            "Active Power read",
+        ):
+            print(f"{invoke_target} not available")
+            return
+        add_cron_job(
+            schedule_esp_reading,
+            cronExpression,
+            meter_number,
+            job_id,
+            extra_args=[invoke_target],
+        )
+        return
     if invoke_target == "Energy load profile":
         id = f"{invoke_target}_{cronExpression}_{meter_number}"  
         add_cron_job(task_functions.schedule_load_profile,cronExpression,meter_number,id) 
@@ -224,10 +249,16 @@ async def clear_tasks(client):
         print(f"⚠️ Error while clearing tasks: {e}") 
     
 def clear_scheduled_jobs(meter_number):
-    scheduled_jobs = connected_clients[meter_number]['scheduled_jobs']
-    for job_ID in scheduled_jobs:    
-        scheduler.remove_job(job_ID) 
-    connected_clients[meter_number]['scheduled_jobs'].clear()   
+    client = connected_clients.get(meter_number)
+    if not client:
+        return
+    scheduled_jobs = list(client.get('scheduled_jobs') or [])
+    for job_ID in scheduled_jobs:
+        try:
+            scheduler.remove_job(job_ID)
+        except Exception as exc:
+            print(f"remove job {job_ID}: {exc}")
+    client['scheduled_jobs'].clear()
     print(f"removed_scheduled_jobs {meter_number}")  
 
 def remove_task_from_exsisting_meters(invoke_target,cron_expression): # Таск устгахад бүх online meter - ээс тухайн Таск ыг устгах  

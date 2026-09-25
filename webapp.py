@@ -259,6 +259,7 @@ async def handle_client(reader, writer):
                     utility_functions.clear_scheduled_jobs(device_number)
                 elif esp_id:
                     await utility_functions.clear_tasks(client)
+                    utility_functions.clear_scheduled_jobs(device_number)
                 writer.close()
                 await writer.wait_closed()
                 del connected_clients[device_number] 
