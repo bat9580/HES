@@ -1,31 +1,63 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/relay-emx.css?v=1">
+{% endblock %}
 {% block content %}
+{% if message %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
+});
+</script>
+{% endif %}
 
-<div class="page-header mb-3">
-  <div class="page-header-text">
-    <h2 class="page-title mb-1">Реле удирдлага</h2>
-    <p class="page-header-sub">Тоолуурын реле унтраах, асаах, төлөвийг шалгах.</p>
+<div class="rly">
+  <div class="rly-head">
+    <div>
+      <nav class="rly-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Шууд унших</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Реле удирдлага</span>
+        <span class="rly-pill">DLMS/COSEM</span>
+      </nav>
+      <div class="rly-title-row">
+        <h1 class="rly-title">Реле удирдлага</h1>
+        <span class="rly-en">REMOTE LOAD &amp; DISCONNECT CONTROL</span>
+      </div>
+      <p class="rly-sub">Тоолуурын реле залгах, салгах, төлөв шалгах. Жагсаалт болон реле төлөв нь одоогийн бүртгэлээс гарна.</p>
+    </div>
+    <div class="rly-actions">
+      <button class="rly-btn" id="rlyHistory" type="button"><span class="material-symbols-outlined">history</span>Шалгах түүх</button>
+      <button class="rly-btn" id="rlyRefresh" type="button"><span class="material-symbols-outlined">sync</span>Дахин сэргээх</button>
+    </div>
   </div>
-</div>
 
-<!-- Section tabs -->
-<ul class="nav relay-section-tabs mb-3" id="relaySectionTabs" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="relay-operation-tab-btn" data-bs-toggle="tab"
-            data-bs-target="#relay-operation-pane" type="button" role="tab"
-            aria-controls="relay-operation-pane" aria-selected="true">
-      Relay Operation
-    </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="relay-log-tab-btn" data-bs-toggle="tab"
-            data-bs-target="#relay-log-pane" type="button" role="tab"
-            aria-controls="relay-log-pane" aria-selected="false">
-      Relay Operation Log
-    </button>
-  </li>
-</ul>
+  <div class="rly-tabs">
+    <ul class="nav" id="relaySectionTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="relay-operation-tab-btn" data-bs-toggle="tab"
+                data-bs-target="#relay-operation-pane" type="button" role="tab"
+                aria-controls="relay-operation-pane" aria-selected="true">
+          <span class="material-symbols-outlined">power_settings_new</span>
+          Relay Operation
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="relay-log-tab-btn" data-bs-toggle="tab"
+                data-bs-target="#relay-log-pane" type="button" role="tab"
+                aria-controls="relay-log-pane" aria-selected="false">
+          <span class="material-symbols-outlined">receipt_long</span>
+          Relay Operation Log
+          <span class="rly-count">{{ log_total }}</span>
+        </button>
+      </li>
+    </ul>
+    <div class="rly-tab-note">{{ dcu_online }} / {{ dcu_total }} DCU онлайн</div>
+  </div>
 
 <div class="tab-content relay-tab-content">
 
@@ -33,77 +65,69 @@
   <div class="tab-pane fade show active" id="relay-operation-pane" role="tabpanel"
        aria-labelledby="relay-operation-tab-btn">
 
-    <div class="filter-bar-container">
-      <form method="GET" action="/search-meters-relay" class="filter-bar">
-        <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;">
-          <div class="dropdown" style="height: 35px;">
-            <div class="dropdown-toggle-wrapper position-relative">
-              <input type="text"
-                     class="form-control dropdown-search-input dimmed-text hoverable-input"
-                     name="meter_number"
-                     placeholder="Тоолуур хайх"
-                     autocomplete="off"
-                     value="{{ meter_number | default('') }}"
-                     style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-              <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-            </div>
-            <ul id="installed-meter-list"
-                class="dropdown-menu w-100"
-                aria-labelledby="deviceDropdown"
-                style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-            </ul>
-            <input type="hidden" name="device_type" required>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="line-dropdown-wrapper w-100">
-            <div class="line-dropdown-shell">
-              <input type="text"
-                     id="treeSearch"
-                     name="line"
-                     class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
-                     placeholder="Шугам сонгох..."
-                     value="{{ line | default('') }}"
-                     autocomplete="off">
-              <span class="dropdown-chevron line-dropdown-icon">
-                <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-              <div id="parentNodeDropdown" class="line-tree-panel"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-auto" style="width: 4.166666%;">
-          <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
-            <i class="bi bi-search"></i>
-          </button>
-        </div>
-        <div class="col-md-auto" style="width: 4.166666%;">
-          <button type="button" id="connect-button" class="btn btn-success w-100 border dimmed-text" style="height: 33px;" title="Connect">
-            <i class="bi bi-toggle-on" style="font-size: 18px;"></i>
-          </button>
-        </div>
-        <div class="col-md-auto" style="width: 4.166666%;">
-          <button type="button" id="disconnect-button" class="btn btn-danger w-100 border dimmed-text" style="height: 33px;" title="Disconnect">
-            <i class="bi bi-toggle-off" style="font-size: 18px;"></i>
-          </button>
-        </div>
-        <div class="col-md-auto" style="width: 4.166666%;">
-          <button type="button" id="status-button" class="btn btn-info w-100 border dimmed-text" style="height: 33px;" title="Status">
-            <i class="bi bi-activity" style="font-size: 18px;"></i>
-          </button>
-        </div>
-      </form>
+    <div class="rly-kpis">
+      <div class="rly-kpi">
+        <div class="rly-kpi-label">Нийт тоолуур <span class="material-symbols-outlined">electric_meter</span></div>
+        <div class="rly-kpi-value">{{ meter_total }} <span>ш</span> <span class="rly-chip"><span id="rlySelected">0</span> сонгосон</span></div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label ok">Залгаатай <span class="material-symbols-outlined">power</span></div>
+        <div class="rly-kpi-value ok">{{ relay_connected }} <span>ш</span> <span>{{ connected_pct }}%</span></div>
+        <div class="rly-bar ok"><i style="width: {{ connected_pct }}%"></i></div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label warn">Салгасан <span class="material-symbols-outlined">power_off</span></div>
+        <div class="rly-kpi-value warn">{{ relay_disconnected }} <span>ш</span> <span>{{ disconnected_pct }}%</span></div>
+        <div class="rly-bar warn"><i style="width: {{ disconnected_pct }}%"></i></div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label bad">Тодорхойгүй <span class="material-symbols-outlined">warning</span></div>
+        <div class="rly-kpi-value bad">{{ relay_unknown }} <span>ш</span> <span>{{ unknown_pct }}%</span></div>
+        <div class="rly-bar bad"><i style="width: {{ unknown_pct }}%"></i></div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label">COSEM суваг <span class="material-symbols-outlined">wifi_tethering</span></div>
+        <div class="rly-kpi-value sm">{{ dcu_online }} / {{ dcu_total }}</div>
+        <div class="rly-kpi-label">{{ online_count }} / {{ meter_total }} тоолуур онлайн</div>
+      </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover table-striped align-middle relay-operation-table">
-        <thead class="table-light">
+    <div class="rly-dock">
+      <div class="rly-filters">
+      <form method="get" action="/relay-control">
+        <div class="dropdown rly-field">
+          <span class="material-symbols-outlined rly-field-icon">search</span>
+          <input type="text" class="dropdown-search-input has-icon" name="meter_number" placeholder="Тоолуур хайх (Дугаар, КОММ...)" autocomplete="off" value="{{ meter_number | default('') }}">
+          <ul id="installed-meter-list" class="dropdown-menu" aria-labelledby="deviceDropdown"></ul>
+          <input type="hidden" name="device_type">
+        </div>
+        <div class="line-dropdown-wrapper rly-field">
+          <input type="text" id="treeSearch" name="line" class="line-search-input" placeholder="Шугам сонгох..." value="{{ line | default('') }}" autocomplete="off">
+          <div id="parentNodeDropdown" class="line-tree-panel"></div>
+        </div>
+        <div class="rly-field">
+          <select name="relay_status">
+            <option value="">Бүх реле төлөв</option>
+            <option value="connected" {% if relay_status == 'connected' %}selected{% endif %}>Залгаатай</option>
+            <option value="disconnected" {% if relay_status == 'disconnected' %}selected{% endif %}>Салгасан</option>
+            <option value="unknown" {% if relay_status == 'unknown' %}selected{% endif %}>Тодорхойгүй</option>
+          </select>
+        </div>
+        <button class="rly-btn search" type="submit"><span class="material-symbols-outlined">filter_list</span>Хайх</button>
+      </form>
+      </div>
+      <div class="rly-batch">
+        <button type="button" id="status-button" class="rly-btn query"><span class="material-symbols-outlined">radar</span>Төлөв шалгах</button>
+        <button type="button" id="connect-button" class="rly-btn connect"><span class="material-symbols-outlined">power</span>Залгах</button>
+        <button type="button" id="disconnect-button" class="rly-btn disconnect"><span class="material-symbols-outlined">power_off</span>Салгах</button>
+        <button type="button" id="rlyExport" class="rly-btn"><span class="material-symbols-outlined">download</span>Экспорт</button>
+      </div>
+    </div>
+
+    <div class="rly-card">
+      <div class="rly-table-wrap">
+      <table class="rly-table">
+        <thead>
           <tr>
             <th><input type="checkbox" id="select-all-meters"></th>
             <th>#</th>
@@ -113,63 +137,84 @@
             <th>Модулийн төрөл</th>
             <th>Шугам</th>
             <th>Төлөв</th>
-            <th>Бүртгэлийн төлөв</th>
+            <th>Бүртгэл</th>
             <th>Реле төлөв</th>
             <th>Үр дүн</th>
+            <th>Үйлдэл</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="rlyBody">
           {% for meter in installed_meters %}
-          <tr>
-            <td>
-              <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
-            </td>
-            <td>{{ loop.index }}</td>
-            <td>{{ meter['meter_number'] }}</td>
-            <td>{{ meter['com_address'] }}</td>
-            <td>{{ meter['type'] }}</td>
-            <td>{{ meter['device_type'] }}</td>
-            <td>{{ meter['line'] or '-' }}</td>
+          <tr class="rly-row">
+            <td><input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}"></td>
+            <td class="rly-index">{{ loop.index }}</td>
+            <td><span class="rly-num">{{ meter['meter_number'] }}</span></td>
+            <td>{{ meter['com_address'] or '—' }}</td>
+            <td>{{ meter['type'] or '—' }}</td>
+            <td>{{ meter['device_type'] or '—' }}</td>
+            <td>{% if meter['line'] %}{{ meter['line'] }}{% else %}<span class="rly-muted">—</span>{% endif %}</td>
             <td>
               {% if meter['device_type'] == 'PLC Meter' %}
                 {% if meter['dcu_number']|int in connected_clients %}
-                  <span class="badge bg-success">Online</span>
+                  <span class="rly-badge ok"><i class="rly-dot"></i>ONLINE</span>
                 {% else %}
-                  <span class="badge bg-secondary">Offline</span>
+                  <span class="rly-badge off"><i class="rly-dot"></i>OFFLINE</span>
                 {% endif %}
               {% else %}
                 {% if meter['meter_number']|int in connected_clients %}
-                  <span class="badge bg-success">Online</span>
+                  <span class="rly-badge ok"><i class="rly-dot"></i>ONLINE</span>
                 {% else %}
-                  <span class="badge bg-secondary">Offline</span>
+                  <span class="rly-badge off"><i class="rly-dot"></i>OFFLINE</span>
                 {% endif %}
               {% endif %}
             </td>
             <td>
               {% if meter['status'] == 'installed' %}
-                <span class="badge bg-success text-white">Installed</span>
+                <span class="rly-badge ok">INSTALLED</span>
               {% elif meter['status'] == 'Archived' %}
-                <span class="badge bg-secondary">Archived</span>
+                <span class="rly-badge off">ARCHIVED</span>
               {% else %}
-                <span class="badge bg-light text-muted">Unknown</span>
+                <span class="rly-badge off">UNKNOWN</span>
               {% endif %}
             </td>
             <td>
               {% if meter['relay_status'] == 'connected' %}
-                <span class="badge bg-success text-white">connected</span>
+                <span class="rly-badge ok"><i class="rly-dot"></i>ЗАЛГААТАЙ</span>
               {% elif meter['relay_status'] == 'disconnected' %}
-                <span class="badge bg-danger">disconnected</span>
+                <span class="rly-badge warn"><i class="rly-dot"></i>САЛГАСАН</span>
               {% else %}
-                <span class="badge bg-light text-muted">Unknown</span>
+                <span class="rly-badge off"><i class="rly-dot"></i>ТОДОРХОЙГҮЙ</span>
               {% endif %}
             </td>
+            <td><span class="rly-muted" id="result-{{ meter['meter_number'] }}">—</span></td>
             <td>
-              <span id="result-{{ meter['meter_number'] }}"></span>
+              <div class="rly-actions-cell">
+                <button type="button" class="rly-icon connect" data-relay-action="connect" data-meter="{{ meter['meter_number'] }}" title="Залгах"><span class="material-symbols-outlined">power</span></button>
+                <button type="button" class="rly-icon disconnect" data-relay-action="disconnect" data-meter="{{ meter['meter_number'] }}" title="Салгах"><span class="material-symbols-outlined">power_off</span></button>
+                <button type="button" class="rly-icon query" data-relay-action="status" data-meter="{{ meter['meter_number'] }}" title="Төлөв асуух"><span class="material-symbols-outlined">radar</span></button>
+              </div>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
+      </div>
+      <div class="rly-foot">
+        <div>Нийт <strong>{{ meter_total }}</strong> тоолуураас <strong id="rlyRange">0</strong> харуулж байна
+          <span class="rly-muted"> · Хуудас </span>
+          <select id="rlyPageSize">
+            <option value="15" selected>15</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div id="rlyPager" class="rly-actions"></div>
+      </div>
+    </div>
+    <div class="rly-audit">
+      <span>{{ online_count }} онлайн · {{ offline_count }} офлайн · {{ relay_connected }} залгаатай · {{ relay_disconnected }} салгасан · {{ relay_unknown }} тодорхойгүй</span>
+      <span>{{ page_time }} (UTC+8)</span>
     </div>
   </div>
 
@@ -319,6 +364,7 @@
 
     <div class="relay-log-pagination" id="relay-log-pagination"></div>
   </div>
+</div>
 </div>
 
 <!-- Log detail modal -->
@@ -666,6 +712,136 @@
     bindStatusAction();
     initOperationDropdowns();
     initLineTree();
+    initRelayChrome();
+  }
+
+  function updateRelaySelected() {
+    const count = document.querySelectorAll(".meter-checkbox:checked").length;
+    const el = document.getElementById("rlySelected");
+    if (el) el.textContent = String(count);
+  }
+
+  function initRelayChrome() {
+    const selectAll = document.getElementById("select-all-meters");
+    if (selectAll && !selectAll.dataset.countBound) {
+      selectAll.dataset.countBound = "1";
+      selectAll.addEventListener("change", updateRelaySelected);
+    }
+    document.querySelectorAll(".meter-checkbox").forEach(function (cb) {
+      if (cb.dataset.countBound) return;
+      cb.dataset.countBound = "1";
+      cb.addEventListener("change", updateRelaySelected);
+    });
+    updateRelaySelected();
+
+    const history = document.getElementById("rlyHistory");
+    if (history && !history.dataset.bound) {
+      history.dataset.bound = "1";
+      history.addEventListener("click", function () {
+        const logTab = document.getElementById("relay-log-tab-btn");
+        if (logTab) logTab.click();
+      });
+    }
+    const refresh = document.getElementById("rlyRefresh");
+    if (refresh && !refresh.dataset.bound) {
+      refresh.dataset.bound = "1";
+      refresh.addEventListener("click", function () { location.reload(); });
+    }
+    const exportBtn = document.getElementById("rlyExport");
+    if (exportBtn && !exportBtn.dataset.bound) {
+      exportBtn.dataset.bound = "1";
+      exportBtn.addEventListener("click", exportRelayRows);
+    }
+
+    document.querySelectorAll("[data-relay-action]").forEach(function (btn) {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", function () {
+        const meter = btn.getAttribute("data-meter");
+        document.querySelectorAll(".meter-checkbox").forEach(function (cb) {
+          cb.checked = cb.value === meter;
+        });
+        if (selectAll) selectAll.checked = false;
+        updateRelaySelected();
+        const map = { connect: "connect-button", disconnect: "disconnect-button", status: "status-button" };
+        const target = document.getElementById(map[btn.getAttribute("data-relay-action")] || "");
+        if (target) target.click();
+      });
+    });
+
+    initRelayPager();
+  }
+
+  function exportRelayRows() {
+    const rows = Array.from(document.querySelectorAll("#rlyBody .rly-row"));
+    const header = ["#", "Тоолуурын дугаар", "Комм хаяг", "Тоолуурын төрөл", "Модулийн төрөл", "Шугам", "Төлөв", "Бүртгэл", "Реле төлөв"];
+    const lines = [header.join(",")];
+    rows.forEach(function (row) {
+      const cells = Array.from(row.querySelectorAll("td")).slice(1, 10).map(function (td) {
+        return '"' + td.innerText.replace(/\s+/g, " ").trim().replace(/"/g, '""') + '"';
+      });
+      lines.push(cells.join(","));
+    });
+    const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "relay-meters.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function initRelayPager() {
+    const body = document.getElementById("rlyBody");
+    const sizeSel = document.getElementById("rlyPageSize");
+    const pager = document.getElementById("rlyPager");
+    const range = document.getElementById("rlyRange");
+    if (!body || !sizeSel || sizeSel.dataset.bound) return;
+    sizeSel.dataset.bound = "1";
+    let page = 1;
+
+    function render() {
+      const all = Array.from(body.querySelectorAll(".rly-row"));
+      const size = parseInt(sizeSel.value, 10) || 15;
+      const pages = Math.max(1, Math.ceil(all.length / size));
+      if (page > pages) page = pages;
+      const start = (page - 1) * size;
+      all.forEach(function (row, i) {
+        row.style.display = i >= start && i < start + size ? "" : "none";
+      });
+      const end = Math.min(start + size, all.length);
+      if (range) range.textContent = all.length ? (start + 1) + " - " + end : "0";
+      if (!pager) return;
+      pager.innerHTML = "";
+      function add(label, target, disabled, on) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "rly-page" + (on ? " is-on" : "");
+        b.textContent = label;
+        b.disabled = !!disabled;
+        b.addEventListener("click", function () { page = target; render(); });
+        pager.appendChild(b);
+      }
+      add("‹", page - 1, page <= 1, false);
+      const nums = [];
+      for (let i = 1; i <= pages; i++) {
+        if (i === 1 || i === pages || Math.abs(i - page) <= 1) nums.push(i);
+      }
+      let prev = 0;
+      nums.forEach(function (n) {
+        if (prev && n - prev > 1) {
+          const gap = document.createElement("span");
+          gap.className = "rly-muted";
+          gap.textContent = "…";
+          pager.appendChild(gap);
+        }
+        add(String(n), n, false, n === page);
+        prev = n;
+      });
+      add("›", page + 1, page >= pages, false);
+    }
+
+    sizeSel.addEventListener("change", function () { page = 1; render(); });
+    render();
   }
 
   function bindRelayAction(btnId, url, successLabel, badgeClass) {

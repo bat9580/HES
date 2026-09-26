@@ -1,535 +1,412 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/ondemand-emx.css?v=3">
+{% endblock %}
 {% block content %}
+{% if message %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
+});
+</script>
+{% endif %}
 
-<div class="page-header mb-4">
-  <div class="page-header-text">
-    <h2 class="page-title mb-1">Заалт нөхөж унших</h2>
-    <p class="page-header-sub">Тоолуурын тодорхой огнооны заалтыг тусгайлан унших.</p>
+<div class="odreg">
+  <div class="odreg-head">
+    <div>
+      <nav class="odreg-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Шууд унших</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Заалт нөхөж унших</span>
+      </nav>
+      <div class="odreg-title-row">
+        <h1 class="odreg-title">Заалт нөхөж унших</h1>
+        <span class="odreg-pill">HES Delayed Interrogation</span>
+      </div>
+      <p class="odreg-sub">Тоолуурын архив болон сонгосон огнооны заалтыг нөхөж уншина. Жагсаалт, онлайн төлөв нь одоогийн өгөгдлөөр гарна.</p>
+    </div>
+    <div class="odreg-actions">
+      <button class="odreg-btn" type="button" disabled title="Одоогоор боломжгүй"><span class="material-symbols-outlined">history</span>Уншилтын түүх</button>
+      <button class="odreg-btn" id="odRefresh" type="button"><span class="material-symbols-outlined">sync</span>Шинэчлэх</button>
+    </div>
+  </div>
+
+  <div class="odreg-kpis">
+    <div class="odreg-kpi">
+      <div>
+        <div class="odreg-kpi-label">Идэвхтэй сонгогдсон</div>
+        <div class="odreg-kpi-value"><span id="odSelected">0</span><span> / {{ meter_total }}</span></div>
+        <div class="odreg-kpi-note">{{ with_line }} шугамтай · энэ жагсаалт</div>
+      </div>
+      <div class="odreg-kpi-icon"><span class="material-symbols-outlined">check_box</span></div>
+    </div>
+    <div class="odreg-kpi">
+      <div>
+        <div class="odreg-kpi-label">Хугацааны интервал</div>
+        <div class="odreg-kpi-value sm" id="odInterval">—</div>
+        <div class="odreg-kpi-note" id="odIntervalEnd">Сонгосон эхлэл ба төгсгөл</div>
+      </div>
+      <div class="odreg-kpi-icon alt"><span class="material-symbols-outlined">date_range</span></div>
+    </div>
+    <div class="odreg-kpi">
+      <div>
+        <div class="odreg-kpi-label">Унших горим ба профайл</div>
+        <div class="odreg-kpi-value sm" id="odProfile">{% if profile == 'energy profile' %}Энергийн профайл{% elif profile == 'instant profile' %}Агшин зуурын профайл{% else %}Сонгоогүй{% endif %}</div>
+        <div class="odreg-kpi-note">Энергийн эсвэл агшин зуурын профайл</div>
+      </div>
+      <div class="odreg-kpi-icon ok"><span class="material-symbols-outlined">tune</span></div>
+    </div>
+    <div class="odreg-kpi">
+      <div>
+        <div class="odreg-kpi-label">DLMS/COSEM суваг</div>
+        <div class="odreg-kpi-value">{{ dcu_online }}<span> / {{ dcu_total }}</span></div>
+        <div class="odreg-kpi-note">{{ online_count }} / {{ meter_total }} тоолуур онлайн</div>
+      </div>
+      <div class="odreg-kpi-icon ok"><span class="material-symbols-outlined">wifi_tethering</span></div>
+    </div>
+  </div>
+
+  <div class="odreg-card odreg-filters">
+    <form method="get" action="/ondemand-reading">
+      <div class="dropdown odreg-grow">
+        <span class="material-symbols-outlined odreg-field-icon">search</span>
+        <input type="text" class="dropdown-search-input has-icon" name="meter_number" placeholder="Тоолуур хайх / сери..." autocomplete="off" value="{{ meter_number | default('') }}">
+        <ul id="installed-meter-list" class="dropdown-menu" aria-labelledby="deviceDropdown"></ul>
+        <input type="hidden" name="device_type">
+      </div>
+      <div class="odreg-grow">
+        <select id="profile-hidden" name="profile">
+          <option value="">Профайл сонгох</option>
+          <option value="energy profile" {% if profile == 'energy profile' %}selected{% endif %}>Энергийн Профайл</option>
+          <option value="instant profile" {% if profile == 'instant profile' %}selected{% endif %}>Агшин зуурын Профайл</option>
+        </select>
+      </div>
+      <div class="odreg-grow">
+        <input type="text" id="daterange" autocomplete="off">
+        <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
+        <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
+      </div>
+      <div class="line-dropdown-wrapper odreg-grow">
+        <input type="text" id="treeSearch" name="line" class="line-search-input" placeholder="Шугам сонгох..." value="{{ line | default('') }}" autocomplete="off">
+        <div id="parentNodeDropdown" class="line-tree-panel"></div>
+      </div>
+      <button class="odreg-icon" type="submit" title="Хайх"><span class="material-symbols-outlined">search</span></button>
+      <button class="odreg-btn primary" id="read-button" type="button"><span class="material-symbols-outlined">play_arrow</span>Унших</button>
+    </form>
+    <div class="odreg-presets">
+      <div class="odreg-chips">
+        <span>Хугацаа:</span>
+        <button class="odreg-chip" type="button" data-preset="today">Өнөөдөр</button>
+        <button class="odreg-chip" type="button" data-preset="yesterday">Өчигдөр</button>
+        <span class="odreg-chip is-on" id="odChosen">—</span>
+        <button class="odreg-chip" type="button" data-preset="week">Сүүлийн 7 хоног</button>
+        <button class="odreg-chip" type="button" data-preset="month">Энэ сар</button>
+      </div>
+      <div class="odreg-meta">
+        <span><i class="odreg-dot ok"></i> {{ online_count }} онлайн</span>
+        <span><i class="odreg-dot off"></i> {{ offline_count }} офлайн</span>
+        <button class="odreg-link" id="odSelectAll" type="button">Бүгдийг тэмдэглэх</button>
+        <button class="odreg-link muted" id="odClear" type="button">Цэвэрлэх</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="odreg-status" id="odStatus">
+    <div class="odreg-status-main">
+      <div class="odreg-status-icon"><span class="material-symbols-outlined">pending</span></div>
+      <div>
+        <div class="odreg-status-title" id="odStatusTitle">Уншилт хийгдээгүй</div>
+        <p id="odStatusText">Тоолуур, профайл, хугацааг сонгоод Унших товчийг дарна уу.</p>
+      </div>
+    </div>
+    <div class="odreg-actions">
+      <button class="odreg-btn" id="odExport" type="button"><span class="material-symbols-outlined">file_download</span>Excel / CSV татах</button>
+      <button class="odreg-btn" type="button" disabled title="Одоогоор боломжгүй"><span class="material-symbols-outlined">show_chart</span>График харах</button>
+    </div>
+  </section>
+
+  <section class="odreg-card">
+    <div class="odreg-table-wrap">
+      <table class="odreg-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="select-all-meters"></th>
+            <th>#</th>
+            <th>Тоолуурын дугаар</th>
+            <th>Комм хаяг</th>
+            <th>Тоолуурын төрөл</th>
+            <th>Модулийн төрөл</th>
+            <th>Шугам</th>
+            <th>Төлөв</th>
+            <th>Бүртгэлийн төлөв</th>
+            <th class="odreg-result">Үр дүн</th>
+          </tr>
+        </thead>
+        <tbody id="odBody">
+          {% for meter in installed_meters %}
+          <tr class="odreg-row">
+            <td><input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}"></td>
+            <td class="odreg-index">{{ loop.index }}</td>
+            <td><span class="odreg-num">{{ meter['meter_number'] }}</span></td>
+            <td>{{ meter['com_address'] or '—' }}</td>
+            <td>{{ meter['type'] or '—' }}</td>
+            <td>{{ meter['device_type'] or '—' }}</td>
+            <td>{% if meter['line'] %}{{ meter['line'] }}{% else %}<span class="odreg-muted">—</span>{% endif %}</td>
+            <td>
+              {% if meter['device_type'] == 'PLC Meter' %}
+                {% if meter['dcu_number']|int in connected_clients %}
+                <span class="odreg-badge ok">ONLINE</span>
+                {% else %}
+                <span class="odreg-badge off">OFFLINE</span>
+                {% endif %}
+              {% else %}
+                {% if meter['meter_number']|int in connected_clients %}
+                <span class="odreg-badge ok">ONLINE</span>
+                {% else %}
+                <span class="odreg-badge off">OFFLINE</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>
+              {% if meter['status'] == 'installed' %}
+              <span class="odreg-badge ok">INSTALLED</span>
+              {% elif meter['status'] == 'Archived' %}
+              <span class="odreg-badge off">ARCHIVED</span>
+              {% else %}
+              <span class="odreg-badge off">UNKNOWN</span>
+              {% endif %}
+            </td>
+            <td class="odreg-result">
+              <span class="odreg-wait">—</span>
+              <button class="odreg-result-btn d-none result-button" id="result-{{ meter['meter_number'] }}" data-meter="{{ meter['meter_number'] }}" onclick="showResultModal(this)">Үр дүн</button>
+              <span id="result-{{ meter['meter_number'] }}"></span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="odreg-foot">
+      <div>Нийт <strong>{{ meter_total }}</strong> тоолуураас <strong id="odRangeText">0</strong> харуулж байна
+        <span class="odreg-muted"> · Хуудсанд </span>
+        <select id="odPageSize">
+          <option value="15" selected>15</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div id="odPager" class="odreg-tools"></div>
+    </div>
+  </section>
+
+  <div class="odreg-audit">
+    <span>{{ page_time }} (UTC+8)</span>
+    <span>{{ online_count }} онлайн · {{ offline_count }} офлайн · {{ dcu_online }}/{{ dcu_total }} DCU</span>
   </div>
 </div>
-<div class="filter-bar-container">
-<form method="GET" action="/search-meters-ondemand" class="filter-bar"> 
-    <div class="col-md-auto" style="width: 15%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="meter_number"
-                 placeholder="Тоолуур хайх"
-                 autocomplete="off"
-                 value="{{ meter_number | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="installed-meter-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="device_type" required>
-      </div>
-    </div>
-    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 id="profile-input"
-                 placeholder="Профайл сонгох"
-                 autocomplete="off"
-                 value="{% if profile == 'energy profile' %}Энергийн Профайл{% elif profile == 'instant profile' %}Агшин зуурын Профайл{% else %}{{ profile | default('') }}{% endif %}"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="profile-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="profileDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="energy profile">Энергийн Профайл</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="instant profile">Агшин зуурын Профайл</a></li>
-        </ul>
-        <input type="hidden" name="profile" id="profile-hidden">
-      </div>
-    </div>
-    <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
-    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 35%; min-height: 35px; height: auto;">
-        <input type="text" id="daterange" class="form-control filter-bar-date-input" style="max-width: 300px;">
-        <input type="hidden" id="start_date" name="start_date">
-        <input type="hidden" id="end_date" name="end_date">
-    </div>
-    <div class="col-md-2">
-      <div class="line-dropdown-wrapper w-100">
-        <div class="line-dropdown-shell">
-          <input type="text"
-                 id="treeSearch"
-                 name="line"
-                 class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
-                 placeholder="Шугам сонгох..."
-                 value="{{ line | default('') }}"
-                 autocomplete="off">
-          <span class="dropdown-chevron line-dropdown-icon">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          <div id="parentNodeDropdown" class="line-tree-panel"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
-      </button>
-    </div>
-    <div class="col-md-auto" style="width: 4.166666%;"> 
-        <button type="button" id="read-button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
-          <i class="bi bi-book"></i>
-        </button>
-    </div> 
-</form> 
-</div>
 
-<table class="table table-bordered">
-    <thead class="table-light">
-      <tr>
-        <th><input type="checkbox" id="select-all-meters"></th>
-        <th>#</th>
-        <th>Тоолуурын дугаар</th>
-        <th>Комм хаяг</th> 
-        <th>Тоолуурын төрөл</th>
-        <th>Модулийн төрөл</th>
-        <th>Шугам</th> 
-        <th>Төлөв</th> 
-        <th>Бүртгэлийн төлөв</th>   
-        <th>Үр дүн</th> 
-      </tr>
-    </thead>
-    <tbody>
-      {% for meter in installed_meters %}
-      <tr>
-        <td>
-            <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
-        </td>
-        <td>{{ loop.index }}</td>
-        <td>{{ meter['meter_number'] }}</td>
-        <td>{{ meter['com_address'] }}</td>
-        <td>{{ meter['type'] }}</td>
-        <td>{{ meter['device_type'] }}</td>
-        <td>{{ meter['line'] or '-' }}</td>
-        <td>
-          {%if meter['device_type'] == 'PLC Meter' %}
-
-            {% if meter['dcu_number']|int in connected_clients %}   
-            <span class="badge bg-success">Online</span> 
-            {% else %}
-            <span class="badge bg-secondary">Offline</span>
-            {% endif %}
-          {% else %} 
-            {% if meter['meter_number']|int in connected_clients %}   
-            <span class="badge bg-success">Online</span> 
-            {% else %}
-            <span class="badge bg-secondary">Offline</span>
-            {% endif %}
-          {% endif %} 
-        </td>
-        <td>
-          {% if meter['status'] == 'installed' %}
-            <span class="badge bg-success text-white">Installed</span>
-          {% elif meter['status'] == 'Archived' %}
-            <span class="badge bg-secondary">Archived</span>
-          {% else %}
-            <span class="badge bg-light text-muted">Unknown</span>
-          {% endif %}
-        </td>
-        <td>
-          <!-- result will be displayed here  --> 
-             <button class="btn btn-sm btn-outline-primary d-none result-button" 
-          id="result-{{ meter['meter_number'] }}" 
-          data-meter="{{ meter['meter_number'] }}" 
-          onclick="showResultModal(this)">
-             Result
-           </button>
-           <span id="result-{{meter['meter_number']}}" ></span>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-
-<!-- Result Modal -->
 <div class="modal fade custom-modal" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="resultModalLabel">
-          <i class="bi bi-clipboard-data me-2"></i>Уншилтын үр дүн
-        </h5>
+        <h5 class="modal-title" id="resultModalLabel">Уншилтын үр дүн</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      
-      <!-- Toggle Buttons -->
       <div class="modal-header result-toggle-header">
         <div class="result-toggle-group">
-          <button id="showOriginalBtn" class="btn result-toggle-btn active">
-            <i class="bi bi-file-earmark-text me-1"></i>Original
-          </button>
-          <button id="showCalculatedBtn" class="btn result-toggle-btn">
-            <i class="bi bi-calculator me-1"></i>Calculated
-          </button>
+          <button id="showOriginalBtn" class="btn result-toggle-btn active" type="button">Original</button>
+          <button id="showCalculatedBtn" class="btn result-toggle-btn" type="button">Calculated</button>
         </div>
       </div>
-
       <div class="modal-body result-modal-body">
-        <!-- Original table -->
-        <div id="originalTableWrapper" class="result-table-wrapper">
-              <!-- Injected via JS -->
-        </div>
-
-        <!-- Calculated table (hidden initially) -->
-        <div id="calculatedTableWrapper" class="result-table-wrapper" style="display:none;">
-              <!-- Injected via JS -->
-        </div>
+        <div id="originalTableWrapper" class="result-table-wrapper"></div>
+        <div id="calculatedTableWrapper" class="result-table-wrapper" style="display:none;"></div>
       </div>
     </div>
   </div>
 </div>
 
-
-<style>
-  th, td { text-align: center; vertical-align: middle; }
-  .btn-sm { padding: 4px 10px; font-size: 13px; }
-  .form-control, .form-select { height: 32px; font-size: 14px; }
-  
-  /* Result table wrapper styling */
-  .result-table-wrapper {
-    max-height: 60vh;
-    overflow-y: auto;
-    overflow-x: auto;
-    width: 100%;
-    margin-top: 10px;
-  }
-  
-  /* Modal body styling */
-  .result-modal-body {
-    max-height: calc(100vh - 200px);
-    overflow: hidden;
-    padding: 15px;
-  }
-  
-  /* Table responsive with better styling */
-  .result-table-wrapper .table-responsive {
-    max-height: 100%;
-    overflow-x: auto;
-    overflow-y: auto;
-    border-radius: 8px;
-  }
-  
-  /* Table styling inside result modal */
-  .result-table-wrapper table {
-    width: 100%;
-    min-width: max-content;
-    font-size: 12px;
-    border-collapse: collapse;
-  }
-  
-  .result-table-wrapper th {
-    background-color: #f8f9fa;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    font-weight: 600;
-    font-size: 11px;
-    padding: 10px 8px;
-    white-space: nowrap;
-    text-align: center;
-    border-bottom: 2px solid #dee2e6;
-  }
-  
-  .result-table-wrapper td {
-    padding: 8px;
-    white-space: nowrap;
-    text-align: center;
-    font-size: 11px;
-    border-bottom: 1px solid #e9ecef;
-  }
-  
-  .result-table-wrapper tbody tr:hover {
-    background-color: #f8f9fa;
-  }
-  
-  /* Better column width handling - sticky first column */
-  .result-table-wrapper table th:first-child,
-  .result-table-wrapper table td:first-child {
-    position: sticky;
-    left: 0;
-    background-color: #fff;
-    z-index: 5;
-    min-width: 180px;
-    max-width: 180px;
-    text-align: left;
-    padding-left: 12px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  }
-  
-  .result-table-wrapper table thead th:first-child {
-    background-color: #f8f9fa;
-    z-index: 15;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  .result-table-wrapper table tbody tr:hover td:first-child {
-    background-color: #f8f9fa;
-  }
-  
-  .result-table-wrapper table tbody tr:nth-child(even) td:first-child {
-    background-color: #fff;
-  }
-  
-  .result-table-wrapper table tbody tr:nth-child(even):hover td:first-child {
-    background-color: #f8f9fa;
-  }
-  
-  /* Scrollbar styling */
-  .result-table-wrapper::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  .result-table-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  
-  .result-table-wrapper::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-  }
-  
-  .result-table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-</style>
-
 <script>
+const odPresetStart = {{ start_date|default('')|tojson }};
+const odPresetEnd = {{ end_date|default('')|tojson }};
+let odOk = 0;
+let odBad = 0;
+let odEmpty = 0;
+let odRows = 0;
+
+function updateOdSelected() {
+  const selected = document.querySelectorAll('.meter-checkbox:checked').length;
+  const node = document.getElementById('odSelected');
+  if (node) node.textContent = String(selected);
+}
+
+function refreshOdStatus() {
+  const title = document.getElementById('odStatusTitle');
+  const text = document.getElementById('odStatusText');
+  const card = document.getElementById('odStatus');
+  const icon = card ? card.querySelector('.material-symbols-outlined') : null;
+  const done = odOk + odBad + odEmpty;
+  if (!title || !done) return;
+  card.classList.toggle('is-ok', odOk > 0 && odBad === 0);
+  card.classList.toggle('is-bad', odBad > 0 && odOk === 0);
+  if (icon) icon.textContent = odBad > 0 && odOk === 0 ? 'error' : 'task_alt';
+  title.textContent = 'Нөхөж уншилт дууссан';
+  let detail = odOk + ' амжилттай, ' + odBad + ' алдаа, ' + odEmpty + ' өгөгдөлгүй';
+  if (odRows) detail += ', ' + odRows + ' мөр';
+  text.textContent = detail + '.';
+}
+
 document.getElementById('showOriginalBtn').addEventListener('click', function() {
-    document.getElementById('originalTableWrapper').style.display = 'block';
-    document.getElementById('calculatedTableWrapper').style.display = 'none';
-    this.classList.add('active');
-    document.getElementById('showCalculatedBtn').classList.remove('active');
+  document.getElementById('originalTableWrapper').style.display = 'block';
+  document.getElementById('calculatedTableWrapper').style.display = 'none';
+  this.classList.add('active');
+  document.getElementById('showCalculatedBtn').classList.remove('active');
 });
 
 document.getElementById('showCalculatedBtn').addEventListener('click', function() {
-    document.getElementById('originalTableWrapper').style.display = 'none';
-    document.getElementById('calculatedTableWrapper').style.display = 'block';
-    this.classList.add('active');
-    document.getElementById('showOriginalBtn').classList.remove('active');
+  document.getElementById('originalTableWrapper').style.display = 'none';
+  document.getElementById('calculatedTableWrapper').style.display = 'block';
+  this.classList.add('active');
+  document.getElementById('showOriginalBtn').classList.remove('active');
 });
 
-
-
-function formatResult(result) {
-  if (typeof result === 'object') {
-    return `<ul>` + Object.entries(result)
-      .map(([key, val]) => `<li><strong>${key}</strong>: ${val}</li>`)
-      .join("") + `</ul>`;
-  }
-  return result;
-}
-
-// 🔹 Global object to store results per meter
 const resultMap = {};
-const resultMap_calculated = {}; 
+const resultMap_calculated = {};
 
-
-// 🔹 Modal trigger function
-// үр дүнг хүснэгт хэлбэрээр харуулах 
 function showResultModal(button) {
   const meterNumber = button.getAttribute("data-meter");
   const data = resultMap[meterNumber];
-  const data_calculated = resultMap_calculated[meterNumber];  
-  console.log('Data:', data);
-  console.log('Data type:', typeof data);
-  console.log('Is array:', Array.isArray(data));
-  
-  // Check if data is missing or invalid
+  const data_calculated = resultMap_calculated[meterNumber];
+
   if (!data) {
     document.getElementById("originalTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result found</p>';
     document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result found</p>';
-  }
-  // Check if data is an error string
-  else if (typeof data === 'string' && (data.startsWith('Error:') || data.includes('Error'))) {
+  } else if (typeof data === 'string' && (data.startsWith('Error:') || data.includes('Error'))) {
     const errorMessage = data.replace('Error: ', '');
-    document.getElementById("originalTableWrapper").innerHTML = `<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>${errorMessage}</p>`;
-    document.getElementById("calculatedTableWrapper").innerHTML = `<p class="text-danger text-center py-4"><i class="bi bi-exclamation-triangle me-2"></i>${errorMessage}</p>`;
-  }
-  // Check if data is an array
-  else if (Array.isArray(data) && data.length > 0) {
-    // ===== Original Table =====
-    let originalTable = `<table class="table table-hover table-sm">
-      <thead>
-        <tr>
-          <th>Timestamp</th>`;
-    
+    document.getElementById("originalTableWrapper").innerHTML = `<p class="text-danger text-center py-4">${errorMessage}</p>`;
+    document.getElementById("calculatedTableWrapper").innerHTML = `<p class="text-danger text-center py-4">${errorMessage}</p>`;
+  } else if (Array.isArray(data) && data.length > 0) {
+    let originalTable = `<table><thead><tr><th>Timestamp</th>`;
     const fieldKeys = Object.keys(data[0]).filter(key => key !== 'timestamp');
     fieldKeys.forEach(key => {
-      // Truncate very long column names and add title attribute for full text
       const displayKey = key.length > 50 ? key.substring(0, 47) + '...' : key;
       originalTable += `<th title="${key}">${displayKey}</th>`;
     });
-
     originalTable += `</tr></thead><tbody>`;
-
     data.forEach(entry => {
       originalTable += `<tr><td title="${entry.timestamp || '-'}">${entry.timestamp || '-'}</td>`;
       fieldKeys.forEach(key => {
         const value = entry[key];
-        const displayValue = value !== null && value !== undefined ? 
+        const displayValue = value !== null && value !== undefined ?
           (typeof value === 'number' ? value.toLocaleString('en-US', {maximumFractionDigits: 3}) : value) : '-';
-        // Truncate very long values for display
-        const truncatedValue = String(displayValue).length > 30 ? 
-          String(displayValue).substring(0, 27) + '...' : displayValue;
+        const truncatedValue = String(displayValue).length > 30 ? String(displayValue).substring(0, 27) + '...' : displayValue;
         originalTable += `<td title="${displayValue}">${truncatedValue}</td>`;
       });
       originalTable += `</tr>`;
     });
-
     originalTable += `</tbody></table>`;
     document.getElementById("originalTableWrapper").innerHTML = originalTable;
 
-    // ===== Calculated Table =====
     if (Array.isArray(data_calculated) && data_calculated.length > 0) {
-      let calculatedTable = `<table class="table table-hover table-sm">
-        <thead>
-          <tr>
-            <th>Timestamp</th>`; 
-      const fieldKeys_cal = Object.keys(data_calculated[0]).filter(key => key !== 'timestamp');
-      fieldKeys_cal.forEach(key => {
-        // Truncate very long column names and add title attribute for full text
+      let calculatedTable = `<table><thead><tr><th>Timestamp</th>`;
+      const fieldKeysCal = Object.keys(data_calculated[0]).filter(key => key !== 'timestamp');
+      fieldKeysCal.forEach(key => {
         const displayKey = key.length > 50 ? key.substring(0, 47) + '...' : key;
         calculatedTable += `<th title="${key}">${displayKey}</th>`;
       });
       calculatedTable += `</tr></thead><tbody>`;
-
       data_calculated.forEach(entry => {
         calculatedTable += `<tr><td title="${entry.timestamp || '-'}">${entry.timestamp || '-'}</td>`;
-        fieldKeys_cal.forEach(key => {
+        fieldKeysCal.forEach(key => {
           const value = entry[key];
-          const displayValue = value !== null && value !== undefined ? 
+          const displayValue = value !== null && value !== undefined ?
             (typeof value === 'number' ? value.toLocaleString('en-US', {maximumFractionDigits: 3}) : value) : '-';
-          // Truncate very long values for display
-          const truncatedValue = String(displayValue).length > 30 ? 
-            String(displayValue).substring(0, 27) + '...' : displayValue;
+          const truncatedValue = String(displayValue).length > 30 ? String(displayValue).substring(0, 27) + '...' : displayValue;
           calculatedTable += `<td title="${displayValue}">${truncatedValue}</td>`;
         });
         calculatedTable += `</tr>`;
       });
-
       calculatedTable += `</tbody></table>`;
       document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
     } else {
       document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No calculated data available</p>';
     }
-  }
-  // If data is an object but not an array
-  else if (typeof data === 'object' && !Array.isArray(data)) {
-    // Try to display as key-value pairs
-    let originalTable = `<table class="table table-hover table-sm">
-      <thead>
-        <tr>
-          <th>Parameter</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>`;
-    
+  } else if (typeof data === 'object' && !Array.isArray(data)) {
+    let originalTable = `<table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>`;
     Object.entries(data).forEach(([key, value]) => {
       originalTable += `<tr><td>${key}</td><td>${value !== null && value !== undefined ? value : '-'}</td></tr>`;
     });
-    
     originalTable += `</tbody></table>`;
     document.getElementById("originalTableWrapper").innerHTML = originalTable;
-    
     if (data_calculated && typeof data_calculated === 'object' && !Array.isArray(data_calculated)) {
-      let calculatedTable = `<table class="table table-hover table-sm">
-        <thead>
-          <tr>
-            <th>Parameter</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>`;
-      
+      let calculatedTable = `<table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>`;
       Object.entries(data_calculated).forEach(([key, value]) => {
         calculatedTable += `<tr><td>${key}</td><td>${value !== null && value !== undefined ? value : '-'}</td></tr>`;
       });
-      
       calculatedTable += `</tbody></table>`;
       document.getElementById("calculatedTableWrapper").innerHTML = calculatedTable;
     } else {
       document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No calculated data available</p>';
     }
-  }
-  // Fallback for empty array or unknown format
-  else {
+  } else {
     document.getElementById("originalTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No result data available</p>';
     document.getElementById("calculatedTableWrapper").innerHTML = '<p class="text-muted text-center py-4">No calculated data available</p>';
   }
 
-  // Show modal — reuse the single Bootstrap instance for this element so
-  // we never accumulate stale instances + orphaned backdrops between clicks.
   bootstrap.Modal.getOrCreateInstance(document.getElementById('resultModal')).show();
-
-  // Default view: Original table
   document.getElementById('originalTableWrapper').style.display = 'block';
   document.getElementById('calculatedTableWrapper').style.display = 'none';
 }
 
-
-
 document.getElementById('read-button').addEventListener('click', function () {
-  const readBtn = this; // Reference to button
-  const originalContent = readBtn.innerHTML; // Store original text
-
-  // Show spinner and disable button
-  readBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
-  readBtn.disabled = true;  
-
+  const readBtn = this;
+  const originalContent = readBtn.innerHTML;
+  readBtn.innerHTML = `<span class="material-symbols-outlined odreg-spin">progress_activity</span>`;
+  readBtn.disabled = true;
 
   const selectedMeters = Array.from(document.querySelectorAll('.meter-checkbox:checked')).map(cb => cb.value);
-  //const selectedParameters = Array.from(document.querySelectorAll('.parameter-checkbox:checked')).map(cb => cb.value); 
-  const selectedProfile = document.querySelector('#profile-hidden').value; 
+  const selectedProfile = document.querySelector('#profile-hidden').value;
   const startDate = document.getElementById('start_date').value;
   const endDate = document.getElementById('end_date').value;
 
-  if (selectedMeters.length === 0) {
-    showToast("Please select at least one meter.", "warning", 4000);
+  function restore() {
     readBtn.innerHTML = originalContent;
     readBtn.disabled = false;
+  }
+
+  if (selectedMeters.length === 0) {
+    showToast("Please select at least one meter.", "warning", 4000);
+    restore();
+    return;
+  }
+  if (!selectedProfile) {
+    showToast("Please select a profile.", "warning", 4000);
+    restore();
     return;
   }
   if (!startDate || !endDate) {
-  showToast("Please select a valid time range.", "warning", 4000);
-  readBtn.innerHTML = originalContent;
-  readBtn.disabled = false;
-  return;
-} 
-  fetch('/read-meter-ondemand-profile',  {
+    showToast("Please select a valid time range.", "warning", 4000);
+    restore();
+    return;
+  }
+
+  odOk = 0;
+  odBad = 0;
+  odEmpty = 0;
+  odRows = 0;
+  document.getElementById('odStatusTitle').textContent = 'Уншиж байна';
+  document.getElementById('odStatusText').textContent = selectedMeters.length + ' тоолуур сонгосон.';
+
+  fetch('/read-meter-ondemand-profile', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      selected_meters: selectedMeters, 
+      selected_meters: selectedMeters,
       selected_profile: selectedProfile,
       start_date: startDate,
       end_date: endDate
@@ -539,51 +416,40 @@ document.getElementById('read-button').addEventListener('click', function () {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let partial = '';
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
       partial += decoder.decode(value, { stream: true });
-      
-      let lines = partial.split("\n");
-      partial = lines.pop(); // last part might be incomplete
-
-      for (let line of lines) {
-        if (!line.trim()) continue; // skip empty lines
+      const lines = partial.split("\n");
+      partial = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
         try {
           const item = JSON.parse(line);
-          console.log('Received item:', item);
-          console.log('Item result type:', typeof item.result);
-          console.log('Item result is array:', Array.isArray(item.result));
-          
-          // Find the result button (for modal trigger)
           const btn = document.querySelector(`button#result-${item.meter_number}.result-button`);
-          // Find the result span (for status display)
           const resultSpan = document.querySelector(`span#result-${item.meter_number}`);
-          
           if (btn) {
             btn.classList.remove("d-none");
-            // Store the result data - ensure we store it as-is from the backend
             resultMap[item.meter_number] = item.result;
             resultMap_calculated[item.meter_number] = item.result_calculated || {};
-            
-            console.log('Stored in resultMap:', resultMap[item.meter_number]);
-            console.log('Stored type:', typeof resultMap[item.meter_number]);
           }
-          
-          // Update status in the result span
           if (resultSpan) {
             if (item.result && Array.isArray(item.result) && item.result.length > 0) {
-              resultSpan.innerHTML = '<span class="badge bg-success">Success</span>';
+              odOk += 1;
+              odRows += item.result.length;
+              resultSpan.innerHTML = '<span class="odreg-badge ok">' + item.result.length + ' мөр</span>';
             } else if (typeof item.result === 'string' && (item.result.startsWith('Error:') || item.result.includes('Error'))) {
-              resultSpan.innerHTML = '<span class="badge bg-danger">Error</span>';
+              odBad += 1;
+              resultSpan.innerHTML = '<span class="odreg-badge bad">Алдаа</span>';
             } else if (item.result && typeof item.result === 'object' && !Array.isArray(item.result) && Object.keys(item.result).length > 0) {
-              resultSpan.innerHTML = '<span class="badge bg-success">Success</span>';
+              odOk += 1;
+              resultSpan.innerHTML = '<span class="odreg-badge ok">Амжилттай</span>';
             } else {
-              resultSpan.innerHTML = '<span class="badge bg-warning">No Data</span>';
+              odEmpty += 1;
+              resultSpan.innerHTML = '<span class="odreg-badge warn">Өгөгдөлгүй</span>';
             }
           }
+          refreshOdStatus();
         } catch (parseError) {
           console.error('Error parsing JSON line:', parseError, 'Line:', line);
         }
@@ -593,290 +459,248 @@ document.getElementById('read-button').addEventListener('click', function () {
   .catch(error => {
     console.error("Error:", error);
     showToast("Failed to send read command.", "error", 5000);
-   // show error in all selected result fields
-  selectedMeters.forEach(meter => {
-    const resultField = document.getElementById(`result-${meter}`);
-    if (resultField) {
-      resultField.textContent = `Error: ${error.message}`; 
-    }
-  }); 
+    selectedMeters.forEach(meter => {
+      const resultField = document.getElementById(`result-${meter}`);
+      if (resultField) resultField.textContent = `Error: ${error.message}`;
+    });
   })
-  .finally(() => {
-    // Restore original button state
-    readBtn.innerHTML = originalContent;
-    readBtn.disabled = false;
+  .finally(restore);
+});
+
+document.getElementById("select-all-meters").addEventListener("change", function () {
+  document.querySelectorAll(".meter-checkbox").forEach(cb => { cb.checked = this.checked; });
+  updateOdSelected();
+});
+document.getElementById('odBody').addEventListener('change', function (event) {
+  if (event.target.classList.contains('meter-checkbox')) updateOdSelected();
+});
+document.getElementById('odSelectAll').addEventListener('click', function () {
+  const all = document.getElementById('select-all-meters');
+  all.checked = true;
+  all.dispatchEvent(new Event('change'));
+});
+document.getElementById('odClear').addEventListener('click', function () {
+  const all = document.getElementById('select-all-meters');
+  all.checked = false;
+  all.dispatchEvent(new Event('change'));
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.dropdown').forEach(function(dropdown) {
+    if (dropdown.hasAttribute('data-static-dropdown')) return;
+    const list = dropdown.querySelector('.dropdown-menu');
+    if (list && (list.id === 'obis-code-list' || list.id === 'type-list' || list.id === 'profile-list')) return;
+    const searchInput = dropdown.querySelector('.dropdown-search-input');
+    if (!searchInput || !list) return;
+
+    searchInput.addEventListener('focus', function () {
+      const labelled = list.getAttribute("aria-labelledby");
+      let path = '';
+      if (labelled === "deviceDropdown" || labelled === "installedDropdown") path = '/get-installed-meters';
+      else if (labelled === "zoneDropdown") path = '/get-zone';
+      else if (labelled === "stationDropdown") path = '/get-station';
+      else if (labelled === "dcuDropdown") path = '/get-installed-dcu';
+      else if (labelled === "archivedDropdown") path = '/get-archived-meter';
+      if (!path) return;
+      fetch(path)
+        .then(response => response.json())
+        .then(data => {
+          list.innerHTML = '';
+          data.forEach(element => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'dropdown-item hoverable-item';
+            a.href = '#';
+            a.textContent = element;
+            a.setAttribute('data-value', element);
+            li.appendChild(a);
+            list.appendChild(li);
+          });
+          dropdown.classList.add('show');
+        });
+    });
+    searchInput.addEventListener('input', function () {
+      const term = this.value.toLowerCase();
+      list.querySelectorAll('.dropdown-item').forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+      });
+    });
+    list.addEventListener('click', function (e) {
+      if (e.target && e.target.matches('.dropdown-item')) {
+        searchInput.value = e.target.textContent;
+        dropdown.classList.remove('show');
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) dropdown.classList.remove('show');
+    });
   });
 });
 
-
-
-document.getElementById("select-all-meters").addEventListener("change", function () {
-  const checkboxes = document.querySelectorAll(".meter-checkbox");
-  checkboxes.forEach(cb => cb.checked = this.checked);
-});
-
-
-// ////////////////////////
-
 $(function() {
+  const fmt = 'YYYY-MM-DD[T]HH:mm:ss';
+  let start = moment().startOf('hour');
+  let end = moment().endOf('hour');
+  if (odPresetStart && moment(odPresetStart).isValid()) start = moment(odPresetStart);
+  if (odPresetEnd && moment(odPresetEnd).isValid()) end = moment(odPresetEnd);
+
+  function paintOdRange(rangeStart, rangeEnd, preset) {
+    $('#start_date').val(rangeStart.format(fmt));
+    $('#end_date').val(rangeEnd.format(fmt));
+    const interval = document.getElementById('odInterval');
+    const intervalEnd = document.getElementById('odIntervalEnd');
+    const chosen = document.getElementById('odChosen');
+    if (interval) interval.textContent = rangeStart.format('YYYY-MM-DD HH:mm:ss');
+    if (intervalEnd) intervalEnd.textContent = 'хүртэл ' + rangeEnd.format('YYYY-MM-DD HH:mm:ss');
+    if (chosen) chosen.textContent = rangeStart.format('YYYY-MM-DD');
+    document.querySelectorAll('.odreg-chip[data-preset]').forEach((btn) => {
+      btn.classList.toggle('is-on', btn.dataset.preset === preset);
+    });
+  }
+
+  function applyOdRange(rangeStart, rangeEnd, preset) {
+    const picker = $('#daterange').data('daterangepicker');
+    if (picker) {
+      picker.setStartDate(rangeStart);
+      picker.setEndDate(rangeEnd);
+    }
+    paintOdRange(rangeStart, rangeEnd, preset);
+  }
+
   $('#daterange').daterangepicker({
     timePicker: true,
     timePicker24Hour: true,
     timePickerSeconds: true,
-    locale: {
-      format: 'YYYY-MM-DD[T]HH:mm:ss', // Match database format
-      separator: 'T' // Explicitly set the separator
-    },
-    startDate: moment().startOf('hour'),
-    endDate: moment().endOf('hour')
-  }, function(start, end) {
-    // Update hidden inputs
-    $('#start_date').val(start.format('YYYY-MM-DD[T]HH:mm:ss'));
-    $('#end_date').val(end.format('YYYY-MM-DD[T]HH:mm:ss'));
+    locale: { format: fmt, separator: ' - ' },
+    startDate: start,
+    endDate: end
+  }, function(rangeStart, rangeEnd) {
+    paintOdRange(rangeStart, rangeEnd, '');
   });
+  paintOdRange(start, end, '');
 
-  // Add transition effects to daterangepicker dropdown
-  $('#daterange').on('show.daterangepicker', function(ev, picker) {
-    if (!picker || !picker.container) return;
-    const $container = picker.container;
-    requestAnimationFrame(function() {
-      $container.addClass('drp-visible');
+  document.querySelectorAll('.odreg-chip[data-preset]').forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const preset = this.dataset.preset;
+      let rangeStart = moment().startOf('day');
+      let rangeEnd = moment().endOf('day');
+      if (preset === 'yesterday') {
+        rangeStart = moment().subtract(1, 'day').startOf('day');
+        rangeEnd = moment().subtract(1, 'day').endOf('day');
+      } else if (preset === 'week') {
+        rangeStart = moment().subtract(6, 'day').startOf('day');
+        rangeEnd = moment().endOf('day');
+      } else if (preset === 'month') {
+        rangeStart = moment().startOf('month');
+        rangeEnd = moment().endOf('month');
+      }
+      applyOdRange(rangeStart, rangeEnd, preset);
     });
   });
 
+  $('#daterange').on('show.daterangepicker', function(ev, picker) {
+    if (!picker || !picker.container) return;
+    requestAnimationFrame(function() { picker.container.addClass('drp-visible'); });
+  });
   $('#daterange').on('hide.daterangepicker', function(ev, picker) {
     if (!picker || !picker.container) return;
     picker.container.removeClass('drp-visible');
   });
 });
 
-  document.addEventListener('DOMContentLoaded', function() {
-  const dropdowns = document.querySelectorAll('.dropdown');  
-  dropdowns.forEach(function(dropdown) {
-    // Skip static dropdowns (handled separately)
-    if (dropdown.hasAttribute('data-static-dropdown')) {
-      return;
-    }
-    
-    // Skip known static dropdown IDs
-    const list = dropdown.querySelector('.dropdown-menu');
-    if (list && (list.id === 'obis-code-list' || list.id === 'type-list' || list.id === 'profile-list')) {
-      return;
-    }
-    
-    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
-    const chevron = dropdown.querySelector('.dropdown-chevron');
-    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
-    
-
-    dropdown.addEventListener('mouseenter', function() {
-      if (!dropdown.classList.contains('show')) {
-        dropdown.classList.add('hover-show');
-      }
-    });
-
-    if (searchInput && list) {
-  // Check if this is a static dropdown (already has items)
-  const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
-   
-  if (!hasStaticItems) {
-    // Fetch meters when input is focused (only for dynamic dropdowns)
-  searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
-    var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-      path = '/get-installed-meters'; 
-    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-      path = '/get-zone';  
-    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-      path = '/get-station';
-    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-      path = '/get-installed-dcu';  
-    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-      path = '/get-archived-meter'; 
-    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-      path = '/get-installed-meters';
-    }
-      if (path) {
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
-          list.appendChild(li);
-        });
-
-        dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
-      });
-      }
-    });
-  } else {
-    // Static dropdown - just show on focus
-    searchInput.addEventListener('focus', function () {
-      dropdown.classList.add('show');
-      dropdown.classList.remove('hover-show');
-  });
-  }
-
-  // Real-time filtering — delegate to input
-  searchInput.addEventListener('input', function () {
-    const term = this.value.toLowerCase();
-    const dropdownItems = list.querySelectorAll('.dropdown-item');
-    dropdownItems.forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
-    });
-  });
-
-  // Item selection — event delegation
-  list.addEventListener('click', function (e) {
-    if (e.target && e.target.matches('.dropdown-item')) {
-      if (searchInput) searchInput.value = e.target.textContent;
-      dropdown.classList.remove('show');
-      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
-      // Also update hidden input if it exists with a specific name/id
-      const dataValue = e.target.getAttribute('data-value');
-      if (dataValue) {
-        // Try to find hidden input by common patterns (they're siblings, not children)
-        const hiddenProfile = document.getElementById('profile-hidden');
-        if (hiddenProfile) hiddenProfile.value = dataValue;
-      }
-      e.preventDefault();
-    }
-  });
-}
-
-    // Chevron rotation
-    if (chevron) {
-      chevron.style.transition = 'transform 0.2s ease';
-    }
-
-    // Handle chevron rotation for both static and dynamic dropdowns
-    if (searchInput) {
-      searchInput.addEventListener('focus', function() {
-        if (chevron && !dropdown.classList.contains('show')) {
-          chevron.style.transform = 'translateY(-50%) rotate(180deg)';
-        }
-      });
-    }
-
-    dropdown.addEventListener('show.bs.dropdown', () => {
-      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
-    });
-    dropdown.addEventListener('hide.bs.dropdown', () => {
-      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
-    });
-
-    // Close when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show'); 
-        if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
-      }
-    });
-  });
-});
-
 $(document).ready(function () {
-    const $treePanel = $('#parentNodeDropdown');
-    const $treeSearch = $('#treeSearch');
-
-    if ($treePanel.length) {
-      $treePanel.jstree({
-        core: {
-            data: {
-                url: '/line-tree-data',
-                dataType: 'json'
-            },
-            themes: {
-                  stripes: true,
-                  icons: false
-            }
-        },
-        plugins: ["search"] // enable search
-    })
-    .on("select_node.jstree", function (e, data) {
-        // Store node text
-        $('#parent_node_input').val(data.node.text);
-          $treeSearch.val(data.node.text); 
-
-          $treePanel.removeClass('open');
-
-      });
-
-      if ($treeSearch.length) {
-        $treeSearch
-        .on('focus', function () {
-              $treePanel.addClass('open');
-        })
-        .on('keyup', function () {
-              $treePanel.jstree(true).search($(this).val());
-        });
-      }
-
-    // Hide dropdown when clicking outside
-    $(document).click(function(e) {
-          if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
-              $treePanel.removeClass('open');
-          }
-      });
-    }
-
-    // Profile dropdown handler - must run before generic handler
-    const profileDropdown = document.querySelector('#profile-list')?.closest('.dropdown');
-    const profileInput = document.getElementById('profile-input');
-    const profileList = document.getElementById('profile-list');
-    const profileHidden = document.getElementById('profile-hidden');
-    const profileChevron = profileDropdown?.querySelector('.dropdown-chevron');
-
-    if (profileDropdown && profileInput && profileList) {
-      // Mark this dropdown as static to prevent generic handler from interfering
-      profileDropdown.setAttribute('data-static-dropdown', 'true');
-      
-      profileInput.addEventListener('focus', function(e) {
-        e.stopPropagation();
-        profileDropdown.classList.add('show');
-        if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(180deg)';
-      }, true);
-
-      profileInput.addEventListener('input', function(e) {
-        e.stopPropagation();
-        const term = this.value.toLowerCase();
-        const items = profileList.querySelectorAll('.dropdown-item');
-        items.forEach(item => {
-          item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
-        });
-      }, true);
-
-      profileList.addEventListener('click', function(e) {
-        if (e.target && e.target.matches('.dropdown-item')) {
-          profileInput.value = e.target.textContent;
-          if (profileHidden) profileHidden.value = e.target.getAttribute('data-value');
-          profileDropdown.classList.remove('show');
-          if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(0deg)';
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      }, true);
-
-      // Close when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!profileDropdown.contains(e.target)) {
-          profileDropdown.classList.remove('show');
-          if (profileChevron) profileChevron.style.transform = 'translateY(-50%) rotate(0deg)';
-        }
+  const $treePanel = $('#parentNodeDropdown');
+  const $treeSearch = $('#treeSearch');
+  if ($treePanel.length) {
+    $treePanel.jstree({
+      core: {
+        data: { url: '/line-tree-data', dataType: 'json' },
+        themes: { stripes: true, icons: false }
+      },
+      plugins: ["search"]
+    }).on("select_node.jstree", function (e, data) {
+      $treeSearch.val(data.node.text);
+      $treePanel.removeClass('open');
     });
+    if ($treeSearch.length) {
+      $treeSearch.on('focus', function () {
+        $treePanel.addClass('open');
+      }).on('keyup', function () {
+        $treePanel.jstree(true).search($(this).val());
+      });
     }
+    $(document).click(function(e) {
+      if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
+        $treePanel.removeClass('open');
+      }
+    });
+  }
 });
 
-</script>
+document.getElementById('profile-hidden').addEventListener('change', function () {
+  const label = document.getElementById('odProfile');
+  const text = this.options[this.selectedIndex].text;
+  if (label) label.textContent = this.value ? text : 'Сонгоогүй';
+});
 
-{% endblock %} 
+(function () {
+  const rows = Array.from(document.querySelectorAll('#odBody .odreg-row'));
+  const sizeSelect = document.getElementById('odPageSize');
+  const range = document.getElementById('odRangeText');
+  const pager = document.getElementById('odPager');
+  let page = 1;
+  function render() {
+    const size = Number(sizeSelect.value) || 15;
+    const pages = Math.max(1, Math.ceil(rows.length / size));
+    if (page > pages) page = pages;
+    const start = (page - 1) * size;
+    rows.forEach((row, index) => {
+      row.hidden = index < start || index >= start + size;
+      const num = row.querySelector('.odreg-index');
+      if (num) num.textContent = String(index + 1);
+    });
+    range.textContent = rows.length ? (start + 1) + ' - ' + Math.min(start + size, rows.length) : '0';
+    pager.innerHTML = '';
+    const prev = document.createElement('button');
+    prev.type = 'button';
+    prev.className = 'odreg-page';
+    prev.textContent = '‹';
+    prev.disabled = page === 1;
+    prev.addEventListener('click', () => { page -= 1; render(); });
+    pager.appendChild(prev);
+    for (let i = 1; i <= pages; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'odreg-page' + (i === page ? ' is-on' : '');
+      btn.textContent = String(i);
+      btn.addEventListener('click', () => { page = i; render(); });
+      pager.appendChild(btn);
+    }
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'odreg-page';
+    next.textContent = '›';
+    next.disabled = page === pages;
+    next.addEventListener('click', () => { page += 1; render(); });
+    pager.appendChild(next);
+  }
+  sizeSelect.addEventListener('change', () => { page = 1; render(); });
+  document.getElementById('odRefresh').addEventListener('click', () => location.reload());
+  document.getElementById('odExport').addEventListener('click', () => {
+    const lines = [['meter', 'comm', 'type', 'module', 'line', 'status', 'registration', 'result']];
+    rows.forEach((row) => {
+      const cells = Array.from(row.querySelectorAll('td')).map((cell) => cell.innerText.replace(/\s+/g, ' ').trim());
+      lines.push([cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], cells[8], cells[9]]);
+    });
+    const csv = lines.map((line) => line.map((value) => '"' + String(value || '').replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'ondemand-reading.csv';
+    link.click();
+  });
+  render();
+})();
+</script>
+{% endblock %}

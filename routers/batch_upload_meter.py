@@ -1,15 +1,49 @@
 import sqlite3
 import json
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from services.database import get_db_connection
+from services.state import connected_clients
 from utils.utility_functions import require_permission, template_response
 
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
+
+
+def _batch_context(request: Request) -> dict:
+    conn = get_db_connection()
+    try:
+        dcus = [
+            str(row["dcu_number"])
+            for row in conn.execute(
+                """
+                SELECT dcu_number FROM registered_dcus
+                WHERE dcu_number IS NOT NULL AND dcu_number != ''
+                ORDER BY dcu_number
+                """
+            )
+            if row["dcu_number"]
+        ]
+    except sqlite3.Error:
+        dcus = []
+    try:
+        line_count = conn.execute("SELECT COUNT(*) AS c FROM lines").fetchone()["c"]
+    except sqlite3.Error:
+        line_count = 0
+    conn.close()
+    online_keys = {str(key) for key in connected_clients.keys()}
+    return {
+        "request": request,
+        "dcus": dcus,
+        "dcu_total": len(dcus),
+        "dcu_online": sum(1 for number in dcus if number in online_keys),
+        "line_count": line_count,
+        "page_time": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
+    }
 
 
 @router.get("/batch-upload-meter", response_class=HTMLResponse)
@@ -18,7 +52,7 @@ async def batch_upload_meter(
     user: dict = Depends(require_permission("Archive"))
 ):
     """Initial batch upload page where user selects device type and uploads Excel file."""
-    return template_response(request, "batch_upload.html", {"request": request})
+    return template_response(request, "batch_upload.html", _batch_context(request))
 
 
 @router.get("/batch-upload-device-type", response_class=HTMLResponse)
@@ -27,7 +61,7 @@ async def batch_upload_device_type(
     user: dict = Depends(require_permission("Archive"))
 ):
     """Device type configuration page (step 2)."""
-    return template_response(request, "batch_upload_device_type.html", {"request": request})
+    return template_response(request, "batch_upload_device_type.html", _batch_context(request))
 
 
 @router.get("/step2", response_class=HTMLResponse)
@@ -38,17 +72,9 @@ async def step2(
     """Result/confirmation page (step 3) showing which meters are already installed vs new."""
     # Get meter data from query params or use defaults
     # The actual data will be loaded from localStorage on the client side
-    return template_response(
-        request,
-        "batch_upload_result.html",
-        {
-            "request": request,
-            "add_success": 0,
-            "update_success": 0,
-            "failed": 0,
-            "total": 0,
-        }
-    )
+    context = _batch_context(request)
+    context.update({"add_success": 0, "update_success": 0, "failed": 0, "total": 0})
+    return template_response(request, "batch_upload_result.html", context)
 
 
 @router.post("/next_step")
@@ -176,9 +202,12 @@ async def install_meters(
         type_idx = None
         password_idx = None
         remarks_idx = None
+        ct_idx = None
+        vt_idx = None
+        line_idx = None
         
         for i, header in enumerate(headers):
-            header_lower = str(header).lower() if header else ""
+            header_lower = str(header).lower().strip() if header else ""
             if "тоолуурын дугаар" in header_lower or "meter_number" in header_lower or "meter number" in header_lower:
                 meter_number_idx = i
                 print("meter_number_idx", meter_number_idx) 
@@ -193,6 +222,12 @@ async def install_meters(
                 password_idx = i
             elif "тайлбар" in header_lower or "remarks" in header_lower or "тэмдэглэл" in header_lower:
                 remarks_idx = i
+            elif "ct" in header_lower:
+                ct_idx = i
+            elif "vt" in header_lower:
+                vt_idx = i
+            elif "шугам" in header_lower or header_lower == "line":
+                line_idx = i
         
         if meter_number_idx is None:
             return JSONResponse(
@@ -246,6 +281,23 @@ async def install_meters(
                 if remarks_idx is not None and len(row) > remarks_idx and row[remarks_idx]
                 else None
             )
+            meter_line = (
+                str(row[line_idx]).strip()
+                if line_idx is not None and len(row) > line_idx and row[line_idx]
+                else None
+            )
+
+            def _ratio(index):
+                if index is None or len(row) <= index or row[index] in (None, ""):
+                    return 1
+                try:
+                    value = int(float(row[index]))
+                except (TypeError, ValueError):
+                    return 1
+                return value or 1
+
+            meter_ct = _ratio(ct_idx)
+            meter_vt = _ratio(vt_idx)
             
             # Determine if PLC meter and validate DCU
             meter_type_normalized = meter_device_type.strip().lower() if meter_device_type else ""
@@ -266,8 +318,8 @@ async def install_meters(
                 cursor.execute(
                     """
                     INSERT INTO installed_meters
-                    (meter_number, com_address, password, device_type, type, status, remarks, CT_ratio, VT_ratio, DCU_number)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (meter_number, com_address, password, device_type, type, status, remarks, line, CT_ratio, VT_ratio, DCU_number)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         meter_number,
@@ -277,8 +329,9 @@ async def install_meters(
                         meter_type,
                         status,
                         meter_remarks,
-                        1,  # Default CT_ratio
-                        1,  # Default VT_ratio
+                        meter_line,
+                        meter_ct,
+                        meter_vt,
                         dcu_value,
                     ),
                 )
@@ -302,7 +355,7 @@ async def install_meters(
                         """
                         UPDATE installed_meters
                         SET com_address = ?, password = ?, device_type = ?, type = ?, 
-                            remarks = ?, DCU_number = ?
+                            remarks = ?, line = ?, CT_ratio = ?, VT_ratio = ?, DCU_number = ?
                         WHERE meter_number = ?
                         """,
                         (
@@ -311,6 +364,9 @@ async def install_meters(
                             meter_device_type,
                             meter_type,
                             meter_remarks,
+                            meter_line,
+                            meter_ct,
+                            meter_vt,
                             dcu_value,
                             meter_number,
                         ),

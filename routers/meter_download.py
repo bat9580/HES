@@ -64,13 +64,19 @@ async def meter_download(
 
     dcu_rows = _safe_fetch_all(
         conn,
-        "SELECT dcu_number, status FROM registered_dcus ORDER BY dcu_number",
+        "SELECT dcu_number, status, remarks FROM registered_dcus ORDER BY dcu_number",
     )
+    if not dcu_rows:
+        dcu_rows = _safe_fetch_all(
+            conn,
+            "SELECT dcu_number, status FROM registered_dcus ORDER BY dcu_number",
+        )
 
     dcu_list: List[Dict[str, Optional[str]]] = [
         {
             "number": row["dcu_number"],
             "status": (row["status"] or "").lower(),
+            "remarks": (row["remarks"] or "") if "remarks" in row.keys() else "",
             "active": False,
         }
         for row in dcu_rows
@@ -112,7 +118,8 @@ async def meter_download(
             "point_no": row["point_number"] if row["point_number"] is not None else 0, 
             "comm_address": row["com_address"],
             "meter_number": row["meter_number"],
-            "meter_type": row["type"] or row["device_type"],
+            "meter_type": row["type"] or "",
+            "device_type": row["device_type"] or "",
             "downloaded": row["downloaded_to_dcu"] == 1,
             "online": (row["online_status"] or "").lower() == "online", 
             "result": None,  # Result field should only show download operation results, not installation status

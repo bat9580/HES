@@ -1,345 +1,297 @@
 {% extends "base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/read-emx.css?v=3">
+{% endblock %}
 {% block content %}
 {% if message %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    showToast('{{ message }}', 'success');
-  }, 300);
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
 });
 </script>
-{% endif %} 
+{% endif %}
 
-
-<!-- Parameters Section -->
-<section class="parameter-panel card p-4 mb-4">
-  <div class="parameter-panel__header">
+<div class="rreg">
+  <div class="rreg-head">
     <div>
-      <h2 class="page-title mb-4">Тоолуураас шууд унших</h2>
-      <small>Шаардлагатай параметрүүдийг сонгоод уншилт хий.</small>
+      <nav class="rreg-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Шууд унших</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Тоолуурын параметр</span>
+      </nav>
+      <div class="rreg-title-row">
+        <h1 class="rreg-title">Тоолуураас шууд унших</h1>
+        <span class="rreg-pill"><span class="rreg-dot"></span>DLMS/COSEM</span>
+      </div>
+      <p class="rreg-sub">Шаардлагатай параметрүүдийг сонгоод уншилт хий.</p>
+    </div>
+    <div class="rreg-actions">
+      <button class="rreg-btn" type="button" disabled title="Одоогоор боломжгүй"><span class="material-symbols-outlined">history</span>Уншилтын түүх</button>
+      <button class="rreg-btn" id="rregRefresh" type="button"><span class="material-symbols-outlined">sync</span>Шинэчлэх</button>
     </div>
   </div>
 
-  <div class="accordion parameter-accordion" id="parameterAccordion">
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingEnergy">
-        <button class="accordion-button parameter-accordion-btn" type="button"
-                data-bs-toggle="collapse" data-bs-target="#collapseEnergy"
-                aria-expanded="true" aria-controls="collapseEnergy">
-          <i class="bi bi-lightning-charge"></i> <span>Энергийн утга унших</span>
-        </button>
-      </h2>
-      <div id="collapseEnergy" class="accordion-collapse collapse"
-           aria-labelledby="headingEnergy" data-bs-parent="#parameterAccordion">
-        <div class="accordion-body parameter-grid">
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="1.8.0">
-            <span>Нийт импортын актив энерги (1.8.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="1.8.1">
-            <span>Импортын актив энерги T1 (1.8.1)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="1.8.2">
-            <span>Импортын актив энерги T2 (1.8.2)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="1.8.3">
-            <span>Импортын актив энерги T3 (1.8.3)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="2.8.0">
-            <span>Нийт экспортын актив энерги (2.8.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="2.8.1">
-            <span>Экспортын актив энерги T1 (2.8.1)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="2.8.2">
-            <span>Экспортын актив энерги T2 (2.8.2)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="2.8.3">
-            <span>Экспортын актив энерги T3 (2.8.3)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="3.8.0">
-            <span>Нийт импортын реактив энерги (3.8.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="3.8.1">
-            <span>Импортын реактив энерги T1 (3.8.1)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="3.8.2">
-            <span>Импортын реактив энерги T2 (3.8.2)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="3.8.3">
-            <span>Импортын реактив энерги T3 (3.8.3)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="4.8.0">
-            <span>Нийт экспортын реактив энерги (4.8.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="4.8.1">
-            <span>Экспортын реактив энерги T1 (4.8.1)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="4.8.2">
-            <span>Экспортын реактив энерги T2 (4.8.2)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="4.8.3">
-            <span>Экспортын реактив энерги T3 (4.8.3)</span>
-          </label>
-        </div>
+  <div class="rreg-kpis">
+    <div class="rreg-kpi">
+      <div>
+        <div class="rreg-kpi-label">Нийт тоолуур</div>
+        <div class="rreg-kpi-value">{{ meter_total }}</div>
+        <div class="rreg-kpi-note">Энэ жагсаалт</div>
       </div>
+      <div class="rreg-kpi-icon"><span class="material-symbols-outlined">tag</span></div>
     </div>
-
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingInstant">
-        <button class="accordion-button collapsed parameter-accordion-btn" type="button"
-                data-bs-toggle="collapse" data-bs-target="#collapseInstant"
-                aria-expanded="false" aria-controls="collapseInstant">
-          <i class="bi bi-activity"></i> Агшин зуурын утга унших
-        </button>
-      </h2>
-      <div id="collapseInstant" class="accordion-collapse collapse"
-           aria-labelledby="headingInstant" data-bs-parent="#parameterAccordion">
-        <div class="accordion-body parameter-grid">
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="32.7.0">
-            <span>A фазын хүчдэл(32.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="52.7.0">
-            <span>Б фазын хүчдэл(52.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="72.7.0">
-            <span>С фазын хүчдэл(72.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="31.7.0">
-            <span>A фазын гүйдэл(31.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="51.7.0">
-            <span>Б фазын гүйдэл(51.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="71.7.0">
-            <span>С фазын гүйдэл(71.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="15.7.0">
-            <span>Нийт актив чадал(15.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="21.7.0">
-            <span>A фазын актив чадал(21.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="41.7.0">
-            <span>Б фазын актив чадал(41.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="61.7.0">
-            <span>С фазын актив чадал(61.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="3.7.0">
-            <span>Нийт реактив чадал(3.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="23.7.0">
-            <span>A фазын реактив чадал(23.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="43.7.0">
-            <span>Б фазын реактив чадал(43.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="63.7.0">
-            <span>С фазын реактив чадал(63.7.0)</span>
-          </label>
-          <label class="parameter-check">
-            <input type="checkbox" class="parameter-checkbox" value="14.7.0">
-            <span>Давтамж (14.7.0)</span>
-          </label>
-        </div>
+    <div class="rreg-kpi">
+      <div>
+        <div class="rreg-kpi-label">Онлайн холболт</div>
+        <div class="rreg-kpi-value ok">{{ online_count }}<span style="font-size:14px;color:var(--emx-muted)"> / {{ meter_total }}</span></div>
+        <div class="rreg-kpi-note">Холбогдсон клиент</div>
       </div>
+      <div class="rreg-kpi-icon"><span class="material-symbols-outlined">wifi_tethering</span></div>
+    </div>
+    <div class="rreg-kpi">
+      <div>
+        <div class="rreg-kpi-label">Офлайн</div>
+        <div class="rreg-kpi-value">{{ offline_count }}</div>
+        <div class="rreg-kpi-note">Одоо холбогдоогүй</div>
+      </div>
+      <div class="rreg-kpi-icon"><span class="material-symbols-outlined">rule</span></div>
+    </div>
+    <div class="rreg-kpi">
+      <div>
+        <div class="rreg-kpi-label">DLMS суваг</div>
+        <div class="rreg-kpi-value sm">{{ dcu_online }} / {{ dcu_total }}</div>
+        <div class="rreg-kpi-note">Онлайн DCU / жагсаалт дахь DCU</div>
+      </div>
+      <div class="rreg-kpi-icon"><span class="material-symbols-outlined">hub</span></div>
+    </div>
+  </div>
+
+  <div class="rreg-panels">
+    <details class="rreg-panel" open>
+      <summary class="rreg-panel-head">
+        <div>
+          <h2>Энергийн утга унших</h2>
+          <p>Импорт, экспорт, актив ба реактив энерги</p>
+        </div>
+        <span class="rreg-chip">1.8.0 – 4.8.3</span>
+        <span class="material-symbols-outlined rreg-chevron">expand_more</span>
+      </summary>
+      <div class="rreg-grid">
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="1.8.0"><span>Нийт импортын актив энерги (1.8.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="1.8.1"><span>Импортын актив энерги T1 (1.8.1)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="1.8.2"><span>Импортын актив энерги T2 (1.8.2)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="1.8.3"><span>Импортын актив энерги T3 (1.8.3)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="2.8.0"><span>Нийт экспортын актив энерги (2.8.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="2.8.1"><span>Экспортын актив энерги T1 (2.8.1)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="2.8.2"><span>Экспортын актив энерги T2 (2.8.2)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="2.8.3"><span>Экспортын актив энерги T3 (2.8.3)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="3.8.0"><span>Нийт импортын реактив энерги (3.8.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="3.8.1"><span>Импортын реактив энерги T1 (3.8.1)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="3.8.2"><span>Импортын реактив энерги T2 (3.8.2)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="3.8.3"><span>Импортын реактив энерги T3 (3.8.3)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="4.8.0"><span>Нийт экспортын реактив энерги (4.8.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="4.8.1"><span>Экспортын реактив энерги T1 (4.8.1)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="4.8.2"><span>Экспортын реактив энерги T2 (4.8.2)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="4.8.3"><span>Экспортын реактив энерги T3 (4.8.3)</span></label>
+      </div>
+    </details>
+    <details class="rreg-panel" open>
+      <summary class="rreg-panel-head">
+        <div>
+          <h2>Агшин зуурын утга унших</h2>
+          <p>Хүчдэл, гүйдэл, чадал, давтамж</p>
+        </div>
+        <span class="rreg-chip">32.7.0 – 14.7.0</span>
+        <span class="material-symbols-outlined rreg-chevron">expand_more</span>
+      </summary>
+      <div class="rreg-grid">
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="32.7.0"><span>A фазын хүчдэл(32.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="52.7.0"><span>Б фазын хүчдэл(52.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="72.7.0"><span>С фазын хүчдэл(72.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="31.7.0"><span>A фазын гүйдэл(31.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="51.7.0"><span>Б фазын гүйдэл(51.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="71.7.0"><span>С фазын гүйдэл(71.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="15.7.0"><span>Нийт актив чадал(15.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="21.7.0"><span>A фазын актив чадал(21.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="41.7.0"><span>Б фазын актив чадал(41.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="61.7.0"><span>С фазын актив чадал(61.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="3.7.0"><span>Нийт реактив чадал(3.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="23.7.0"><span>A фазын реактив чадал(23.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="43.7.0"><span>Б фазын реактив чадал(43.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="63.7.0"><span>С фазын реактив чадал(63.7.0)</span></label>
+        <label class="rreg-check"><input type="checkbox" class="parameter-checkbox" value="14.7.0"><span>Давтамж (14.7.0)</span></label>
+      </div>
+    </details>
+  </div>
+
+  <div class="rreg-card rreg-filters">
+    <form method="get" action="/meter-parameter">
+      <div class="dropdown">
+        <input type="text" class="dropdown-search-input" name="meter_number" id="meterSearchInput" placeholder="Тоолуур хайх (Дугаар, КОММ хаяг...)" autocomplete="off" value="{{ meter_number | default('') }}">
+        <ul id="installed-meter-list" class="dropdown-menu" aria-labelledby="deviceDropdown"></ul>
+        <input type="hidden" name="device_type">
+      </div>
+      <div class="line-dropdown-wrapper">
+        <input type="text" id="treeSearch" name="line" class="line-search-input" placeholder="Шугам сонгох..." value="{{ line | default('') }}" autocomplete="off">
+        <div id="parentNodeDropdown" class="line-tree-panel"></div>
+      </div>
+      <select name="dcu_number">
+        <option value="">Дэд станц / DCU (Бүгд)</option>
+        {% for dcu in dcu_options or [] %}
+        <option value="{{ dcu }}" {% if dcu_number == dcu %}selected{% endif %}>{{ dcu }}</option>
+        {% endfor %}
+      </select>
+      <button class="rreg-icon" type="submit" title="Хайлт хийх"><span class="material-symbols-outlined">search</span></button>
+      <button class="rreg-btn primary" id="read-button" type="button"><span class="material-symbols-outlined">bolt</span>Унших</button>
+      <button class="rreg-btn" id="rregClear" type="button"><span class="material-symbols-outlined">clear_all</span>Цэвэрлэх</button>
+      <button class="rreg-btn" id="rregExport" type="button"><span class="material-symbols-outlined">ios_share</span>Экспорт</button>
+    </form>
+  </div>
+
+  <div class="rreg-card">
+    <div class="rreg-table-wrap">
+      <table class="rreg-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="select-all-meters"></th>
+            <th>#</th>
+            <th>Тоолуурын дугаар</th>
+            <th>Комм хаяг</th>
+            <th>Төрөл</th>
+            <th>CT харьцаа</th>
+            <th>VT харьцаа</th>
+            <th>Шугам</th>
+            <th>Тайлбар</th>
+            <th>Төлөв</th>
+            <th>Үр дүн</th>
+          </tr>
+        </thead>
+        <tbody id="rregBody">
+          {% for meter in installed_meters %}
+          <tr class="rreg-row" data-meter="{{ meter['meter_number'] }}">
+            <td><input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}"></td>
+            <td class="rreg-index">{{ loop.index }}</td>
+            <td>
+              <span class="rreg-num">{{ meter['meter_number'] }}</span>
+              <button class="rreg-copy" type="button" data-copy="{{ meter['meter_number'] }}" title="Хуулах"><span class="material-symbols-outlined" style="font-size:14px">content_copy</span></button>
+            </td>
+            <td>{{ meter['com_address'] or '—' }}</td>
+            <td>{{ meter['device_type'] or '—' }}{% if meter['type'] %} · {{ meter['type'] }}{% endif %}</td>
+            <td>{{ meter['CT_ratio'] if meter['CT_ratio'] is not none else '—' }}</td>
+            <td>{{ meter['VT_ratio'] if meter['VT_ratio'] is not none else '—' }}</td>
+            <td>{% if meter['line'] %}{{ meter['line'] }}{% else %}<span class="rreg-muted">—</span>{% endif %}</td>
+            <td>{{ meter['remarks'] or '—' }}</td>
+            <td>
+              {% if meter['device_type'] == 'PLC Meter' %}
+                {% if meter['dcu_number']|int in connected_clients %}
+                <span class="rreg-badge ok">ONLINE</span>
+                {% else %}
+                <span class="rreg-badge off">OFFLINE</span>
+                {% endif %}
+              {% elif (meter['type'] or '')|lower == 'ddsd285_2018' or 'esp32' in (meter['device_type'] or '')|lower %}
+                {% if meter['dcu_number'] and (meter['dcu_number'] in connected_clients) %}
+                <span class="rreg-badge ok">ONLINE</span>
+                {% else %}
+                <span class="rreg-badge off">OFFLINE</span>
+                {% endif %}
+              {% else %}
+                {% if meter['meter_number']|int in connected_clients %}
+                <span class="rreg-badge ok">ONLINE</span>
+                {% else %}
+                <span class="rreg-badge off">OFFLINE</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td class="rreg-result">
+              <span class="rreg-wait">—</span>
+              <button class="rreg-result-btn d-none result-button" id="result-{{ meter['meter_number'] }}" data-meter="{{ meter['meter_number'] }}" onclick="showResultModal(this)" type="button">Үр дүн</button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="11" class="rreg-muted">Тоолуур олдсонгүй.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="rreg-foot">
+      <span>Нийт <strong>{{ meter_total }}</strong> · <span id="rregRange">—</span></span>
+      <span>
+        Хуудсанд:
+        <select id="rregPageSize">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+        </select>
+        <span id="rregPager"></span>
+      </span>
+    </div>
+  </div>
+
+  <div class="rreg-audit">
+    <span>DLMS/COSEM · {{ meter_total }} тоолуур · {{ online_count }} онлайн · {{ dcu_online }} / {{ dcu_total }} DCU</span>
+    <span>Жагсаалт: {{ page_time }} UTC+8</span>
   </div>
 </div>
-</section>
-<div class="p-4">
+<script>
+(function () {
+  const rows = Array.from(document.querySelectorAll('#rregBody .rreg-row'));
+  const sizeSelect = document.getElementById('rregPageSize');
+  const pager = document.getElementById('rregPager');
+  const range = document.getElementById('rregRange');
+  let page = 1;
+  function pageSize() { return Number(sizeSelect.value) || 25; }
+  function render() {
+    const size = pageSize();
+    const pages = Math.max(1, Math.ceil(rows.length / size) || 1);
+    if (page > pages) page = pages;
+    const start = (page - 1) * size;
+    rows.forEach((row, index) => {
+      row.hidden = index < start || index >= start + size;
+      const num = row.querySelector('.rreg-index');
+      if (num) num.textContent = String(index + 1);
+    });
+    range.textContent = rows.length ? (start + 1) + '-' + Math.min(start + size, rows.length) : '0';
+    pager.innerHTML = '';
+    for (let i = 1; i <= pages; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rreg-page' + (i === page ? ' is-on' : '');
+      btn.textContent = String(i);
+      btn.addEventListener('click', () => { page = i; render(); });
+      pager.appendChild(btn);
+    }
+  }
+  sizeSelect.addEventListener('change', () => { page = 1; render(); });
+  document.getElementById('rregRefresh').addEventListener('click', () => location.reload());
+  document.getElementById('rregClear').addEventListener('click', () => {
+    document.querySelectorAll('.meter-checkbox').forEach((box) => { box.checked = false; });
+    const all = document.getElementById('select-all-meters');
+    if (all) { all.checked = false; all.indeterminate = false; }
+  });
+  document.getElementById('rregExport').addEventListener('click', () => {
+    const lines = [['meter', 'comm', 'type', 'ct', 'vt', 'line', 'remarks', 'status']];
+    rows.forEach((row) => {
+      const cells = Array.from(row.querySelectorAll('td')).map((cell) => cell.innerText.replace(/\s+/g, ' ').trim());
+      lines.push([cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], cells[8], cells[9]]);
+    });
+    const csv = lines.map((line) => line.map((value) => '"' + String(value || '').replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'meter-read-list.csv';
+    link.click();
+  });
+  document.querySelectorAll('.rreg-copy').forEach((btn) => {
+    btn.addEventListener('click', () => navigator.clipboard.writeText(btn.dataset.copy || ''));
+  });
+  render();
+})();
+</script>
 
-  <div class="filter-bar-container">
-    <form method = "GET" action = "/search-meter-parameter" class="filter-bar">
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="meter_number"
-                 placeholder="Тоолуур хайх"
-                 autocomplete="off"
-                 value="{{ meter_number | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="installed-meter-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="device_type" required>
-      </div>
-    </div>
-    <div class="col-md-2">
-      <div class="line-dropdown-wrapper w-100">
-        <div class="line-dropdown-shell">
-          <input type="text" 
-                 id="treeSearch"
-                 name="line"
-                 class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
-                 placeholder="Шугам сонгох..."
-                 value="{{ line | default('') }}"
-                 autocomplete="off">
-          <span class="dropdown-chevron line-dropdown-icon">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          <div id="parentNodeDropdown" class="line-tree-panel"></div>
-        </div>
-      </div>
-    </div>
-    <!-- <div class="col-md-2">
-      <select class="form-select"
-      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-        <option value="">type</option>
-        <option value="DTS545S">DTS545S</option> 
-        <option value="DDSY283SR">DDSY283SR</option>   
-      </select>
-    </div>
-    <div class="col-md-2">
-      <select class="form-select" name="device_type" 
-      style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-        <option value="">Device type</option> 
-        <option value="GPRS Meter">GPRS Meter</option>
-        <option value="PLC Meter">PLC Meter</option>
-      </select>
-    </div> -->
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
-      </button>
-    </div>
-
-    <div class="col-md-auto" style="width: 4.166666%;"> 
-        <button type="button" id="read-button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
-          <i class="bi bi-book"></i>
-        </button>
-    </div>
-  </form>
-  </div>
-
-  <table class="table table-bordered">
-    <thead class="table-light">
-      <tr>
-        <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;"><input type="checkbox" id="select-all-meters"></th>
-        <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">#</th>
-        <th>Тоолуурын дугаар</th>
-        <th>Комм хаяг</th> 
-        <th>Төрөл</th> 
-        <th>CT харьцаа</th>
-        <th>VT харьцаа</th> 
-        <th>Шугам</th> 
-        <th>Тайлбар</th>
-        <th>Төлөв</th>
-        <th>Үр дүн</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for meter in installed_meters %}
-      <tr>
-        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">
-            <input type="checkbox" class="meter-checkbox" value="{{ meter['meter_number'] }}">
-        </td>
-        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">{{ loop.index }}</td>
-        <td>{{ meter['meter_number'] }}</td>
-        <td>{{ meter['com_address'] }}</td> 
-        <td>{{ meter['device_type'] }}</td>
-        <td>{{ meter['CT_ratio'] }}</td>
-        <td>{{ meter['VT_ratio'] }}</td>
-        <td>{{ meter['line'] }}</td>
-        <td>{{ meter['remarks'] or '-' }}</td>
-        <td>
-          {%if meter['device_type'] == 'PLC Meter' %}
-
-            {% if meter['dcu_number']|int in connected_clients %}   
-            <span class="badge bg-success">Online</span> 
-            {% else %}
-            <span class="badge bg-secondary">Offline</span>
-            {% endif %}
-          {% elif (meter['type'] or '')|lower == 'ddsd285_2018' or 'esp32' in (meter['device_type'] or '')|lower %}
-            {% if meter['dcu_number'] and (meter['dcu_number'] in connected_clients) %}
-            <span class="badge bg-success">Online</span>
-            {% else %}
-            <span class="badge bg-secondary">Offline</span>
-            {% endif %}
-          {% else %} 
-            {% if meter['meter_number']|int in connected_clients %}   
-            <span class="badge bg-success">Online</span> 
-            {% else %}
-            <span class="badge bg-secondary">Offline</span>
-            {% endif %}
-          {% endif %} 
-        </td>
-        
-        <td>
-          <!-- result will be displayed here  --> 
-             <button class="btn btn-sm btn-outline-primary d-none result-button" 
-          id="result-{{ meter['meter_number'] }}" 
-          data-meter="{{ meter['meter_number'] }}" 
-          onclick="showResultModal(this)">
-             Result
-           </button>
-           <span id="result-{{meter['meter_number']}}" ></span>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-<!-- add button form for meter adding  -->
-
-
-<!-- result button  -->
- <!-- <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="resultModalLabel">Meter Reading Result</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modal-body-content">
-        
-        
-      </div>
-    </div>
-  </div>
-</div> -->
 <div class="modal fade custom-modal" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content">

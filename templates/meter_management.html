@@ -1,183 +1,398 @@
 {% extends "base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<link rel="stylesheet" href="{{ url_for('static', path='meter-emx.css') }}?v=2">
+{% endblock %}
 {% block content %}
-<div class="p-4">
-  <div class="page-header mb-4">
-    <div class="page-header-text">
-      <h2 class="page-title mb-1">Бүртгэсэн тоолуурууд</h2>
-      <p class="page-header-sub">Тоолуурын мэдээллийг хайх, нэмэх, засах, устгах.</p>
-    </div>
-  </div>
-
-  <div class="filter-bar-container">
-    <form method = "GET" action = "/search-meter" class="filter-bar">
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="meter_number"
-                 placeholder="Тоолуур хайх"
-                 autocomplete="off"
-                 value="{{ meter_number | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
+{% set shown = registered_meters|length %}
+{% set online_pct = (meter_online / meter_total * 100) if meter_total else 0 %}
+{% set offline_pct = (meter_offline / meter_total * 100) if meter_total else 0 %}
+<div class="mreg">
+  <div class="mreg-head">
+    <div class="mreg-title-wrap">
+      <span class="mreg-accent"></span>
+      <div>
+        <div class="mreg-title-row">
+          <h1 class="mreg-title">Бүртгэсэн тоолуурууд</h1>
+          <span class="mreg-count">{{ meter_total }} төхөөрөмж</span>
         </div>
+        <p class="mreg-sub">Тоолуурын мэдээллийг хайх, нэмэх, засах, устгах болон DLMS/COSEM параметрүүдийг удирдах.</p>
       </div>
     </div>
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="status"
-                 placeholder="Status"
-                 autocomplete="off"
-                 value="{{ status | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="status-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="statusDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="Installed">Installed</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="Archived">Archived</a></li>
-        </ul>
-      </div>
-    </div>
-        <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="device_type"
-                 placeholder="Device type"
-                 autocomplete="off"
-                 value="{{ device_type | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="device-type-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="deviceTypeDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS meter">GPRS meter</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC meter">PLC meter</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="type"
-                 placeholder="type"
-                 autocomplete="off"
-                 value="{{ type | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="type-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="typeDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
+    <div class="mreg-actions">
+      <a class="mreg-btn" href="/batch-upload-meter">
+        <span class="material-symbols-outlined">file_upload</span>
+        <span>Багцаар импортлох</span>
+      </a>
+      <button class="mreg-btn" type="button" id="mregExport">
+        <span class="material-symbols-outlined">download</span>
+        <span>Экспорт</span>
+      </button>
+      <button class="mreg-btn primary" type="button" data-bs-toggle="modal" data-bs-target="#addMeterModal">
+        <span class="material-symbols-outlined">add</span>
+        <span>Тоолуур нэмэх</span>
       </button>
     </div>
-
-    <div class="col-md-auto" style="width: 4.166666%;"> 
-        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
-          <i class="bi bi-plus" aria-hidden="true"></i>
-        </button>
-    </div>
-    </form>
   </div>
 
-  <table class="table table-bordered">
-    <thead class="table-light">
-      <tr>
-        <th>#</th>
-        <th>Тоолуурын дугаар</th>
-        <th>Комм хаяг</th>
-        <th>Тоолуурын төрөл</th>
-        <th>Модулийн төрөл</th>
-        <th>Тайлбар</th>
-        <!-- <th>Бүртгэсэн</th> -->
-        <th>Бүртгэлийн төрөл</th>
-        <th>Үйлдэл</th> 
-      </tr>
-    </thead>
-    <tbody>
-      {% for meter in registered_meters %}
-      <tr>
-        <td>{{ loop.index }}</td>
-        <td>{{ meter['meter_number'] }}</td>
-        <td>{{ meter['com_address'] }}</td>
-        <td>{{ meter['type'] }}</td>
-        <td>{{ meter['device_type'] }}</td>
-        <td>{{ meter['remarks'] or '-' }}</td>
-        <!-- <td>{{ meter['created_by'] }}</td> -->
-        <td>
-          {% if meter['status'] == 'installed' %} 
-            <span class="badge bg-success text-white">Installed</span>
-          {% elif meter['status'] == 'Archived' %}
-            <span class="badge bg-secondary">Archived</span>
+  <div class="mreg-kpis">
+    <div class="mreg-kpi">
+      <span class="mreg-kpi-label"><span class="mreg-dot blue"></span>Нийт тоолуур</span>
+      <span class="mreg-kpi-value">{{ meter_total }}</span>
+    </div>
+    <div class="mreg-kpi">
+      <span class="mreg-kpi-label"><span class="mreg-dot green"></span>Холбогдсон</span>
+      <span class="mreg-kpi-value green">{{ meter_online }} <small>({{ "%.1f"|format(online_pct) }}%)</small></span>
+    </div>
+    <div class="mreg-kpi">
+      <span class="mreg-kpi-label"><span class="mreg-dot red"></span>Тасарсан / Офлайн</span>
+      <span class="mreg-kpi-value red">{{ meter_offline }} <small>({{ "%.1f"|format(offline_pct) }}%)</small></span>
+    </div>
+    <div class="mreg-kpi">
+      <span class="mreg-kpi-label"><span class="material-symbols-outlined" style="font-size:16px;color:var(--emx-tertiary);">verified</span>Суурилуулсан</span>
+      <span class="mreg-kpi-value">{{ meter_installed }}</span>
+    </div>
+  </div>
+
+  <form class="mreg-filters" method="GET" action="/search-meter">
+    <div class="mreg-filter-grid">
+      <div class="mreg-search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" name="q" value="{{ q|default('') }}" placeholder="Тоолуурын дугаар, КОММ хаяг, тайлбараар хайх..." autocomplete="off">
+        <span class="mreg-kbd">/</span>
+      </div>
+      <select name="status" aria-label="Төлөв">
+        <option value="">Төлөв: Бүгд</option>
+        <option value="installed" {% if status|lower == 'installed' %}selected{% endif %}>INSTALLED (Суурилуулсан)</option>
+        <option value="Archived" {% if status|lower == 'archived' %}selected{% endif %}>ARCHIVED (Архив)</option>
+      </select>
+      <select name="type" aria-label="Төрөл">
+        <option value="">Төрөл: Бүгд</option>
+        {% for opt in type_options %}
+        <option value="{{ opt }}" {% if meter_type == opt %}selected{% endif %}>{{ opt }}</option>
+        {% endfor %}
+      </select>
+      <select name="device_type" aria-label="Модуль">
+        <option value="">Модуль: Бүгд</option>
+        {% for opt in device_options %}
+        <option value="{{ opt }}" {% if device_type == opt %}selected{% endif %}>{{ opt }}</option>
+        {% endfor %}
+      </select>
+      <div class="mreg-filter-actions">
+        <a class="mreg-btn" href="/meter-management">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Цэвэрлэх</span>
+        </a>
+        <button class="mreg-btn primary" type="submit">
+          <span class="material-symbols-outlined">filter_list</span>
+          <span>Шүүх</span>
+        </button>
+      </div>
+    </div>
+    {% if q or status or device_type or meter_type %}
+    <div class="mreg-chips">
+      <span>Идэвхтэй:</span>
+      {% if q %}
+      <a class="mreg-chip" href="/search-meter?status={{ status|urlencode }}&amp;device_type={{ device_type|urlencode }}&amp;type={{ meter_type|urlencode }}">Хайх: {{ q }} <span class="material-symbols-outlined">close</span></a>
+      {% endif %}
+      {% if status %}
+      <a class="mreg-chip" href="/search-meter?q={{ q|urlencode }}&amp;device_type={{ device_type|urlencode }}&amp;type={{ meter_type|urlencode }}">Төлөв: {{ status }} <span class="material-symbols-outlined">close</span></a>
+      {% endif %}
+      {% if meter_type %}
+      <a class="mreg-chip" href="/search-meter?q={{ q|urlencode }}&amp;status={{ status|urlencode }}&amp;device_type={{ device_type|urlencode }}">Төрөл: {{ meter_type }} <span class="material-symbols-outlined">close</span></a>
+      {% endif %}
+      {% if device_type %}
+      <a class="mreg-chip" href="/search-meter?q={{ q|urlencode }}&amp;status={{ status|urlencode }}&amp;type={{ meter_type|urlencode }}">Модуль: {{ device_type }} <span class="material-symbols-outlined">close</span></a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </form>
+
+  <div class="mreg-batch">
+    <label for="selectAllHeader">
+      <input id="selectAllHeader" type="checkbox">
+      Сонгосон: <span id="mregSelectedCount">0</span> тоолуур
+    </label>
+    <div class="mreg-batch-actions">
+      <a class="mreg-mini" id="mregReadSelected" href="/meter-parameter">
+        <span class="material-symbols-outlined">electric_bolt</span>
+        <span>Шууд зайнаас унших</span>
+      </a>
+      <button class="mreg-mini" type="button" disabled title="Одоогоор боломжгүй">
+        <span class="material-symbols-outlined">upgrade</span>
+        <span>Програм хангамж шинэчлэх</span>
+      </button>
+      <button class="mreg-mini danger" type="button" id="mregDeleteSelected" title="Сонгосоныг устгах">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mreg-table-card">
+    <div class="mreg-table-scroll">
+      <table class="mreg-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="num">#</th>
+            <th>Тоолуурын дугаар</th>
+            <th>КОММ хаяг</th>
+            <th>Тоолуурын төрөл</th>
+            <th>Модуль / Сүлжээ</th>
+            <th style="text-align:right;">Сүүлийн уншилт</th>
+            <th>Тайлбар / Байршил</th>
+            <th style="text-align:center;">Төлөв</th>
+            <th style="text-align:right;">Үйлдэл</th>
+          </tr>
+        </thead>
+        <tbody id="mregBody">
+          {% for meter in registered_meters %}
+          {% set mid = meter['meter_number']|string %}
+          {% set status_l = (meter['status'] or '')|lower %}
+          {% set is_online = mid in online_numbers %}
+          {% set type_name = meter['type'] or '' %}
+          {% set is3 = type_name.upper().startswith('DTSD') %}
+          {% set rd = readings.get(mid) %}
+          <tr data-meter="{{ meter['meter_number'] }}" data-installed="{{ 'true' if status_l == 'installed' else 'false' }}" data-status="{{ meter['status'] or '' }}" data-type="{{ type_name }}" data-device="{{ meter['device_type'] or '' }}" data-addr="{{ meter['com_address'] or '' }}" data-remarks="{{ meter['remarks'] or '' }}">
+            <td class="num"><input class="mreg-check" type="checkbox" aria-label="Сонгох"></td>
+            <td class="num mreg-index">{{ loop.index }}</td>
+            <td>
+              <div class="mreg-id">
+                <span class="material-symbols-outlined {% if is3 %}phase3{% endif %}" title="{{ '3-фаз' if is3 else '1-фаз' }}">{{ 'looks_3' if is3 else 'looks_one' }}</span>
+                <span>{{ meter['meter_number'] }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="mreg-addr">
+                <span>{{ meter['com_address'] or '—' }}</span>
+                {% if meter['com_address'] %}
+                <button class="mreg-copy" type="button" data-copy="{{ meter['com_address'] }}" title="Хуулах">
+                  <span class="material-symbols-outlined">content_copy</span>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="mreg-type">
+                <span>{{ type_name or '—' }}</span>
+                <span class="mreg-proto">DLMS</span>
+              </div>
+            </td>
+            <td>
+              <div class="mreg-net {% if is_online %}ok{% else %}off{% endif %}">
+                <span class="material-symbols-outlined">{{ 'wifi' if is_online else 'wifi_off' }}</span>
+                <span>{{ meter['device_type'] or '—' }}</span>
+                {% if not is_online and meter_online %}<span class="mreg-off">Холболтгүй</span>{% endif %}
+              </div>
+            </td>
+            <td class="mreg-read">
+              {% if rd and rd.kwh is not none %}
+                {{ "{:,.2f}".format(rd.kwh) }} кВт·ц
+                <span>{{ rd.timestamp }}</span>
+              {% else %}
+                —
+                <span>уншилт алга</span>
+              {% endif %}
+            </td>
+            <td>{% if meter['remarks'] %}<span class="mreg-remark">{{ meter['remarks'] }}</span>{% else %}—{% endif %}</td>
+            <td style="text-align:center;">
+              {% if status_l == 'installed' %}
+              <span class="mreg-badge ok"><i></i>INSTALLED</span>
+              {% elif status_l == 'archived' %}
+              <span class="mreg-badge arch"><i></i>ARCHIVED</span>
+              {% else %}
+              <span class="mreg-badge arch"><i></i>{{ meter['status'] or '—' }}</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right;">
+              <div class="mreg-row-actions">
+                <a class="mreg-icon" href="/meter-parameter" title="Шууд унших">
+                  <span class="material-symbols-outlined">bolt</span>
+                </a>
+                <button class="mreg-icon" type="button" title="Засах"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editMeterModal"
+                        data-original-meter-number="{{ meter['meter_number'] }}"
+                        data-meter-number="{{ meter['meter_number'] }}"
+                        data-comm-address="{{ meter['com_address'] }}"
+                        data-device-type="{{ meter['device_type'] }}"
+                        data-type="{{ meter['type'] }}"
+                        data-password="{{ meter['password'] }}"
+                        data-remarks="{{ meter['remarks'] }}"
+                        data-status="{{ meter['status'] }}">
+                  <span class="material-symbols-outlined">edit_square</span>
+                </button>
+                <form method="POST" action="/delete-meter" class="delete-meter-form" data-is-installed="{{ 'true' if status_l == 'installed' else 'false' }}" style="display:inline;">
+                  <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}">
+                  <button type="submit" class="mreg-icon danger" title="Устгах">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
           {% else %}
-            <span class="badge bg-light text-muted">Unknown</span>
-          {% endif %}
-        </td>
-        <td>
-          <button class="btn btn-sm btn-secondary"  
-                  data-bs-toggle="modal" 
-                  data-bs-target="#editMeterModal" 
-                  data-original-meter-number="{{meter['meter_number']}}"  
-                  data-meter-number="{{meter['meter_number']}}"
-                  data-comm-address="{{ meter['com_address'] }}"
-                  data-device-type="{{ meter['device_type'] }}"
-                  data-type="{{ meter['type'] }}"
-                  data-password="{{ meter['password'] }}"
-                  data-remarks="{{ meter['remarks'] }}"
-                  data-status="{{ meter['status'] }}"> 
-                <i class="bi bi-pencil-square"></i>
-          </button> 
-          <!-- <button class="btn btn-sm btn-danger">🗑️ Delete</button> -->
-          <form method="POST" action="/delete-meter" style="display:inline;" class="delete-meter-form" data-is-installed="{{ 'true' if meter['status'] == 'installed' else 'false' }}">  
-            <input type="hidden" name="meter_number" value="{{ meter['meter_number'] }}"> 
-            <button type="submit" class="btn btn-sm btn-danger">
-                <i class="bi bi-trash"></i>
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          <tr><td colspan="10" class="mreg-empty">Тоолуур олдсонгүй.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="mreg-foot">
+      <div class="mreg-pagesize">
+        <span>Нийт <strong id="mregTotalShown">{{ shown }}</strong> тоолуураас <strong id="mregRange">—</strong> харуулж байна</span>
+        <span>Хуудсанд:</span>
+        <select id="mregPageSize" aria-label="Хуудсанд">
+          <option value="15" selected>15</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="mreg-pager" id="mregPager"></div>
+    </div>
+  </div>
 </div>
+
+<script>
+(function () {
+  const body = document.getElementById("mregBody");
+  if (!body) return;
+  const dataRows = function () {
+    return Array.prototype.filter.call(body.querySelectorAll("tr[data-meter]"), function () { return true; });
+  };
+  let page = 1;
+  let pageSize = 15;
+
+  function checkedRows() {
+    return dataRows().filter(function (row) {
+      const box = row.querySelector(".mreg-check");
+      return box && box.checked;
+    });
+  }
+
+  function updateCount() {
+    const count = checkedRows().length;
+    const label = document.getElementById("mregSelectedCount");
+    if (label) label.textContent = String(count);
+    const read = document.getElementById("mregReadSelected");
+    const del = document.getElementById("mregDeleteSelected");
+    if (read) read.classList.toggle("is-ready", count === 1);
+    if (del) del.classList.toggle("is-ready", count > 0);
+    const all = document.getElementById("selectAllHeader");
+    const boxes = dataRows().map(function (row) { return row.querySelector(".mreg-check"); }).filter(Boolean);
+    if (all) all.checked = boxes.length > 0 && boxes.every(function (box) { return box.checked; });
+  }
+
+  function paint() {
+    const rows = dataRows();
+    const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+    if (page > pages) page = pages;
+    rows.forEach(function (row, index) {
+      const visible = index >= (page - 1) * pageSize && index < page * pageSize;
+      row.hidden = !visible;
+      const num = row.querySelector(".mreg-index");
+      if (num) num.textContent = String(index + 1);
+    });
+    const start = rows.length ? (page - 1) * pageSize + 1 : 0;
+    const end = Math.min(page * pageSize, rows.length);
+    const range = document.getElementById("mregRange");
+    const total = document.getElementById("mregTotalShown");
+    if (range) range.textContent = rows.length ? (start + "-" + end) : "0";
+    if (total) total.textContent = String(rows.length);
+    const pager = document.getElementById("mregPager");
+    if (!pager) return;
+    pager.innerHTML = "";
+    function addBtn(text, target, disabled, current) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mreg-page" + (current ? " is-current" : "");
+      btn.textContent = text;
+      btn.disabled = !!disabled;
+      btn.addEventListener("click", function () {
+        page = target;
+        paint();
+      });
+      pager.appendChild(btn);
+    }
+    addBtn("‹", page - 1, page <= 1, false);
+    const windowStart = Math.max(1, page - 2);
+    const windowEnd = Math.min(pages, windowStart + 4);
+    for (let n = windowStart; n <= windowEnd; n += 1) addBtn(String(n), n, false, n === page);
+    addBtn("›", page + 1, page >= pages, false);
+  }
+
+  body.addEventListener("change", function (event) {
+    if (event.target && event.target.classList.contains("mreg-check")) updateCount();
+  });
+  const selectAll = document.getElementById("selectAllHeader");
+  if (selectAll) {
+    selectAll.addEventListener("change", function () {
+      dataRows().forEach(function (row) {
+        if (row.hidden) return;
+        const box = row.querySelector(".mreg-check");
+        if (box) box.checked = selectAll.checked;
+      });
+      updateCount();
+    });
+  }
+  body.addEventListener("click", function (event) {
+    const btn = event.target.closest(".mreg-copy");
+    if (!btn) return;
+    const value = btn.getAttribute("data-copy") || "";
+    if (navigator.clipboard) navigator.clipboard.writeText(value);
+  });
+  const exporter = document.getElementById("mregExport");
+  if (exporter) {
+    exporter.addEventListener("click", function () {
+      const lines = [["meter_number", "com_address", "type", "device_type", "remarks", "status"]];
+      dataRows().forEach(function (row) {
+        lines.push([row.dataset.meter, row.dataset.addr, row.dataset.type, row.dataset.device, row.dataset.remarks, row.dataset.status].map(function (value) {
+          const text = value || "";
+          return '"' + text.replace(/"/g, '""') + '"';
+        }));
+      });
+      const blob = new Blob([lines.map(function (line) { return line.join(","); }).join("\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "registered-meters.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+  const deleter = document.getElementById("mregDeleteSelected");
+  if (deleter) {
+    deleter.addEventListener("click", async function () {
+      const rows = checkedRows();
+      if (!rows.length) return;
+      const installed = rows.some(function (row) { return row.dataset.installed === "true"; });
+      const prompt = installed
+        ? "Сонгосон тоолуурын дотор суурилуулсан төхөөрөмж байна. Тэдгээрийг буулгаад бүртгэлээс устгана. Үргэлжлүүлэх үү?"
+        : "Сонгосон тоолуурыг устгах уу?";
+      if (!window.confirm(prompt)) return;
+      for (const row of rows) {
+        const form = new FormData();
+        form.append("meter_number", row.dataset.meter);
+        await fetch("/delete-meter", { method: "POST", body: form, redirect: "manual" });
+      }
+      window.location = "/meter-management?message=" + encodeURIComponent("Сонгосон тоолуур устгагдлаа.");
+    });
+  }
+  const size = document.getElementById("mregPageSize");
+  if (size) {
+    size.addEventListener("change", function () {
+      pageSize = Number(size.value) || 15;
+      page = 1;
+      paint();
+    });
+  }
+  paint();
+  updateCount();
+})();
+</script>
+
+
 <!-- add button form for meter adding  -->
  
 
@@ -466,9 +681,11 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Generic function to initialize a dropdown
       function initDropdown(dropdownId, inputName) {
-        const dropdown = document.querySelector(`#${dropdownId}`).closest('.dropdown');
-        const input = dropdown.querySelector(`input[name="${inputName}"]`);
         const list = document.getElementById(dropdownId);
+        if (!list) return;
+        const dropdown = list.closest('.dropdown');
+        if (!dropdown) return;
+        const input = dropdown.querySelector(`input[name="${inputName}"]`);
         const chevron = dropdown.querySelector('.dropdown-chevron');
 
         if (!input || !list) return;
@@ -525,7 +742,7 @@
     {% if message %}
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => {
-        showToast('{{ message }}', 'success');
+        showToast({{ message|tojson }}, 'success');
       }, 300);
     });
     {% endif %}

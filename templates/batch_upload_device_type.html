@@ -1,70 +1,114 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/batch-emx.css?v=1">
+{% endblock %}
 {% block content %}
-<div class="wizard-steps">
-  <div data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
-  <div class="active" data-step="2">Төхөөрөмжийн төрөл</div>
-  <div data-step="3">Баталгаажуулах</div>  
-</div>
+<div class="breg">
+  <div class="breg-head">
+    <div>
+      <nav class="breg-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Суурилуулалт</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Багц тоолуур суурилуулах</span>
+      </nav>
+      <div class="breg-title-row">
+        <h1 class="breg-title">Багц тоолуур суурилуулах</h1>
+        <span class="breg-badge">Batch Meter Commissioning</span>
+      </div>
+      <p class="breg-sub" id="deviceTypeTitle">Холболтын тохиргоо</p>
+    </div>
+  </div>
 
-<div class="container">
-  <h4 id="deviceTypeTitle">Төхөөрөмжийн тохиргоо</h4>
-  
-  <!-- GPRS Meter Configuration -->
-  <div id="gprsConfig" class="device-config" style="display: none;">
-    <div class="row">
-      <div class="col-md-6 col-lg-5">
-        <div class="mb-3">
-          <label for="gprsCommAddress" class="form-label">Коммуникацийн хаяг (GPRS)</label>
-          <input type="text" id="gprsCommAddress" class="form-control form-control-sm" placeholder="Коммуникацийн хаяг оруулах">
-          <small class="text-muted">GPRS тоолуурын коммуникацийн хаяг</small>
-        </div>
+  <div class="breg-steps">
+    <a class="breg-step is-done" href="/batch-upload-meter" style="text-decoration:none;color:inherit;">
+      <div class="breg-step-no">1</div>
+      <div>
+        <div class="breg-kicker">Алхам 01</div>
+        <div class="breg-step-name">1. Төхөөрөмж &amp; файл сонгох</div>
+        <div class="breg-step-state">Дууссан</div>
+      </div>
+    </a>
+    <div class="breg-step is-on">
+      <div class="breg-step-no">2</div>
+      <div>
+        <div class="breg-kicker">Алхам 02</div>
+        <div class="breg-step-name">2. Холболтын тохиргоо</div>
+        <div class="breg-step-state"><span class="breg-dot"></span>Идэвхтэй алхам</div>
       </div>
     </div>
-    
-    <div class="row">
-      <div class="col-md-6 col-lg-5">
-        <div class="mb-3">
-          <label class="form-label">GPRS тоолуурын нэмэлт мэдээлэл</label>
-          <p class="text-muted small">GPRS тоолуурууд нь шууд интернэт холболттой байдаг тул DCU шаардлагагүй.</p>
-        </div>
+    <div class="breg-step is-wait">
+      <div class="breg-step-no">3</div>
+      <div>
+        <div class="breg-kicker">Алхам 03</div>
+        <div class="breg-step-name">3. Шалгах &amp; суулгах</div>
+        <div class="breg-step-state">Хүлээгдэж буй</div>
       </div>
     </div>
   </div>
 
-  <!-- PLC Meter Configuration -->
-  <div id="plcConfig" class="device-config" style="display: none;">
-    <div class="row">
-      <div class="col-md-6 col-lg-5">
-        <div class="mb-3">
-          <label for="plcDcuNumber" class="form-label">DCU дугаар <span class="text-danger">*</span></label>
-          <div class="dropdown position-relative">
-            <select id="plcDcuNumber" 
-                    class="form-select form-select-sm" 
-                    required>
-              <option value="">DCU дугаар сонгох</option>
-              <!-- DCU options will be populated here -->
-            </select>
+  <div class="breg-grid">
+    <div class="breg-card">
+      <h2 class="breg-card-title">2. Холболтын тохиргоо</h2>
+
+      <div id="gprsConfig" class="device-config" style="display:none;">
+        <div class="breg-fields">
+          <div class="breg-field">
+            <label for="gprsCommAddress">Коммуникацийн хаяг (GPRS)</label>
+            <input id="gprsCommAddress" type="text" placeholder="Коммуникацийн хаяг оруулах">
+            <span class="breg-hint">Хоосон бол файлын «Комм хаяг» багана ашиглагдана.</span>
           </div>
-          <small class="text-muted">PLC тоолуурууд DCU-тай холбогддог тул DCU дугаар шаардлагатай</small>
         </div>
+        <div class="breg-note"><span class="material-symbols-outlined">cell_tower</span><p>GPRS тоолуур DCU шаардахгүй.</p></div>
+      </div>
+
+      <div id="plcConfig" class="device-config" style="display:none;">
+        <div class="breg-fields">
+          <div class="breg-field">
+            <label for="plcDcuNumber">DCU дугаар <span class="req">Заавал</span></label>
+            <div class="wrap">
+              <select id="plcDcuNumber" required>
+                <option value="">DCU дугаар сонгох</option>
+              </select>
+              <span class="material-symbols-outlined chev">expand_more</span>
+            </div>
+            <span class="breg-hint">{{ dcu_total }} DCU бүртгэлтэй.</span>
+          </div>
+          <div class="breg-field">
+            <label for="plcCommAddress">Коммуникацийн хаяг (PLC)</label>
+            <input id="plcCommAddress" type="text" placeholder="DCU дугаартай ижил байж болно">
+            <span class="breg-hint">Хоосон бол сонгосон DCU дугаар хадгалагдана.</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="breg-hint" id="bregMissingType" hidden>Төрөл сонгогдоогүй байна. Эхний алхам руу буцна уу.</p>
+
+      <div class="breg-form-actions">
+        <a class="breg-btn" href="/batch-upload-meter"><span class="material-symbols-outlined">arrow_back</span>Өмнөх</a>
+        <a class="breg-btn primary" id="nextToStep3" href="/step2">Дараах: шалгалт <span class="material-symbols-outlined">arrow_forward</span></a>
       </div>
     </div>
-    
-    <div class="row">
-      <div class="col-md-6 col-lg-5">
-        <div class="mb-3">
-          <label for="plcCommAddress" class="form-label">Коммуникацийн хаяг (PLC)</label>
-          <input type="text" id="plcCommAddress" class="form-control form-control-sm" placeholder="Коммуникацийн хаяг (DCU дугаартай ижил байж болно)">
-          <small class="text-muted">PLC тоолуурын коммуникацийн хаяг</small>
+
+    <div class="breg-card">
+      <div class="breg-side-title">
+        <div class="breg-side-icon"><span class="material-symbols-outlined">info</span></div>
+        <div>
+          <h3>Энэ алхамд юу хадгалагдах вэ</h3>
+          <small>Холболт</small>
         </div>
       </div>
+      <div class="breg-note"><span class="material-symbols-outlined">router</span><p><strong>PLC.</strong> Сонгосон DCU бүх мөрөнд бичигдэж, комм хаяг нь тэр дугаар болно.</p></div>
+      <div class="breg-note"><span class="material-symbols-outlined">cell_tower</span><p><strong>GPRS.</strong> Файлын комм хаяг хэвээр. Энд оруулсан хаяг хоосон мөрийг нөхнө.</p></div>
     </div>
   </div>
 
-  <div class="buttons mt-4">
-    <a href="/batch-upload-meter" class="btn btn-secondary">← Өмнөх</a>
-    <a href="/step2" id="nextToStep3" class="btn btn-success">Дараах →</a>  
+  <div class="breg-ribbon">
+    <div><span class="good">DCU: {{ dcu_total }} бүртгэлтэй · {{ dcu_online }} онлайн</span></div>
+    <div>Хуудас шинэчлэгдсэн: {{ page_time }}</div>
   </div>
 </div>
 
@@ -74,33 +118,25 @@ document.addEventListener("DOMContentLoaded", function() {
     const deviceTypeTitle = document.getElementById("deviceTypeTitle");
     const gprsConfig = document.getElementById("gprsConfig");
     const plcConfig = document.getElementById("plcConfig");
-    
-    // Show appropriate configuration based on device type
+
     if (deviceType && deviceType.toLowerCase().includes("gprs")) {
-        deviceTypeTitle.textContent = "GPRS Тоолуурын тохиргоо";
+        deviceTypeTitle.textContent = "GPRS тоолуурын холболт";
         gprsConfig.style.display = "block";
         plcConfig.style.display = "none";
     } else if (deviceType && deviceType.toLowerCase().includes("plc")) {
-        deviceTypeTitle.textContent = "PLC Тоолуурын тохиргоо";
+        deviceTypeTitle.textContent = "PLC тоолуурын холболт";
         gprsConfig.style.display = "none";
         plcConfig.style.display = "block";
-        
-        // DCU list will be loaded when needed
     } else {
-        // Default or unknown device type
-        deviceTypeTitle.textContent = "Төхөөрөмжийн тохиргоо";
+        deviceTypeTitle.textContent = "Төрөл сонгогдоогүй";
         gprsConfig.style.display = "none";
         plcConfig.style.display = "none";
+        document.getElementById("bregMissingType").hidden = false;
     }
-    
-    // Handle DCU selection for PLC
+
     const dcuSelect = document.getElementById("plcDcuNumber");
-    
     if (dcuSelect) {
-        // Load DCU list when PLC config is shown
         loadDCUList();
-        
-        // Auto-fill comm address when DCU is selected
         dcuSelect.addEventListener("change", function() {
             const selectedDcu = this.value;
             const commAddressInput = document.getElementById("plcCommAddress");
@@ -109,116 +145,78 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-    
-    // Handle next button click
+
+    const savedDcu = localStorage.getItem("dcuNumber") || "";
+    const savedComm = localStorage.getItem("commAddress") || "";
+    if (savedComm && document.getElementById("gprsCommAddress") && deviceType && deviceType.toLowerCase().includes("gprs")) {
+        document.getElementById("gprsCommAddress").value = savedComm;
+    }
+    if (savedComm && document.getElementById("plcCommAddress")) {
+        document.getElementById("plcCommAddress").value = savedComm;
+    }
+
     const nextButton = document.getElementById("nextToStep3");
     if (nextButton) {
         nextButton.addEventListener("click", function(e) {
             e.preventDefault();
-            
-            // Validate and save configuration
             if (deviceType && deviceType.toLowerCase().includes("plc")) {
                 const dcuNumber = document.getElementById("plcDcuNumber").value;
                 if (!dcuNumber) {
                     showToast("DCU дугаар сонгох шаардлагатай!", "error", 4000);
                     return;
                 }
-                
-                // Save PLC configuration
                 localStorage.setItem("dcuNumber", dcuNumber);
                 const commAddress = document.getElementById("plcCommAddress").value || dcuNumber;
                 localStorage.setItem("commAddress", commAddress);
             } else if (deviceType && deviceType.toLowerCase().includes("gprs")) {
-                // Save GPRS configuration
                 const commAddress = document.getElementById("gprsCommAddress").value;
                 if (commAddress) {
                     localStorage.setItem("commAddress", commAddress);
                 }
             }
-            
-            // Proceed to next step
             proceedToStep3();
         });
     }
+
+    function loadDCUList() {
+        fetch("/api/dcus/installed")
+            .then(res => res.json())
+            .then(response => {
+                const select = document.getElementById("plcDcuNumber");
+                if (!select) return;
+                select.innerHTML = '<option value="">DCU дугаар сонгох</option>';
+                const dcus = response.data || response;
+                const fill = (list) => {
+                    list.forEach(dcu => {
+                        const option = document.createElement("option");
+                        const dcuNumber = dcu.dcu_number || dcu.number || dcu;
+                        option.value = dcuNumber;
+                        option.textContent = dcuNumber;
+                        select.appendChild(option);
+                    });
+                    if (savedDcu) select.value = savedDcu;
+                };
+                if (dcus && Array.isArray(dcus) && dcus.length > 0) {
+                    fill(dcus);
+                } else {
+                    fetch("/api/dcus/registered")
+                        .then(res => res.json())
+                        .then(regResponse => {
+                            const regDcus = regResponse.data || regResponse;
+                            if (regDcus && Array.isArray(regDcus) && regDcus.length > 0) fill(regDcus);
+                        });
+                }
+            })
+            .catch(err => console.error("Error loading DCU list:", err));
+    }
 });
 
-function loadDCUList() {
-    // Fetch installed DCU list from server (DCUs that have installed meters)
-    fetch("/api/dcus/installed")
-        .then(res => res.json())
-        .then(response => {
-            const dcuSelect = document.getElementById("plcDcuNumber");
-            if (!dcuSelect) return;
-            
-            // Clear existing options except the first placeholder
-            dcuSelect.innerHTML = '<option value="">DCU дугаар сонгох</option>';
-            
-            // Handle API response format: { status: "success", data: [...] }
-            const dcus = response.data || response;
-            
-            if (dcus && Array.isArray(dcus) && dcus.length > 0) {
-                dcus.forEach(dcu => {
-                    const option = document.createElement("option");
-                    const dcuNumber = dcu.dcu_number || dcu.number || dcu;
-                    option.value = dcuNumber;
-                    option.textContent = dcuNumber;
-                    dcuSelect.appendChild(option);
-                });
-            } else {
-                // If no installed DCUs, try to load from registered DCUs as fallback
-                fetch("/api/dcus/registered")
-                    .then(res => res.json())
-                    .then(regResponse => {
-                        const regDcus = regResponse.data || regResponse;
-                        if (regDcus && Array.isArray(regDcus) && regDcus.length > 0) {
-                            regDcus.forEach(dcu => {
-                                const option = document.createElement("option");
-                                const dcuNumber = dcu.dcu_number || dcu.number || dcu;
-                                option.value = dcuNumber;
-                                option.textContent = dcuNumber;
-                                dcuSelect.appendChild(option);
-                            });
-                        } else {
-                            const option = document.createElement("option");
-                            option.value = "";
-                            option.textContent = "DCU олдсонгүй";
-                            option.disabled = true;
-                            dcuSelect.appendChild(option);
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Error loading registered DCU list:", err);
-                        const option = document.createElement("option");
-                        option.value = "";
-                        option.textContent = "DCU жагсаалт ачаалахад алдаа гарлаа";
-                        option.disabled = true;
-                        dcuSelect.appendChild(option);
-                    });
-            }
-        })
-        .catch(err => {
-            console.error("Error loading installed DCU list:", err);
-            const dcuSelect = document.getElementById("plcDcuNumber");
-            if (dcuSelect) {
-                const option = document.createElement("option");
-                option.value = "";
-                option.textContent = "DCU жагсаалт ачаалахад алдаа гарлаа";
-                option.disabled = true;
-                dcuSelect.appendChild(option);
-            }
-        });
-}
-
 function proceedToStep3() {
-    // Get meter numbers from localStorage
     const meterNumbers = JSON.parse(localStorage.getItem("meterNumbers") || "[]");
-    
     if (meterNumbers.length === 0) {
-        showToast("Тоолуурын дугаар олдсонгүй!", "error", 4000);
+        showToast("Тоолуурын дугаар олдсонгүй. Эхний алхмаас файл оруулна уу.", "error", 4000);
         return;
     }
-    
-    // Call next_step API
     fetch("/next_step", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -226,16 +224,12 @@ function proceedToStep3() {
     })
     .then(res => res.json())
     .then(data => {
-        console.log("Server response:", data);
-        localStorage.setItem("meters", JSON.stringify(data)); 
-        // Navigate to step 3
+        localStorage.setItem("meters", JSON.stringify(data));
         window.location.href = "/step2";
     })
     .catch(err => {
-        console.error("Error:", err);
         showToast("Алдаа гарлаа: " + err.message, "error", 5000);
     });
 }
 </script>
 {% endblock %}
-

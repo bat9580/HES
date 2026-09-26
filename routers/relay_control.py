@@ -1,6 +1,6 @@
 import asyncio
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from services.state import connected_clients
@@ -257,30 +257,41 @@ def update_relay_status_in_db(meter_number: int, relay_status: str) -> None:
         except Exception:
             pass
 
-@router.get("/relay-control", response_class=HTMLResponse)
-async def relay_control(request: Request, message: str = None, user: dict = Depends(require_permission("Remote Maintain"))):
+def _meter_online(meter, clients) -> bool:
+    device = str(meter["device_type"] or "")
+    dcu = meter["DCU_number"]
+    number = meter["meter_number"]
+    if device == "PLC Meter":
+        try:
+            return int(dcu) in clients
+        except (TypeError, ValueError):
+            return False
+    try:
+        return int(number) in clients
+    except (TypeError, ValueError):
+        return str(number) in clients
+
+
+def _relay_bucket(status) -> str:
+    value = str(status or "").strip().lower()
+    if value == "connected":
+        return "connected"
+    if value == "disconnected":
+        return "disconnected"
+    return "unknown"
+
+
+def _pct(part: int, total: int) -> float:
+    if not total:
+        return 0
+    return round(part * 1000 / total) / 10
+
+
+def _load_relay_page(meter_number: str = "", line: str = "", relay_status: str = ""):
+    meter_number = (meter_number or "").strip()
+    line = (line or "").strip()
+    relay_status = (relay_status or "").strip().lower()
     conn = get_db_connection()
-    installed_meters = conn.execute("SELECT * FROM installed_meters").fetchall()
-    conn.close()
-    return template_response(
-        request,
-        "relay_control.html",
-        {
-            "request": request,
-            "installed_meters": installed_meters,
-            "connected_clients": connected_clients,
-            "message": message,
-        }
-    )
-
-
-@router.get("/search-meters-relay", response_class=HTMLResponse)
-async def search_meter(
-    request: Request,
-    meter_number: str = "",
-    line: str = " ",
-    user: dict = Depends(require_permission("Remote Maintain"))
-):
     query = "SELECT * FROM installed_meters WHERE 1=1"
     params = []
     if meter_number:
@@ -289,19 +300,93 @@ async def search_meter(
     if line:
         query += " AND line LIKE ?"
         params.append(f"%{line}%")
-    conn = get_db_connection()
-    searched_meters = conn.execute(query, params).fetchall()
+    if relay_status == "connected":
+        query += " AND LOWER(COALESCE(relay_status, '')) = 'connected'"
+    elif relay_status == "disconnected":
+        query += " AND LOWER(COALESCE(relay_status, '')) = 'disconnected'"
+    elif relay_status == "unknown":
+        query += " AND LOWER(COALESCE(relay_status, '')) NOT IN ('connected', 'disconnected')"
+    rows = conn.execute(query, params).fetchall()
+    try:
+        log_total = conn.execute("SELECT COUNT(*) FROM relay_operation_log").fetchone()[0]
+    except Exception:
+        log_total = 0
     conn.close()
-    return template_response(
-        request,
-        "relay_control.html",
-        {
-            "request": request,
-            "installed_meters": searched_meters,
-            "meter_number": meter_number,
-            "connected_clients": connected_clients,
-        }
-    )
+
+    online = 0
+    relay_connected = 0
+    relay_disconnected = 0
+    dcu_ids = []
+    seen = set()
+    for meter in rows:
+        if _meter_online(meter, connected_clients):
+            online += 1
+        bucket = _relay_bucket(meter["relay_status"])
+        if bucket == "connected":
+            relay_connected += 1
+        elif bucket == "disconnected":
+            relay_disconnected += 1
+        dcu = meter["DCU_number"]
+        if dcu is None or str(dcu).strip() == "":
+            continue
+        key = str(dcu).strip()
+        if key not in seen:
+            seen.add(key)
+            dcu_ids.append(key)
+    dcu_online = 0
+    for key in dcu_ids:
+        if key in connected_clients or (key.isdigit() and int(key) in connected_clients):
+            dcu_online += 1
+    total = len(rows)
+    unknown = total - relay_connected - relay_disconnected
+    return {
+        "installed_meters": rows,
+        "connected_clients": connected_clients,
+        "meter_number": meter_number,
+        "line": line,
+        "relay_status": relay_status,
+        "meter_total": total,
+        "online_count": online,
+        "offline_count": total - online,
+        "relay_connected": relay_connected,
+        "relay_disconnected": relay_disconnected,
+        "relay_unknown": unknown,
+        "connected_pct": _pct(relay_connected, total),
+        "disconnected_pct": _pct(relay_disconnected, total),
+        "unknown_pct": _pct(unknown, total),
+        "dcu_total": len(dcu_ids),
+        "dcu_online": dcu_online,
+        "log_total": log_total,
+        "page_time": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
+    }
+
+
+@router.get("/relay-control", response_class=HTMLResponse)
+async def relay_control(
+    request: Request,
+    message: str = None,
+    meter_number: str = "",
+    line: str = "",
+    relay_status: str = "",
+    user: dict = Depends(require_permission("Remote Maintain")),
+):
+    context = _load_relay_page(meter_number, line, relay_status)
+    context["request"] = request
+    context["message"] = message
+    return template_response(request, "relay_control.html", context)
+
+
+@router.get("/search-meters-relay", response_class=HTMLResponse)
+async def search_meter(
+    request: Request,
+    meter_number: str = "",
+    line: str = "",
+    relay_status: str = "",
+    user: dict = Depends(require_permission("Remote Maintain")),
+):
+    context = _load_relay_page(meter_number, line, relay_status)
+    context["request"] = request
+    return template_response(request, "relay_control.html", context)
 
 
 @router.get("/api/relay-operation-log")

@@ -1,482 +1,374 @@
 {% extends "base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/download-emx.css?v=1">
+{% endblock %}
 {% block content %}
-<div class="p-4 meter-download-page">
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+<div class="dlreg">
+  <div class="dlreg-head">
     <div>
-      <h2 class="page-title mb-1">Meter Download</h2>
-      <p class="text-muted mb-0">Manage DCU downloads, connectivity, and meter status in one place.</p>
+      <nav class="dlreg-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Суурилуулалт</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Тоолуур татах</span>
+      </nav>
+      <div class="dlreg-title-row">
+        <span class="dlreg-bar"></span>
+        <h1 class="dlreg-title">Meter Download</h1>
+        <span class="dlreg-badge">DCU &amp; METER COMMISSIONING</span>
+      </div>
+      <p class="dlreg-sub">DCU руу тоолуур татах, татагдсан эсэх болон онлайн төлөвийг нэг дороос шалгана.</p>
     </div>
-    <button class="btn btn-outline-secondary d-flex align-items-center gap-2">
-      <i class="bi bi-arrow-clockwise"></i>
-      Refresh
-    </button>
+    <div class="dlreg-actions">
+      <button class="dlreg-btn" type="button" disabled title="Одоогоор боломжгүй"><span class="material-symbols-outlined">history</span>Таталтын түүх</button>
+      <button class="dlreg-btn" id="dlRefresh" type="button"><span class="material-symbols-outlined">refresh</span>Дахин сэргээх</button>
+    </div>
   </div>
 
-  <div class="filter-bar-container">
-    <form class="filter-bar" method="GET" action="/meter-download/search">
-      <div class="filter-bar-item">
-        <div class="dropdown">
-          <div class="dropdown-toggle-wrapper position-relative">
-            <input type="text"
-                   name="zone"
-                   class="form-control dropdown-search-input dimmed-text hoverable-input"
-                   placeholder="Zone"
-                   autocomplete="off"
-                   value="{{ filters.zone | default('') }}"
-                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
-          <ul id="zone-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
-            {% for zone in zones or [] %}
-            <li><a class="dropdown-item hoverable-item" href="#" data-value="{{ zone }}">{{ zone }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-
-      <div class="filter-bar-item">
-        <div class="dropdown">
-          <div class="dropdown-toggle-wrapper position-relative">
-            <input type="text"
-                   name="power_grid"
-                   class="form-control dropdown-search-input dimmed-text hoverable-input"
-                   placeholder="Power Grid"
-                   autocomplete="off"
-                   value="{{ filters.power_grid | default('') }}"
-                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
-          <ul id="grid-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
-            {% for grid in power_grids or [] %}
-            <li><a class="dropdown-item hoverable-item" href="#" data-value="{{ grid }}">{{ grid }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-
-      <div class="filter-bar-item">
-        <div class="dropdown">
-          <div class="dropdown-toggle-wrapper position-relative">
-            <input type="text"
-                   name="dcu_number"
-                   class="form-control dropdown-search-input dimmed-text hoverable-input"
-                   placeholder="DCU No"
-                   autocomplete="off"
-                   value="{{ filters.dcu_number | default('') }}"
-                   style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
-          <ul id="dcu-list" class="dropdown-menu w-100" style="max-height: 220px; overflow-y: auto;">
-            {% for number in dcu_numbers or [] %}
-            <li><a class="dropdown-item hoverable-item" href="#" data-value="{{ number }}">{{ number }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-
-     
-
-      <div class="filter-bar-item narrow">
-        <button type="submit" class="btn btn-light w-100 border dimmed-text">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
+  <div class="dlreg-card dlreg-filters">
+    <form method="get" action="/meter-download">
+      <label class="dlreg-field">
+        <span>Zone:</span>
+        <select name="zone">
+          <option value="">Бүх бүс</option>
+          {% for zone in zones or [] %}
+          <option value="{{ zone }}" {% if filters.zone == zone %}selected{% endif %}>{{ zone }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="dlreg-field">
+        <span>Grid:</span>
+        <select name="power_grid">
+          <option value="">Бүх шугам</option>
+          {% for grid in power_grids or [] %}
+          <option value="{{ grid }}" {% if filters.power_grid == grid %}selected{% endif %}>{{ grid }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="dlreg-field">
+        <span>DCU:</span>
+        <select name="dcu_number" id="top-dcu-select">
+          {% for number in dcu_numbers or [] %}
+          <option value="{{ number }}" {% if summary.dcu_number == number %}selected{% endif %}>{{ number }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="dlreg-search" type="submit"><span class="material-symbols-outlined">search</span>Шүүх</button>
     </form>
   </div>
 
-  <div class="d-flex flex-wrap gap-3 mt-4">
-    <div class="metric-badge">
-      <i class="bi bi-hdd-network"></i>
-      <span>DCU No:</span>
-      <strong>{{ summary.dcu_number | default('—') }}</strong>
+  <div class="dlreg-kpis">
+    <div class="dlreg-kpi">
+      <div class="dlreg-kpi-icon"><span class="material-symbols-outlined">router</span></div>
+      <div>
+        <div class="dlreg-kpi-label">Selected DCU</div>
+        <div class="dlreg-kpi-value" id="kpi-dcu-label">{{ summary.dcu_number or '—' }}</div>
+      </div>
     </div>
-    <div class="metric-badge metric-success">
-      <i class="bi bi-backpack4"></i>
-      <span>Total Meter Count:</span>
-      <strong id="totalMeterCount">{{ summary.total_meter_count | default(0) }}</strong>
+    <div class="dlreg-kpi">
+      <span class="dlreg-kpi-label">Total Meter</span>
+      <span class="dlreg-count green" id="totalMeterCount">{{ summary.total_meter_count | default(0) }}</span>
     </div>
-    <div class="metric-badge metric-info">
-      <i class="bi bi-download"></i>
-      <span>Downloaded Meter Count:</span>
-      <strong id="downloadedMeterCount">{{ summary.downloaded_meter_count | default(0) }}</strong>
+    <div class="dlreg-kpi">
+      <span class="dlreg-kpi-label">Downloaded</span>
+      <span class="dlreg-count blue" id="downloadedMeterCount">{{ summary.downloaded_meter_count | default(0) }}</span>
     </div>
-    <div class="metric-badge metric-online">
-      <i class="bi bi-wifi"></i>
-      <span>Online Meter Count:</span>
-      <strong id="onlineMeterCount">{{ summary.online_meter_count | default(0) }}</strong>
+    <div class="dlreg-kpi">
+      <span class="dlreg-kpi-label">Online</span>
+      <span class="dlreg-count green" id="onlineMeterCount">{{ summary.online_meter_count | default(0) }}</span>
+    </div>
+    <div class="dlreg-kpi">
+      <div>
+        <div class="dlreg-kpi-label">Холболтын хугацаа</div>
+        <div class="dlreg-kpi-value">{{ summary.latency | default('—') }}</div>
+      </div>
+      <div>
+        <div class="dlreg-kpi-label">Сүүлийн синк</div>
+        <div class="dlreg-kpi-value">{{ summary.last_sync | default('—') }}</div>
+      </div>
     </div>
   </div>
 
-  <div class="row g-4 mt-1">
-    <div class="col-lg-3">
-      <div class="card surface-card h-100">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <div>
-            <h5 class="mb-0 small">DCU List</h5>
-            <small class="text-muted" style="font-size: 0.7rem;">Select a DCU to view meters</small>
-          </div>
-          <span class="text-muted small" style="font-size: 0.7rem;">{{ dcu_list | length if dcu_list else 0 }} results</span>
+  <div class="dlreg-work">
+    <div class="dlreg-card dlreg-side">
+      <div class="dlreg-side-head">
+        <div>
+          <h2>DCU List</h2>
+          <div class="dlreg-muted">Select a DCU to view meters</div>
         </div>
-        <div class="card-body p-0">
-          <div class="table-responsive soft-scroll">
-            <table class="table mb-0 table-striped align-middle">
+        <span class="dlreg-pill">{{ dcu_list|length }} results</span>
+      </div>
+      <table class="dl-table">
+        <thead>
+          <tr><th>#</th><th>DCU NO</th><th>STATUS</th></tr>
+        </thead>
+        <tbody>
+          {% for dcu in dcu_list or [] %}
+          <tr class="dl-dcu {% if dcu.active %}is-on{% endif %}">
+            <td>
+              <input type="radio" name="selected_dcu" value="{{ dcu.number }}" {% if dcu.active %}checked{% endif %}>
+            </td>
+            <td>
+              <span>{{ dcu.number }}</span>
+              {% if dcu.remarks %}<span class="dl-sub">{{ dcu.remarks }}</span>{% endif %}
+            </td>
+            <td>
+              {% set dcu_num_int = dcu.number|int %}
+              {% if dcu_num_int in connected_clients %}
+              <span class="dl-badge ok">ONLINE</span>
+              {% else %}
+              <span class="dl-badge off">OFFLINE</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="dlreg-muted">DCU олдсонгүй.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="dlreg-card dlreg-main">
+      <div class="dlreg-banner">
+        <div class="dlreg-title-row">
+          <span class="dlreg-muted">SELECTED DCU:</span>
+          <strong id="selected-dcu-banner">{{ summary.dcu_number or '—' }}</strong>
+          <span class="dlreg-pill">Latency: {{ summary.latency | default('—') }}</span>
+          <span class="dlreg-pill">Last sync: {{ summary.last_sync | default('—') }}</span>
+        </div>
+      </div>
+
+      <ul class="nav nav-tabs dl-tabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-settings" type="button">Meters Setting</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-quality" type="button">DCU Communication Quality</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-blacklist" type="button">DCU Black List</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-topology" type="button">Topology</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-identify-status" type="button">Identify Status</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-identify-result" type="button">Identify Result</button></li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-settings" role="tabpanel">
+          <div class="dlreg-dock">
+            <div>
+              <label for="dlMeterSearch">Meter No.</label>
+              <input id="dlMeterSearch" type="text" placeholder="Meter number / Тоолуурын дугаар" value="{{ filters.meter_number | default('') }}">
+            </div>
+            <div>
+              <label for="dlTypeFilter">Meter Type</label>
+              <select id="dlTypeFilter">
+                <option value="">Select type (Бүгд)</option>
+                {% set ns = namespace(types=[]) %}
+                {% for row in meter_rows or [] %}
+                  {% set kind = row.meter_type or row.device_type %}
+                  {% if kind and kind not in ns.types %}
+                    {% set ns.types = ns.types + [kind] %}
+                  {% endif %}
+                {% endfor %}
+                {% for kind in ns.types %}
+                <option value="{{ kind }}">{{ kind }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button class="dlreg-icon blue" id="dlMeterFilter" type="button" title="Шүүх"><span class="material-symbols-outlined">search</span></button>
+            <button class="dlreg-icon green" id="dlQuickOnline" type="button" title="Онлайн шалгах"><span class="material-symbols-outlined">check_circle</span></button>
+            <button class="dlreg-icon red" id="assign-point-numbers-btn" type="button" title="Цэгийн дугаар оноох"><span class="material-symbols-outlined">sync</span></button>
+            <button class="dlreg-icon amber" id="dlReload" type="button" title="Дахин ачаалах"><span class="material-symbols-outlined">cached</span></button>
+          </div>
+
+          <div class="dlreg-tools">
+            <button class="dlreg-btn green" id="downloadButton" type="button"><span class="material-symbols-outlined">file_download</span>Download</button>
+            <button class="dlreg-btn" id="checkDownloadedButton" type="button"><span class="material-symbols-outlined">task_alt</span>Check Downloaded</button>
+            <button class="dlreg-btn" id="checkOnlineButton" type="button"><span class="material-symbols-outlined">sensors</span>Check Online</button>
+            <button class="dlreg-btn danger" id="clear-selected-point-numbers-btn" type="button"><span class="material-symbols-outlined">cancel</span>Clear Selected</button>
+            <button class="dlreg-btn danger" id="clear-all-point-numbers-btn" type="button"><span class="material-symbols-outlined">delete_sweep</span>Clear All</button>
+            <button class="dlreg-btn amber" type="button" disabled title="Одоогоор боломжгүй"><span class="material-symbols-outlined">sync_alt</span>Change DCU</button>
+          </div>
+
+          <div class="dl-scroll">
+            <table class="dl-table min">
               <thead>
                 <tr>
-                  <th class="text-center" style="width: 60px;">#</th>
-                  <th>DCU No</th>
-                  <th>Status</th>
+                  <th><input id="selectAllMeters" type="checkbox"></th>
+                  <th>#</th>
+                  <th>POINT NO</th>
+                  <th>METER NO</th>
+                  <th>COMM ADDR</th>
+                  <th>METER TYPE</th>
+                  <th>DOWNLOAD</th>
+                  <th>METER ONLINE STATUS</th>
+                  <th>RESULT</th>
                 </tr>
               </thead>
-              <tbody>
-                {% if dcu_list %}
-                  {% for dcu in dcu_list %}
-                  <tr class="{{ 'active-row' if dcu.active }}">
-                    <td class="text-center">
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="selected_dcu" value="{{ dcu.number }}" {% if dcu.active %}checked{% endif %}>
-                      </div>
-                    </td>
-                    <td>{{ dcu.number }}</td>
-                    <td>
-                      {% set dcu_num_int = dcu.number|int %}
-                      {% if dcu_num_int in connected_clients %}   
-                      <span class="badge bg-success">Online</span> 
-                      {% else %}
-                      <span class="badge bg-secondary">Offline</span>
-                      {% endif %}
-                    </td>
+              <tbody id="dlMeterBody">
+                {% if meter_rows %}
+                  {% for row in meter_rows %}
+                  <tr class="dl-meter" data-meter="{{ row.meter_number }}" data-type="{{ row.meter_type or row.device_type }}" data-downloaded="{{ 1 if row.downloaded else 0 }}" data-online="{{ 1 if row.online else 0 }}">
+                    <td><input class="meter-checkbox" type="checkbox" name="selected_meters" value="{{ row.meter_number }}" data-point-no="{{ row.point_no }}"></td>
+                    <td class="dl-index">{{ loop.index }}</td>
+                    <td>{{ row.point_no }}</td>
+                    <td class="dl-num">{{ row.meter_number }}</td>
+                    <td>{{ row.comm_address or '—' }}</td>
+                    <td>{{ row.device_type or '—' }}{% if row.meter_type %} · {{ row.meter_type }}{% endif %}</td>
+                    <td>{% if row.downloaded %}<span class="dl-badge ok">Downloaded</span>{% else %}<span class="dl-badge bad">No download</span>{% endif %}</td>
+                    <td>{% if row.online %}<span class="dl-badge ok">Online</span>{% else %}<span class="dl-badge off">Offline</span>{% endif %}</td>
+                    <td>{{ row.result or '' }}</td>
                   </tr>
                   {% endfor %}
                 {% else %}
-                <tr>
-                  <td colspan="3" class="text-center text-muted py-4">No DCUs found</td>
-                </tr>
+                  <tr><td colspan="9" class="dlreg-muted">Тоолуур олдсонгүй.</td></tr>
                 {% endif %}
               </tbody>
             </table>
           </div>
-        </div>
-        <div class="card-footer d-flex flex-wrap align-items-center gap-2 justify-content-between">
-          <div class="d-flex align-items-center gap-2">
-            <select class="form-select form-select-sm">
-              <option>25</option>
-              <option>50</option>
-              <option>100</option>
-            </select>
-            <span class="text-muted small">per page</span>
-          </div>
-          <nav aria-label="Pagination" class="d-flex gap-1">
-            <button class="btn btn-outline-secondary btn-sm" type="button">&lt;</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button">&gt;</button>
-          </nav>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-9">
-      <div class="card surface-card h-100">
-        <div class="card-header">
-          <div class="d-flex flex-wrap gap-3 align-items-center">
-            <div class="d-flex align-items-center gap-2">
-              <span class="text-muted small">Selected DCU:</span>
-              <strong>{{ summary.dcu_number | default('—') }}</strong>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="text-muted small">Latency:</span>
-              <span class="badge bg-info-subtle text-info">{{ summary.latency | default('—') }}</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <span class="text-muted small">Last Sync:</span>
-              <span>{{ summary.last_sync | default('-') }}</span>
-            </div>
+          <div class="dlreg-foot">
+            <span>Нийт <strong id="dlShown">{{ meter_rows|length }}</strong> · <strong id="dlSelected">0 сонгогдсон</strong> · <span id="dlRange">—</span></span>
+            <span>
+              Мөр:
+              <select id="dlPageSize">
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span id="dlPager"></span>
+            </span>
           </div>
         </div>
-        <div class="card-body">
-          <ul class="nav nav-tabs custom-tabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-settings" type="button" role="tab">Meters Setting</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-quality" type="button" role="tab">DCU Communication Quality</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-blacklist" type="button" role="tab">DCU Black List</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-topology" type="button" role="tab">Topology</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-identify-status" type="button" role="tab">Identify Status</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-identify-result" type="button" role="tab">Identify Result</button>
-            </li>
-          </ul>
 
-          <div class="tab-content pt-3">
-            <div class="tab-pane fade show active" id="tab-settings" role="tabpanel">
-              <div class="row g-2 mb-3">
-                <div class="col-md-4">
-                  <label class="form-label small mb-1">Meter No.</label>
-                  <input type="text" class="form-control form-control-sm" placeholder="Meter number">
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label small mb-1">Meter Type</label>
-                  <div class="dropdown">
-                    <div class="dropdown-toggle-wrapper position-relative">
-                      <input type="text" class="form-control form-control-sm dropdown-search-input dimmed-text hoverable-input" placeholder="Select type" autocomplete="off">
-                      <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                        <svg width="20" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </span>
-                    </div>
-                    <ul class="dropdown-menu w-100">
-                      <li><a class="dropdown-item hoverable-item" href="#">GPRS Meter</a></li>
-                      <li><a class="dropdown-item hoverable-item" href="#">PLC Meter</a></li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="col-md-4 d-flex align-items-end gap-2">
-                  <button class="btn btn-sm btn-primary flex-fill">
-                    <i class="bi bi-search"></i> 
-                  </button>
-                  <button class="btn btn-sm btn-success" title="Check">
-                    <i class="bi bi-check-circle"></i>
-                  </button>
-                  <button id="assign-point-numbers-btn" class="btn btn-sm" style="background-color: #ff7f7f; border-color: #ff7f7f; color: white;" title="Assign Point Numbers">
-                    <i class="bi bi-arrow-repeat"></i>
-                  </button>
-                  <button class="btn btn-sm" style="background-color: #ffa500; border-color: #ffa500; color: white;" title="Reload">
-                    <i class="bi bi-arrow-repeat"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="d-flex flex-wrap gap-2 mb-3">
-                <button id="downloadButton" class="btn btn-sm btn-success d-flex align-items-center gap-2">
-                  <i class="bi bi-download"></i> Download
-                </button>
-                <button id="checkDownloadedButton" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
-                  <i class="bi bi-check2-circle"></i> Check Downloaded
-                </button>
-                <button id="checkOnlineButton" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2">
-                  <i class="bi bi-wifi"></i> Check Online
-                </button>
-                <button id="clear-selected-point-numbers-btn" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
-                  <i class="bi bi-x-circle"></i> Clear Selected
-                </button>
-                <button id="clear-all-point-numbers-btn" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
-                  <i class="bi bi-x-octagon"></i> Clear All
-                </button>
-                <button class="btn btn-sm btn-warning text-white d-flex align-items-center gap-2">
-                  <i class="bi bi-arrow-repeat"></i> Change DCU
-                </button>
-                <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
-                  <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-              </div>
-
-              <div class="table-responsive soft-scroll">
-                <table class="table table-bordered align-middle">
-                  <thead>
-                    <tr>
-                      <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;"> 
-                        <div class="form-check d-flex justify-content-center">
-                          <input class="form-check-input" type="checkbox" id="selectAllMeters">
-                        </div>
-                      </th>
-                      <th style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">#</th>
-                      <th style="width: 70px; min-width: 70px; max-width: 70px;">Point No</th>
-                      <th>Meter No</th>
-                      <th>Comm Addr</th>
-                      <th>Meter Type</th>
-                      <th>Download</th>
-                      <th>Meter Online Status</th>
-                      <th>Result</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% if meter_rows %}
-                      {% for row in meter_rows %}
-                      <tr>
-                        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">
-                          <div class="form-check d-flex justify-content-center">
-                            <input class="form-check-input meter-checkbox" type="checkbox" name="selected_meters" value="{{ row.meter_number }}" data-point-no="{{ row.point_no }}">
-                          </div>
-                        </td>
-                        <td style="width: 40px; min-width: 40px; max-width: 40px; text-align: center;">{{ loop.index }}</td>
-                        <td style="width: 70px; min-width: 70px; max-width: 70px;">{{ row.point_no }}</td> 
-                        <td>{{ row.meter_number }}</td>
-                        <td>{{ row.comm_address }}</td>
-                        <td>{{ row.meter_type }}</td>
-                        <td>
-                          {% if row.downloaded %}
-                          <span class="badge bg-success-subtle text-success">Downloaded</span>
-                          {% else %}
-                          <span class="badge bg-danger-subtle text-danger">No download</span>
-                          {% endif %}
-                        </td>
-                        <td>
-                          {% if row.online %}
-                          <span class="badge bg-success-subtle text-success">Online</span>
-                          {% else %}
-                          <span class="badge bg-secondary">Offline</span>
-                          {% endif %}
-                        </td>
-                        <td>{{ row.result or '' }}</td>
-                      </tr>
-                      {% endfor %}
-                    {% else %}
-                    <tr>
-                      <td colspan="9" class="text-center text-muted py-5">No Data</td>
-                    </tr>
-                    {% endif %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="tab-pane fade" id="tab-quality" role="tabpanel">
-              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <button type="button" id="read-communication-quality-button" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                  <i class="bi bi-lightning-charge"></i> Read
-                </button>
-                <p class="text-muted small mb-0">
-                  Table stays empty until you click Read. Rows match the DCU response only (frame: <code>frames.DCU_COMMUNICATION_QUALITY</code>).
-                </p>
-              </div>
-              <div class="table-responsive soft-scroll">
-                <table id="communication-quality-table" class="table table-bordered align-middle text-center">
-                  <thead class="table-light">
-                    <tr>
-                      <th class="communication-quality-comm-col">Comm Addr</th>
-                      <th>Node Status</th>
-                      <th>Node success rate</th>
-                      <th>Send Frame count</th>
-                      <th>Receive Frame count</th>
-                      <th>Relay Level</th>
-                      <th>Node phase</th>
-                    </tr>
-                  </thead>
-                  <tbody id="communication-quality-table-body">
-                    <tr class="communication-quality-empty-row">
-                      <td colspan="7" class="text-center text-muted py-5">No data yet — select a DCU and click <strong>Read</strong>.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="tab-pane fade" id="tab-blacklist" role="tabpanel">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex gap-2">
-                  <button type="button" id="read-blacklist-button" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
-                    <i class="bi bi-lightning-charge"></i> Read
-                  </button>
-                  <button type="button" id="save-blacklist-button" class="btn btn-sm btn-success d-flex align-items-center gap-2">
-                    <i class="bi bi-save"></i> Save Meter
-                  </button>
-                </div>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" title="Refresh">
-                    <i class="bi bi-arrow-clockwise"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" title="Export">
-                    <i class="bi bi-upload"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="table-responsive soft-scroll">
-                <table class="table table-bordered align-middle">
-                  <thead>
-                    <tr>
-                      <th style="width: 50px;">
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="selectAllBlacklist">
-                        </div>
-                      </th>
-                      <th style="cursor: pointer;">
-                        # <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                      <th style="cursor: pointer;">
-                        Comm Addr <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                      <th style="cursor: pointer;">
-                        Count <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                      <th style="cursor: pointer;">
-                        First Time <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                      <th style="cursor: pointer;">
-                        Current Time <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                      <th style="cursor: pointer;">
-                        Current DCU No <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                      <th style="cursor: pointer;">
-                        Old DCU No <i class="bi bi-arrow-down-up" style="font-size: 0.7rem; opacity: 0.5;"></i>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody id="blacklist-table-body">
-                    {% if blacklist_data %}
-                      {% for item in blacklist_data %}
-                      <tr>
-                        <td>
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="blacklist_item" value="{{ item.id }}">
-                          </div>
-                        </td>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ item.comm_addr }}</td>
-                        <td>{{ item.count }}</td>
-                        <td>{{ item.first_time }}</td>
-                        <td>{{ item.current_time }}</td>
-                        <td>{{ item.current_dcu_no }}</td>
-                        <td>{{ item.old_dcu_no }}</td>
-                      </tr>
-                      {% endfor %}
-                    {% else %}
-                    <tr>
-                      <td colspan="8" class="text-center text-muted py-5">No Data</td>
-                    </tr>
-                    {% endif %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {% for tab in ['topology','identify-status','identify-result'] %}
-            <div class="tab-pane fade" id="tab-{{ tab }}" role="tabpanel">
-              <div class="empty-state text-center py-5 text-muted">
-                <i class="bi bi-info-circle display-6 mb-3 d-block"></i>
-                Additional content for {{ tab.replace('-', ' ') }} will appear here.
-              </div>
-            </div>
-            {% endfor %}
+        <div class="tab-pane fade" id="tab-quality" role="tabpanel">
+          <div class="dlreg-tools">
+            <button type="button" id="read-communication-quality-button" class="dlreg-btn"><span class="material-symbols-outlined">bolt</span>Read</button>
+            <span class="dlreg-note">Хүснэгт Read дарсны дараа DCU-ийн хариугаар дүүрнэ.</span>
+          </div>
+          <div class="dl-scroll">
+            <table id="communication-quality-table" class="dl-table min">
+              <thead>
+                <tr>
+                  <th>Comm Addr</th><th>Node Status</th><th>Node success rate</th>
+                  <th>Send Frame count</th><th>Receive Frame count</th><th>Relay Level</th><th>Node phase</th>
+                </tr>
+              </thead>
+              <tbody id="communication-quality-table-body">
+                <tr class="communication-quality-empty-row">
+                  <td colspan="7" class="dlreg-muted">No data yet — select a DCU and click Read.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
+
+        <div class="tab-pane fade" id="tab-blacklist" role="tabpanel">
+          <div class="dlreg-tools">
+            <button type="button" id="read-blacklist-button" class="dlreg-btn"><span class="material-symbols-outlined">bolt</span>Read</button>
+            <button type="button" id="save-blacklist-button" class="dlreg-btn green"><span class="material-symbols-outlined">save</span>Save Meter</button>
+          </div>
+          <div class="dl-scroll">
+            <table class="dl-table min">
+              <thead>
+                <tr>
+                  <th><input id="selectAllBlacklist" type="checkbox"></th>
+                  <th>#</th><th>Comm Addr</th><th>Count</th><th>First Time</th>
+                  <th>Current Time</th><th>Current DCU No</th><th>Old DCU No</th>
+                </tr>
+              </thead>
+              <tbody id="blacklist-table-body">
+                <tr><td colspan="8" class="dlreg-muted">No Data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {% for tab in ['topology','identify-status','identify-result'] %}
+        <div class="tab-pane fade" id="tab-{{ tab }}" role="tabpanel">
+          <p class="dlreg-note">{{ tab.replace('-', ' ') }} — энэ хэсэг одоогоор хоосон.</p>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
 </div>
+<script>
+(function () {
+  const rows = Array.from(document.querySelectorAll('#dlMeterBody .dl-meter'));
+  const sizeSelect = document.getElementById('dlPageSize');
+  const pager = document.getElementById('dlPager');
+  const range = document.getElementById('dlRange');
+  const selected = document.getElementById('dlSelected');
+  let page = 1;
+
+  function visible() { return rows.filter((row) => !row.classList.contains('dl-filter-hide')); }
+  function pageSize() { return Number(sizeSelect.value) || 25; }
+
+  function render() {
+    const list = visible();
+    const size = pageSize();
+    const pages = Math.max(1, Math.ceil(list.length / size));
+    if (page > pages) page = pages;
+    const start = (page - 1) * size;
+    rows.forEach((row) => { row.hidden = true; });
+    list.forEach((row, index) => {
+      row.hidden = index < start || index >= start + size;
+      const num = row.querySelector('.dl-index');
+      if (num) num.textContent = String(index + 1);
+    });
+    range.textContent = list.length ? (start + 1) + '-' + Math.min(start + size, list.length) : '0';
+    pager.innerHTML = '';
+    for (let i = 1; i <= pages; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dl-page' + (i === page ? ' is-on' : '');
+      btn.textContent = String(i);
+      btn.addEventListener('click', () => { page = i; render(); });
+      pager.appendChild(btn);
+    }
+    const checked = document.querySelectorAll('input[name="selected_meters"]:checked').length;
+    selected.textContent = checked + ' сонгогдсон';
+  }
+
+  function applyFilter() {
+    const query = (document.getElementById('dlMeterSearch').value || '').trim().toLowerCase();
+    const type = document.getElementById('dlTypeFilter').value;
+    rows.forEach((row) => {
+      const meter = (row.dataset.meter || '').toLowerCase();
+      const rowType = row.dataset.type || '';
+      const match = (!query || meter.includes(query)) && (!type || rowType === type);
+      row.classList.toggle('dl-filter-hide', !match);
+    });
+    page = 1;
+    render();
+  }
+
+  document.getElementById('dlMeterFilter').addEventListener('click', applyFilter);
+  document.getElementById('dlMeterSearch').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') { event.preventDefault(); applyFilter(); }
+  });
+  document.getElementById('dlTypeFilter').addEventListener('change', applyFilter);
+  sizeSelect.addEventListener('change', () => { page = 1; render(); });
+  document.querySelectorAll('input[name="selected_meters"]').forEach((box) => box.addEventListener('change', render));
+  document.querySelectorAll('.dl-dcu').forEach((row) => {
+    row.addEventListener('click', (event) => {
+      if (event.target.matches('input')) return;
+      const radio = row.querySelector('input[name="selected_dcu"]');
+      if (radio && !radio.checked) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  });
+  document.getElementById('top-dcu-select').addEventListener('change', () => {
+    document.querySelector('.dlreg-filters form').requestSubmit();
+  });
+  document.getElementById('dlRefresh').addEventListener('click', () => location.reload());
+  document.getElementById('dlReload').addEventListener('click', () => location.reload());
+  document.getElementById('dlQuickOnline').addEventListener('click', () => {
+    document.getElementById('checkOnlineButton').click();
+  });
+  render();
+})();
+</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -495,15 +387,15 @@
     function setDownloadBadge(cell, isDownloaded) {
       if (!cell) return;
       cell.innerHTML = isDownloaded
-        ? '<span class="badge bg-success-subtle text-success">Downloaded</span>'
-        : '<span class="badge bg-danger-subtle text-danger">No download</span>';
+        ? '<span class="dl-badge ok">Downloaded</span>'
+        : '<span class="dl-badge bad">No download</span>';
     }
 
     function setOnlineBadge(cell, isOnline) {
       if (!cell) return;
       cell.innerHTML = isOnline
-        ? '<span class="badge bg-success-subtle text-success">Online</span>'
-        : '<span class="badge bg-secondary">Offline</span>';
+        ? '<span class="dl-badge ok">Online</span>'
+        : '<span class="dl-badge off">Offline</span>';
     }
 
     function refreshSummaryBadgesFromTable() {

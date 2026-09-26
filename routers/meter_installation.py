@@ -1,21 +1,145 @@
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional, List 
 
 from services.database import get_db_connection
+from services.state import connected_clients
 from utils.utility_functions import require_permission, template_response
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
-@router.get("/meter-installation",response_class=HTMLResponse)
-async def meter_installation(request: Request, message: str=None, user: dict = Depends(require_permission("Archive"))): 
-    status = "installed"   
-    conn = get_db_connection()   
-    installed_meters = conn.execute("SELECT *FROM installed_meters").fetchall()     
-    conn.close
-    return template_response(request,"meter_installation.html", {"request": request, "installed_meters":installed_meters,"message":message}) 
+
+
+def _install_filters(request: Request, meter_number: str = "", DCU: str = "", Zone: str = "", station: str = ""):
+    q = (request.query_params.get("q") or meter_number or "").strip()
+    zone = (request.query_params.get("zone") or request.query_params.get("Zone") or Zone or "").strip()
+    station = (request.query_params.get("station") or station or "").strip()
+    dcu = (request.query_params.get("dcu") or request.query_params.get("DCU") or DCU or "").strip()
+    return q, zone, station, dcu
+
+
+def _text(value) -> str:
+    return (value or "").strip() if isinstance(value, str) else ("" if value is None else str(value).strip())
+
+
+def _load_installations(conn, q, zone, station, dcu):
+    rows = conn.execute(
+        "SELECT * FROM installed_meters ORDER BY meter_number"
+    ).fetchall()
+    records = []
+    for row in rows:
+        ct = row["CT_ratio"] if row["CT_ratio"] not in (None, "") else 1
+        vt = row["VT_ratio"] if row["VT_ratio"] not in (None, "") else 1
+        try:
+            ct_num = int(ct)
+        except (TypeError, ValueError):
+            ct_num = 1
+        try:
+            vt_num = int(vt)
+        except (TypeError, ValueError):
+            vt_num = 1
+        records.append(
+            {
+                "meter_number": _text(row["meter_number"]),
+                "com_address": _text(row["com_address"]),
+                "password": row["password"] or "",
+                "device_type": _text(row["device_type"]),
+                "type": _text(row["type"]),
+                "remarks": _text(row["remarks"]),
+                "status": _text(row["status"]),
+                "line": _text(row["line"]),
+                "CT_ratio": ct_num,
+                "VT_ratio": vt_num,
+                "DCU_number": _text(row["DCU_number"]),
+                "Zone": _text(row["Zone"]),
+                "station": _text(row["station"]),
+                "task": row["task"] or "",
+            }
+        )
+
+    online_keys = {str(key) for key in connected_clients.keys()}
+    total = len(records)
+    transformer = sum(1 for item in records if item["CT_ratio"] != 1 or item["VT_ratio"] != 1)
+    lines = {item["line"] for item in records if item["line"]}
+    dcus = {item["DCU_number"] for item in records if item["DCU_number"]}
+    stations = {item["station"] for item in records if item["station"]}
+    zones = {item["Zone"] for item in records if item["Zone"]}
+    try:
+        registered = conn.execute("SELECT COUNT(*) AS c FROM registered_meters").fetchone()["c"]
+    except sqlite3.Error:
+        registered = total
+
+    dcu_options = set(dcus)
+    try:
+        for row in conn.execute(
+            "SELECT dcu_number FROM registered_dcus WHERE dcu_number IS NOT NULL AND dcu_number != ''"
+        ):
+            dcu_options.add(str(row["dcu_number"]))
+    except sqlite3.Error:
+        pass
+
+    filtered = records
+    if q:
+        needle = q.lower()
+        filtered = [
+            item
+            for item in filtered
+            if needle in item["meter_number"].lower()
+            or needle in item["com_address"].lower()
+            or needle in item["remarks"].lower()
+        ]
+    if zone:
+        filtered = [item for item in filtered if zone.lower() in item["Zone"].lower()]
+    if station:
+        filtered = [item for item in filtered if station.lower() in item["station"].lower()]
+    if dcu:
+        filtered = [item for item in filtered if dcu.lower() in item["DCU_number"].lower()]
+
+    return {
+        "installed_meters": filtered,
+        "install_total": total,
+        "install_shown": len(filtered),
+        "registered_total": registered,
+        "transformer_count": transformer,
+        "direct_count": total - transformer,
+        "line_count": len(lines),
+        "station_count": len(stations),
+        "dcu_count": len(dcus),
+        "online_count": sum(1 for item in records if item["meter_number"] in online_keys),
+        "zone_options": sorted(zones),
+        "station_options": sorted(stations),
+        "dcu_options": sorted(dcu_options),
+        "q": q,
+        "zone": zone,
+        "station": station,
+        "dcu": dcu,
+        "meter_number": q,
+        "Zone": zone,
+        "DCU": dcu,
+        "page_time": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
+    }
+
+
+@router.get("/meter-installation", response_class=HTMLResponse)
+async def meter_installation(
+    request: Request,
+    message: str = None,
+    user: dict = Depends(require_permission("Archive")),
+):
+    q, zone, station, dcu = _install_filters(request)
+    conn = get_db_connection()
+    context = _load_installations(conn, q, zone, station, dcu)
+    conn.close()
+    context.update(
+        {
+            "request": request,
+            "message": request.query_params.get("message") or message,
+        }
+    )
+    return template_response(request, "meter_installation.html", context) 
 @router.post('/install-meter')
 async def install_meter(
     request: Request,
@@ -177,34 +301,25 @@ async def uninstall_meter(meter_number: str = Form(...)):
     message = f"✅ METER is successfully dismantled."     
     return RedirectResponse(url=f"/meter-installation?message={message}", status_code=303)
 @router.get("/search-meter-installation", response_class=HTMLResponse)
-async def search_meter_installation(request:Request, meter_number: str = "", DCU: str = "",Zone: str = "", station: str = "", user: dict = Depends(require_permission("Archive"))):  
-    query = "SELECT * FROM installed_meters WHERE 1=1"  
-    params = []
-    if meter_number: 
-        query+= " AND meter_number LIKE ?"   
-        params.append(f"%{meter_number}%") 
-    if DCU:  
-        query += " AND DCU_number LIKE ?"  
-        params.append(f"%{DCU}%") 
-    if station:  
-        query += " AND station LIKE ?"  
-        params.append(f"%{station}%") 
-    if Zone:  
-        query += " AND  Zone LIKE ?"  
-        params.append(f"%{ Zone }%")
+async def search_meter_installation(
+    request: Request,
+    meter_number: str = "",
+    DCU: str = "",
+    Zone: str = "",
+    station: str = "",
+    user: dict = Depends(require_permission("Archive")),
+):
+    q, zone, station, dcu = _install_filters(request, meter_number, DCU, Zone, station)
     conn = get_db_connection()
-    searched_meters = conn.execute(query, params).fetchall() 
-    conn.close() 
-    
- 
-    return template_response(request,"meter_installation.html",{   
-        "request": request, 
-        "installed_meters": searched_meters,
-        "meter_number": meter_number,
-        "Zone" : Zone, 
-        "station": station, 
-        "DCU": DCU, 
-    })
+    context = _load_installations(conn, q, zone, station, dcu)
+    conn.close()
+    context.update(
+        {
+            "request": request,
+            "message": request.query_params.get("message"),
+        }
+    )
+    return template_response(request, "meter_installation.html", context)
 @router.get("/get-installed-meters")
 async def get_installed_meters():
     conn = get_db_connection()

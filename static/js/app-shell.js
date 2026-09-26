@@ -16,34 +16,10 @@
 
   window.toggleSidebar = function () {
     var sidebar = document.getElementById('sidebar');
-    var toggleBtn = document.querySelector('.toggle-btn');
-    var body = document.body;
     if (!sidebar) return;
-
-    // Mark "animating" so child element transitions are frozen for the
-    // duration of the collapse — only sidebar width + content margin animate.
-    body.classList.add('sidebar-animating');
-
-    var isCollapsed = sidebar.classList.toggle('collapsed');
-
-    if (toggleBtn) {
-      toggleBtn.setAttribute('aria-expanded', (!isCollapsed).toString());
-      sidebar.dataset.state = isCollapsed ? 'collapsed' : 'expanded';
-    }
-
-    body.classList.toggle('sidebar-collapsed', isCollapsed);
-
-    var cleanup = function () {
-      body.classList.remove('sidebar-animating');
-      sidebar.removeEventListener('transitionend', onEnd);
-    };
-    var onEnd = function (e) {
-      if (e.target === sidebar && (e.propertyName === 'width' || e.propertyName === 'transform')) {
-        cleanup();
-      }
-    };
-    sidebar.addEventListener('transitionend', onEnd);
-    setTimeout(cleanup, 320); // duration (200ms) + slack
+    sidebar.classList.remove('collapsed');
+    sidebar.dataset.state = 'expanded';
+    document.body.classList.remove('sidebar-collapsed');
   };
 
   window.toggleMenu = function (menuId) {
@@ -118,11 +94,9 @@
   function applyResponsiveSidebar() {
     var sb = document.getElementById('sidebar');
     if (!sb) return;
-    if (window.innerWidth <= 992 && !sb.classList.contains('collapsed')) {
-      sb.classList.add('collapsed');
-      sb.dataset.state = 'collapsed';
-      document.body.classList.add('sidebar-collapsed');
-    }
+    sb.classList.remove('collapsed');
+    sb.dataset.state = 'expanded';
+    document.body.classList.remove('sidebar-collapsed');
   }
 
   // Top-bar global search: pure-DOM table row filter
@@ -180,8 +154,32 @@
    * Registered once per full page load — Turbo keeps the same window,   *
    * so these survive every smooth navigation.                           *
    * ------------------------------------------------------------------ */
+  function syncThemeButton() {
+    var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    var icon = document.getElementById('emxThemeIcon');
+    var btn = document.getElementById('emxThemeToggle');
+    if (icon) icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    if (btn) btn.setAttribute('aria-label', theme === 'dark' ? 'Гэрэл горим' : 'Харанхуй горим');
+  }
+
+  function setTheme(theme) {
+    var next = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('emx-theme', next); } catch (e) { /* private mode */ }
+    syncThemeButton();
+    window.dispatchEvent(new CustomEvent('emx-theme-change', { detail: { theme: next } }));
+  }
+
   function setupOnce() {
     window.addEventListener('resize', applyResponsiveSidebar);
+    syncThemeButton();
+    var themeBtn = document.getElementById('emxThemeToggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function () {
+        var current = document.documentElement.getAttribute('data-theme');
+        setTheme(current === 'dark' ? 'light' : 'dark');
+      });
+    }
 
     // Marks Turbo navigations so CSS can fade the new content in
     // (no animation on the initial full page load).
@@ -292,6 +290,7 @@
     // Highlight current sidebar nav link based on URL path
     try {
       var path = window.location.pathname.replace(/\/$/, '');
+      if (path === '/batch-upload-device-type' || path === '/step2') path = '/batch-upload-meter';
       document.querySelectorAll('.sidebar .nav-link.active').forEach(function (a) {
         a.classList.remove('active');
       });

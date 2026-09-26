@@ -1,6 +1,7 @@
 import asyncio
 import sqlite3
 import time
+from datetime import datetime, timedelta, timezone
 from urllib import request
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -24,33 +25,109 @@ import json
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
-@router.get("/meter-parameter",response_class=HTMLResponse) # registered meters for now
-async def meter_parameter(request: Request, message: str=None, user: dict = Depends(require_permission("Remote Maintain"))): 
-    conn = get_db_connection() 
-    installed_meters = conn.execute("SELECT *FROM installed_meters").fetchall()  
-    conn.close()
-    return template_response(request,"meter_parameter.html", {"request": request, "installed_meters": installed_meters, "connected_clients": connected_clients, "message": message,})
-@router.get("/search-meter-parameter", response_class=HTMLResponse)
-async def search_meter(request:Request, meter_number: str = "",line: str= "", user: dict = Depends(require_permission("Remote Maintain"))):  
-    print(line) 
+
+
+def _meter_online(meter, clients) -> bool:
+    device = str(meter["device_type"] or "")
+    meter_type = str(meter["type"] or "")
+    dcu = meter["DCU_number"]
+    number = meter["meter_number"]
+    if device == "PLC Meter":
+        try:
+            return int(dcu) in clients
+        except (TypeError, ValueError):
+            return False
+    if meter_type.lower() == "ddsd285_2018" or "esp32" in device.lower():
+        if dcu is None or str(dcu).strip() == "":
+            return False
+        return dcu in clients or str(dcu) in clients
+    try:
+        return int(number) in clients
+    except (TypeError, ValueError):
+        return str(number) in clients
+
+
+def _load_meter_page(meter_number: str = "", line: str = "", dcu_number: str = ""):
+    conn = get_db_connection()
     query = "SELECT * FROM installed_meters WHERE 1=1"
-    params = [] 
-    if meter_number: 
-        query+= " AND meter_number LIKE ?" 
-        params.append(f"%{meter_number}%") 
+    params = []
+    if meter_number:
+        query += " AND meter_number LIKE ?"
+        params.append(f"%{meter_number}%")
     if line:
-        query+= " AND line LIKE ?" 
-        params.append(f"%{line}%") 
-    conn = get_db_connection()  
-    searched_meters = conn.execute(query,params).fetchall() 
-    conn.close() 
-    return template_response(request,"meter_parameter.html",{  
-        "request": request, 
-        "installed_meters": searched_meters,
+        query += " AND line LIKE ?"
+        params.append(f"%{line}%")
+    if dcu_number:
+        query += " AND TRIM(COALESCE(DCU_number, '')) = TRIM(?)"
+        params.append(dcu_number)
+    rows = conn.execute(query, params).fetchall()
+    dcu_rows = conn.execute(
+        "SELECT DISTINCT DCU_number FROM installed_meters "
+        "WHERE DCU_number IS NOT NULL AND TRIM(DCU_number) != '' ORDER BY DCU_number"
+    ).fetchall()
+    conn.close()
+
+    dcu_ids = []
+    seen = set()
+    online = 0
+    for meter in rows:
+        if _meter_online(meter, connected_clients):
+            online += 1
+        dcu = meter["DCU_number"]
+        if dcu is None or str(dcu).strip() == "":
+            continue
+        key = str(dcu).strip()
+        if key not in seen:
+            seen.add(key)
+            dcu_ids.append(key)
+    dcu_online = 0
+    for key in dcu_ids:
+        if key in connected_clients or (key.isdigit() and int(key) in connected_clients):
+            dcu_online += 1
+
+    return {
+        "installed_meters": rows,
+        "connected_clients": connected_clients,
         "meter_number": meter_number,
         "line": line,
-        "connected_clients": connected_clients, 
-    })
+        "dcu_number": dcu_number,
+        "dcu_options": [row[0] for row in dcu_rows],
+        "meter_total": len(rows),
+        "online_count": online,
+        "offline_count": len(rows) - online,
+        "dcu_total": len(dcu_ids),
+        "dcu_online": dcu_online,
+        "page_time": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
+    }
+
+
+@router.get("/meter-parameter",response_class=HTMLResponse) # registered meters for now
+async def meter_parameter(
+    request: Request,
+    message: str = None,
+    meter_number: str = "",
+    line: str = "",
+    dcu_number: str = "",
+    user: dict = Depends(require_permission("Remote Maintain")),
+):
+    context = _load_meter_page(meter_number, line, dcu_number)
+    context["request"] = request
+    context["message"] = message
+    return template_response(request, "meter_parameter.html", context)
+
+
+@router.get("/search-meter-parameter", response_class=HTMLResponse)
+async def search_meter(
+    request: Request,
+    meter_number: str = "",
+    line: str = "",
+    dcu_number: str = "",
+    user: dict = Depends(require_permission("Remote Maintain")),
+):
+    context = _load_meter_page(meter_number, line, dcu_number)
+    context["request"] = request
+    context["message"] = None
+    return template_response(request, "meter_parameter.html", context)
 
 @router.post("/read-meter-parameter")
 async def read_Meter_parameter(request: Request):

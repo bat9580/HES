@@ -1,814 +1,716 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<link rel="stylesheet" href="{{ url_for('static', path='dashboard-emx.css') }}?v=6">
+{% endblock %}
+
 {% block content %}
+{% set total_inst = total_installations or 0 %}
+{% set online = total_online_meter or 0 %}
+{% set offline = offline_count if offline_count is defined else ([total_inst - online, 0] | max) %}
+{% set archived = archived_count if archived_count is defined else 0 %}
+{% set online_pct = ((online / total_inst) * 100) if total_inst else 0 %}
+{% set C = 251.2 %}
+{% set online_offset = C * (1 - (online_pct / 100)) %}
+{% set type_total = type_counts.values() | sum if type_counts else 0 %}
+{% set install_base = registered_meter_count if registered_meter_count else total_inst %}
+{% set install_pct = ((total_inst / install_base) * 100) if install_base else 0 %}
+{% set install_offset = 88 * (1 - (install_pct / 100)) %}
+{% set v = latest_reading.voltage_A if latest_reading and latest_reading.voltage_A is not none else none %}
+{% set a = latest_reading.current_A if latest_reading and latest_reading.current_A is not none else none %}
+{% set pf = latest_reading.total_power_factor if latest_reading and latest_reading.total_power_factor is not none else none %}
+{% set kw = latest_reading.total_active_power if latest_reading and latest_reading.total_active_power is not none else none %}
 
-<div class="container my-4 dash-modern">
-  <div class="dash-header">
-    <div class="dash-header-text">
-      <h2 class="page-title mb-0">Хяналтын самбар</h2>
-      <p class="dash-header-sub">Нэгдсэн хяналт ба тоолуурын төлөв байдал.</p>
+<div class="emx-dash">
+  <div class="emx-dash-header">
+    <div>
+      <div class="emx-dash-title-row">
+        <h1 class="emx-dash-title">Хяналтын самбар</h1>
+        <span class="emx-chip">HES</span>
+      </div>
+      <p class="emx-sub">Цахилгаан түгээх дэд станц болон ухаалаг тоолуурын нэгдсэн телеметр хяналт</p>
     </div>
-    <div class="dash-header-meta">
-      <span class="dash-meta-pill">
-        <i class="bi bi-broadcast"></i>
-        <span>Шууд өгөгдөл</span>
-      </span>
-      <span class="dash-meta-pill ghost">
-        <i class="bi bi-clock-history"></i>
-        <span class="numeric" id="dashHeaderClock">—</span>
-      </span>
+
+    <div class="emx-toolbar">
+      <label class="emx-control">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <input type="date" id="selected_date" name="selected_date" value="{{ selected_date | default(today_date) }}">
+      </label>
+
+      <div class="emx-control emx-line-wrap line-dropdown-wrapper">
+        <div class="line-dropdown-shell">
+          <span class="material-symbols-outlined accent">alt_route</span>
+          <input type="text"
+                 id="treeSearch"
+                 name="line"
+                 class="dropdown-search-input line-search-input"
+                 placeholder="Шугам сонгох..."
+                 value="{{ line | default('') }}"
+                 autocomplete="off">
+          <span class="dropdown-chevron line-dropdown-icon">
+            <span class="material-symbols-outlined">expand_more</span>
+          </span>
+          <div id="parentNodeDropdown" class="line-tree-panel"></div>
+        </div>
+      </div>
+
+      <input type="checkbox" id="dashboardSwitch" class="emx-hidden">
+      <div class="emx-mode" role="group" aria-label="Data mode">
+        <button type="button" id="modeOriginal" class="is-active">Original</button>
+        <button type="button" id="modeNormalized">Normalized</button>
+      </div>
+
+      <button type="button" class="emx-btn" onclick="exportTableToExcel()">
+        <span class="material-symbols-outlined">file_download</span>
+        Экспорт
+      </button>
+      <button type="button" class="emx-btn emx-btn-primary" id="dashRefreshBtn">
+        <span class="material-symbols-outlined">refresh</span>
+        Сэргээх
+        <span class="emx-refresh-clock" id="dashHeaderClock">—</span>
+      </button>
     </div>
   </div>
 
-  <div class="row g-3 mb-3 dash-kpi-strip">
-    <div class="col-6 col-md-3">
-      <div class="dash-kpi">
-        <div class="dash-kpi-icon kpi-primary"><i class="bi bi-collection"></i></div>
-        <div class="dash-kpi-text">
-          <span class="dash-kpi-label">Нийт бүртгэл</span>
-          <span class="dash-kpi-value numeric">{{ registered_meter_count }}</span>
+  <div class="emx-grid-4">
+    <div class="emx-card">
+      <div class="emx-card-head">
+        <div>
+          <div class="emx-card-label">Нийт бүртгэл</div>
+          <div class="emx-card-value">{{ registered_meter_count }} <span>тоолуур</span></div>
         </div>
+        <div class="emx-icon-box"><span class="material-symbols-outlined">electric_meter</span></div>
+      </div>
+      <div class="emx-card-foot">
+        <span>Бүртгэлийн сан</span>
+        <span class="emx-chip primary">агуулах</span>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="dash-kpi">
-        <div class="dash-kpi-icon kpi-violet"><i class="bi bi-lightning-charge"></i></div>
-        <div class="dash-kpi-text">
-          <span class="dash-kpi-label">Суурилуулсан</span>
-          <span class="dash-kpi-value numeric">{{ total_installations }}</span>
+
+    <div class="emx-card">
+      <div class="emx-card-head">
+        <div>
+          <div class="emx-card-label">Суурилуулсан</div>
+          <div class="emx-card-value">{{ total_inst }} <span>цэгийн тоо</span></div>
         </div>
+        <div class="emx-icon-box green"><span class="material-symbols-outlined">verified</span></div>
+      </div>
+      <div class="emx-card-foot">
+        <span>Идэвхтэй суурилуулалт</span>
+        <span class="emx-chip green">{{ "%.0f"|format(install_pct) }}% хамрагдалт</span>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="dash-kpi">
-        <div class="dash-kpi-icon kpi-emerald"><i class="bi bi-broadcast-pin"></i></div>
-        <div class="dash-kpi-text">
-          <span class="dash-kpi-label">Онлайн</span>
-          <span class="dash-kpi-value numeric">{{ total_online_meter }}</span>
+
+    <div class="emx-card">
+      <div class="emx-card-head">
+        <div>
+          <div class="emx-card-label">Онлайн статус</div>
+          <div class="emx-card-value green">{{ online }} <span>холбогдсон</span></div>
         </div>
+        <div class="emx-icon-box green"><span class="material-symbols-outlined">sensors</span></div>
+      </div>
+      <div class="emx-card-foot">
+        <span>Шууд холболт</span>
+        <span class="emx-chip green">{{ "%.0f"|format(online_pct) }}% идэвхтэй</span>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="dash-kpi">
-        <div class="dash-kpi-icon kpi-amber"><i class="bi bi-cloud-slash"></i></div>
-        <div class="dash-kpi-text">
-          <span class="dash-kpi-label">Офлайн</span>
-          <span class="dash-kpi-value numeric">{{ total_installations - total_online_meter }}</span>
+
+    <div class="emx-card">
+      <div class="emx-card-head">
+        <div>
+          <div class="emx-card-label">Офлайн статус</div>
+          <div class="emx-card-value amber">{{ offline }} <span>тасарсан</span></div>
         </div>
+        <div class="emx-icon-box amber"><span class="material-symbols-outlined">cloud_off</span></div>
+      </div>
+      <div class="emx-card-foot">
+        <span>Шалгах шаардлагатай</span>
+        <span class="emx-chip amber">{{ "%.0f"|format(100 - online_pct) }}%</span>
       </div>
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-sm-12 dashboard-filter-wrapper">
-      <div class="filter-bar-container">
-        <div class="filter-bar d-flex align-items-center gap-2" style="flex-wrap: nowrap;">
-      <!-- Date input -->
-      <div class="filter-bar-item" style="flex: 0 0 150px; min-width: 0;">
-        <input 
-            type="date" 
-            id="selected_date" 
-            name="selected_date" 
-            value="{{ selected_date | default('') }}" 
-            class="form-control filter-bar-date-input" 
-        > 
-      </div>   
-      
-      <!-- Line dropdown -->
-      <div class="col-md-auto" style="flex: 0 0 200px; min-width: 0;""> 
-      <!-- <div class="filter-bar-item" style="flex: 0 0 200px; min-width: 0;"> -->
-        <div class="line-dropdown-wrapper w-100">
-          <div class="line-dropdown-shell">
-            <input type="text"
-                   id="treeSearch"
-                   name="line"
-                   class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
-                   placeholder="Шугам сонгох..."
-                   value="{{ line | default('') }}"
-                   autocomplete="off">
-            <span class="dropdown-chevron line-dropdown-icon">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-            <div id="parentNodeDropdown" class="line-tree-panel"></div>
+  <div class="emx-grid-4">
+    <div class="emx-card">
+      <div class="emx-card-title-row">
+        <span class="emx-card-title">Онлайн / Офлайн харьцаа</span>
+        <span class="material-symbols-outlined" style="color:var(--emx-muted);font-size:18px;">cell_tower</span>
+      </div>
+      <div class="emx-donut-wrap">
+        <div class="emx-donut">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--emx-track)" stroke-width="12"></circle>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--emx-tertiary-dim)" stroke-width="12" stroke-dasharray="251.2" stroke-dashoffset="0"></circle>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--emx-secondary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="{{ "%.1f"|format(online_offset) }}"></circle>
+          </svg>
+          <div class="emx-donut-center">
+            <strong>{{ online }} / {{ total_inst }}</strong>
+            <span>{{ "%.1f"|format(online_pct) }}%</span>
           </div>
         </div>
       </div>
-
-      <!-- Switch button -->
-      <div class="filter-bar-item" style="flex: 0 0 auto; min-width: 0; flex-shrink: 0;">
-        <div class="switch-toggle-wrapper">
-          <input type="checkbox" id="dashboardSwitch" class="switch-toggle-input">
-          <label for="dashboardSwitch" class="switch-toggle-label">
-            <span class="switch-toggle-track"></span>
-            <span class="switch-toggle-knob"></span>
-          </label>
-          <span id="switchLabel" class="switch-toggle-text">Original</span>
+      <div class="emx-legend">
+        <div class="emx-legend-row">
+          <span><span class="emx-dot" style="background:var(--emx-secondary);"></span>Онлайн</span>
+          <strong>{{ online }} ({{ "%.0f"|format(online_pct) }}%)</strong>
+        </div>
+        <div class="emx-legend-row">
+          <span><span class="emx-dot" style="background:var(--emx-tertiary-dim);"></span>Офлайн</span>
+          <strong>{{ offline }} ({{ "%.0f"|format(100 - online_pct) }}%)</strong>
         </div>
       </div>
+    </div>
 
-      <!-- Export button -->
-      <div class="filter-bar-item" style="flex: 0 0 36px; min-width: 0; flex-shrink: 0;">
-        <button type="button" 
-                onclick="exportTableToExcel()"  
-                class="btn w-100 d-flex align-items-center justify-content-center">
-          <i class="bi bi-upload"></i>
-        </button>
+    <div class="emx-card">
+      <div class="emx-card-title-row">
+        <span class="emx-card-title">Төрөл / Загвар</span>
+        <span class="emx-chip">COSEM</span>
+      </div>
+      <div>
+        {% if type_counts %}
+          {% for tname, tcount in type_counts.items() %}
+          {% set tpct = ((tcount / type_total) * 100) if type_total else 0 %}
+          <div class="emx-bar-row">
+            <div class="emx-bar-meta">
+              <span>{{ tname }}</span>
+              <span style="color:var(--emx-primary);">{{ tcount }} <small style="color:var(--emx-muted);font-weight:400;">({{ "%.0f"|format(tpct) }}%)</small></span>
+            </div>
+            <div class="emx-bar-track">
+              <div class="emx-bar-fill c{{ loop.index0 % 4 }}" style="width: {{ "%.1f"|format(tpct) }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="emx-sub">Төрлийн мэдээлэл алга.</p>
+        {% endif %}
+      </div>
+      <div class="emx-card-foot">
+        <span>Протокол стандарт</span>
+        <span class="emx-chip">IEC 62056</span>
       </div>
     </div>
+
+    <div class="emx-card">
+      <div class="emx-card-title-row">
+        <span class="emx-card-title">Суурилуулалт ба архив</span>
+        <span class="material-symbols-outlined" style="color:var(--emx-secondary);font-size:18px;">check_circle</span>
+      </div>
+      <div class="emx-install">
+        <div class="emx-install-ring">
+          <svg viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="14" fill="none" stroke="var(--emx-track)" stroke-width="4.5"></circle>
+            <circle cx="18" cy="18" r="14" fill="none" stroke="var(--emx-primary)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="88" stroke-dashoffset="{{ "%.1f"|format(install_offset) }}"></circle>
+          </svg>
+          <span>{{ "%.0f"|format(install_pct) }}%</span>
+        </div>
+        <div class="emx-install-list">
+          <div><span>Ажиллаж буй:</span><strong>{{ total_inst }} цэг</strong></div>
+          <div><span style="color:var(--emx-muted);">Нөөц / Архив:</span><span>{{ archived }} цэг</span></div>
+          <div><span style="color:var(--emx-secondary);font-weight:500;">Бүртгэл:</span><strong style="color:var(--emx-secondary);">{{ registered_meter_count }}</strong></div>
+        </div>
+      </div>
+      <div class="emx-card-foot">
+        <span>Суурилуулалтын хамрагдалт</span>
+        <span>{{ "%.0f"|format(install_pct) }}%</span>
+      </div>
+    </div>
+
+    <div class="emx-card">
+      <div class="emx-card-title-row">
+        <span class="emx-card-title">Агшин зуурын ачаалал</span>
+        <span class="emx-chip" id="loadPeakChip">Оргил: —</span>
+      </div>
+      <div>
+        <div class="emx-load-value">
+          <div>
+            <strong id="loadNow">{{ "%.2f"|format(kw) if kw is not none else "—" }}</strong>
+            <span class="emx-card-label">кВт active</span>
+          </div>
+        </div>
+        <div class="emx-chart-canvas" style="height:72px;">
+          <canvas id="consumptionLineChart"></canvas>
+        </div>
+      </div>
+      <div class="emx-phase">
+        <div>
+          <small>Хүчдэл</small>
+          <b id="phaseV">{{ "%.1f"|format(v) + "V" if v is not none else "—" }}</b>
+        </div>
+        <div>
+          <small>Гүйдэл</small>
+          <b id="phaseA">{{ "%.2f"|format(a) + "A" if a is not none else "—" }}</b>
+        </div>
+        <div>
+          <small>cos φ</small>
+          <b id="phasePf" style="color:var(--emx-secondary);">{{ "%.2f"|format(pf) if pf is not none else "—" }}</b>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="emx-grid-2">
+    <div class="emx-card">
+      <div class="emx-card-title-row">
+        <div>
+          <div class="emx-dash-title-row">
+            <span class="emx-card-title">Сүүлийн 24 цагийн хэрэглээ</span>
+            <span class="emx-chip primary" id="peak24Chip">Оргил: —</span>
+          </div>
+          <div style="margin-top:0.15rem;">
+            <strong id="total24" style="font-size:18px;">—</strong>
+            <span class="emx-card-label"> кВт·цаг</span>
+          </div>
+        </div>
+        <span class="emx-chip">цагаар</span>
+      </div>
+      <div class="emx-chart-canvas">
+        <canvas id="consumptionBarChart24hour"></canvas>
+      </div>
+      <div class="emx-chart-meta">
+        <span>Шугам: <b id="lineLabel24">—</b></span>
+        <span>Цэгүүд: {{ total_inst }}</span>
+      </div>
+    </div>
+
+    <div class="emx-card">
+      <div class="emx-card-title-row">
+        <div>
+          <div class="emx-dash-title-row">
+            <span class="emx-card-title">Сүүлийн 30 хоногийн хэрэглээ</span>
+            <span class="emx-chip" id="avg30Chip">Дундаж: —</span>
+          </div>
+          <div style="margin-top:0.15rem;">
+            <strong id="total30" style="font-size:18px;">—</strong>
+            <span class="emx-card-label"> кВт·цаг</span>
+          </div>
+        </div>
+        <span class="emx-chip">өдрөөр</span>
+      </div>
+      <div class="emx-chart-canvas">
+        <canvas id="consumptionBarChart30day"></canvas>
+      </div>
+      <div class="emx-chart-meta">
+        <span>Ажлын өдөр / амралт ялгаатай</span>
+        <span>Сүүлийн 30 хоног</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="emx-card">
+    <div class="emx-card-title-row">
+      <div class="emx-dash-title-row">
+        <span class="material-symbols-outlined" style="color:var(--emx-primary);font-size:20px;">account_tree</span>
+        <span class="emx-card-title">Дэд станц ба Фидерийн ачаалал</span>
+        <span class="emx-sub">{{ feeder_rows|length }} шугам</span>
+      </div>
+      <span class="emx-sub">Суурилуулсан цэгээр</span>
+    </div>
+    <div class="emx-table-wrap">
+      <table class="emx-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Фидерийн нэршил</th>
+            <th class="text-end">Тоолуур</th>
+            <th class="text-center">Онлайн</th>
+            <th class="text-end">Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if feeder_rows %}
+            {% for row in feeder_rows %}
+            <tr>
+              <td style="color:var(--emx-muted);">#{{ loop.index }}</td>
+              <td style="font-weight:500;">{{ row.line_name }}</td>
+              <td class="text-end" style="font-weight:600;">{{ row.meter_count }}</td>
+              <td class="text-center">{{ row.online_count }} / {{ row.meter_count }}</td>
+              <td class="text-end">
+                {% if row.online_count > 0 %}
+                <span class="emx-status">Идэвхтэй</span>
+                {% else %}
+                <span class="emx-chip amber">Офлайн</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" style="color:var(--emx-muted);">Шугамын мэдээлэл алга.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="emx-conduit">
+    <div class="emx-conduit-left">
+      <span class="emx-pulse"></span>
+      <span>{{ dcu_info.dcu_number if dcu_info and dcu_info.dcu_number else "DCU GATEWAY" }}</span>
+      {% if dcu_info and dcu_info.ip_address %}
+      <span style="color:var(--emx-muted);font-weight:400;">IP: {{ dcu_info.ip_address }}</span>
+      {% endif %}
+    </div>
+    <div class="emx-conduit-meta">
+      <span>Протокол: <b>DLMS/COSEM</b></span>
+      <span>Онлайн төхөөрөмж: <b>{{ online }}</b></span>
+      <span>TCP: <b>0.0.0.0:7777</b></span>
     </div>
   </div>
 </div>
 
-
-  <!-- Stats Cards -->
-  <div class="row g-3 mb-4 align-items-stretch stats-row">
-    <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
-            <div class="card shadow-sm stat-card">
-                <div class="card-body text-center">
-                    <h5 class="text-muted stat-card-title">Онлайн</h5>
-                    <canvas id="onlineChart" width="165" height="165"></canvas>
-                    <div class="d-flex justify-content-center mt-3 gap-3">
-                        <!-- Online -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#ffcd32; border-radius:50%;"></span>
-                            <small>Online</small>
-                        </div>
-                        <!-- Offline -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#e9ecef; border-radius:50%;"></span>
-                            <small>Offline</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
-            <div class="card shadow-sm stat-card">
-                <div class="card-body text-center">
-                    <h5 class="text-muted stat-card-title">Төрөл</h5>
-                    <canvas id="meterTypeChart" width="165" height="165"></canvas>
-                    <div class="d-flex justify-content-center mt-3 gap-3">
-                        <!-- Online -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#ffcd32; border-radius:50%;"></span>
-                            <small>DDSY283</small> 
-                        </div>
-                        <!-- Offline -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#39515c; border-radius:50%;"></span>
-                            <small>DTSD545S</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-xl-auto stat-card-col">
-            <div class="card shadow-sm stat-card">
-                <div class="card-body text-center">
-                    <h5 class="text-muted stat-card-title">Суурилуулалт</h5>
-                    <canvas id="installationsChart" width="165" height="165"></canvas>
-                    <div class="d-flex justify-content-center mt-3 gap-3">
-                        <!-- Online -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#ffcd32; border-radius:50%;"></span>
-                            <small>installed</small> 
-                        </div>
-                        <!-- Offline -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#02396f; border-radius:50%;"></span>
-                            <small>archived</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-xl stats-chart-col">
-            <div class="card shadow-sm chart-card">
-                <div class="card-body">
-                    <div class="chart-card-head">
-                      <h5 class="chart-card-title mb-0">Нийт ачаалал</h5>
-                      <span class="chart-card-meta">Сүүлийн 6 цаг · кВт</span>
-                    </div>
-                    <canvas id="consumptionLineChart" height="120"></canvas>
-                </div>
-            </div>
-        </div>
-
-
-  </div>
-  <!-- Charts -->
-  
-<div class="row g-4"> 
-<div class="col-md-6">
-  <div class="card shadow-sm section-card chart-card">
-    <div class="card-body">
-      <div class="chart-card-head">
-        <h5 class="chart-card-title mb-0">Сүүлийн 24 цагийн хэрэглээ</h5>
-        <span class="chart-card-meta">Цагаар · кВт.ц</span>
-      </div>
-      <canvas id="consumptionBarChart24hour" height="100"></canvas>
-    </div>
-  </div>
-</div>
-
-<div class="col-md-6">
-  <div class="card shadow-sm section-card chart-card">
-    <div class="card-body">
-      <div class="chart-card-head">
-        <h5 class="chart-card-title mb-0">Сүүлийн 30 хоногийн хэрэглээ</h5>
-        <span class="chart-card-meta">Өдрөөр · кВт.ц</span>
-      </div>
-      <canvas id="consumptionBarChart30day" height="100"></canvas>
-    </div>
-  </div>
-</div> 
-</div> 
-
-</div>
 <script>
-const centerTextPlugin = {
-    id: 'centerText',
-    beforeDraw(chart) {
-        const { ctx, width, height } = chart;
-        ctx.save();
-        const fontSize = (height / 5).toFixed(2);
-        ctx.font = fontSize + "px sans-serif";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#fff";
-        const text = "{{ total_installations }}"; // Replace with your dynamic value if needed
-        const textX = Math.round((width - ctx.measureText(text).width) / 2);
-        const textY = height / 2;
-        ctx.fillText(text, textX, textY);
-        ctx.restore();
-    }
+function emxCss(name, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+const emxChartDefaults = {
+  font: { family: "Inter, sans-serif", size: 11 },
+  color: "#737686"
 };
-const centerTextPlugin1 = {
-    id: 'centerText',
-    beforeDraw(chart) {
-        const { ctx, width, height } = chart;
-        ctx.save();
-        const fontSize = (height / 5).toFixed(2);
-        ctx.font = fontSize + "px sans-serif";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#fff";
-        const text = "{{ total_installations }}"; // Replace with your dynamic value if needed
-        const textX = Math.round((width - ctx.measureText(text).width) / 2);
-        const textY = height / 2;
-        ctx.fillText(text, textX, textY);
-        ctx.restore();
-    }
-};
-const centerTextPlugin2 = {
-    id: 'centerText',
-    beforeDraw(chart) {
-        const { ctx, width, height } = chart;
-        ctx.save();
-        const fontSize = (height / 5).toFixed(2);
-        ctx.font = fontSize + "px sans-serif";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#fff";
-        const text = "{{ registered_meter_count }}"; // Replace with your dynamic value if needed
-        const textX = Math.round((width - ctx.measureText(text).width) / 2);
-        const textY = height / 2;
-        ctx.fillText(text, textX, textY);
-        ctx.restore();
-    }
-};  
 
-const onlineChart = new Chart(document.getElementById('onlineChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Online', 'Offline'],
-        datasets: [{
-            data: [{{ total_online_meter }}, {{ total_installations - total_online_meter }}], 
-            backgroundColor: ['#22d3ee', '#1f2937'],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        cutout: '80%',
-        plugins: {
-            legend: { display: false }
-        },
-        responsive: false
-    },
-    plugins: [centerTextPlugin]
-});
-
-const meterTypeChart = new Chart(document.getElementById('meterTypeChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['DDSY283SR', 'DTSD545S', 'DTSD546'] ,
-        datasets: [{
-            data: [{{ type_counts["DDSY283SR"] }}, {{ type_counts["DTSD546"] }}, {{ type_counts["DTSD545S"] }}], 
-            backgroundColor: ['#22c55e', '#f43f5e','#60a5fa'],  
-            borderWidth: 0
-        }]
-    },
-    options: {
-        cutout: '80%',
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        responsive: false
-    },
-    plugins: [centerTextPlugin] // register your custom plugin here
-});
-
-const installationsChart = new Chart(document.getElementById('installationsChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['installed', 'archived'],
-        datasets: [{ 
-            data: [{{ total_installations }}, {{ registered_meter_count - total_installations }}], 
-            backgroundColor: ['#f59e0b', '#0ea5e9'],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        cutout: '80%',
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        responsive: false
-    },
-    plugins: [centerTextPlugin2] // register your custom plugin here
-});
- 
-
+function applyEmxChartTheme() {
+  const primary = emxCss("--emx-primary", "#004ac6");
+  const fill = emxCss("--emx-chart-fill", "rgba(37,99,235,0.08)");
+  const grid = emxCss("--emx-track", "#f2f3ff");
+  const tick = emxCss("--emx-muted", "#737686");
+  emxChartDefaults.color = tick;
+  [consumptionLineChart, consumptionBarChart24hour].forEach(function (chart) {
+    const series = chart.data.datasets[0];
+    series.borderColor = primary;
+    series.backgroundColor = fill;
+  });
+  consumptionBarChart24hour.options.scales.y.grid.color = grid;
+  consumptionBarChart24hour.options.scales.y.ticks.color = tick;
+  consumptionBarChart24hour.options.scales.x.ticks.color = tick;
+  consumptionBarChart30day.options.scales.y.grid.color = grid;
+  consumptionBarChart30day.options.scales.y.ticks.color = tick;
+  consumptionBarChart30day.options.scales.x.ticks.color = tick;
+  if (consumptionBarChart30day.data.labels && consumptionBarChart30day.data.labels.length) {
+    consumptionBarChart30day.data.datasets[0].backgroundColor = weekendColors(consumptionBarChart30day.data.labels);
+  }
+  consumptionLineChart.update("none");
+  consumptionBarChart24hour.update("none");
+  consumptionBarChart30day.update("none");
+}
 
 const consumptionLineChart = new Chart(document.getElementById("consumptionLineChart"), {
-    type: 'line',
-    data: {
-      labels: [],  
-      datasets: [{
-        label: 'Active Power (kWh)',
-        data: [],
-        fill: true,
-        borderColor: '#22d3ee',
-        backgroundColor: 'rgba(34,211,238,0.18)',
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Active Power (kW)",
+      data: [],
+      fill: true,
+      borderColor: "#004ac6",
+      backgroundColor: "rgba(37,99,235,0.08)",
+      tension: 0.4,
+      pointRadius: 0,
+      pointHoverRadius: 3,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { display: false, beginAtZero: true },
+      x: { display: false }
     }
-  });
+  }
+});
 
 const consumptionBarChart24hour = new Chart(document.getElementById("consumptionBarChart24hour"), {
-    type: 'bar',
-    data: {
-      labels: [],  // e.g. ['Jan', 'Feb', 'Mar', 'Apr']
-      datasets: [{
-        label: 'Хэрэглээ (Kв.цаг)' ,
-        data: [],  // e.g. [85, 90, 80, 95]
-        backgroundColor: '#22c55e',
-        borderRadius: 8,
-        barThickness: 14  // adjust bar width here
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false
-        }
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Хэрэглээ (кВт·ц)",
+      data: [],
+      fill: true,
+      borderColor: "#004ac6",
+      backgroundColor: "rgba(37,99,235,0.08)",
+      tension: 0.35,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: "#f2f3ff" },
+        ticks: emxChartDefaults,
+        border: { display: false }
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Хэрэглээ (Kв.цаг)'  
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Сүүлын 24 цаг' 
-          }
-        }
+      x: {
+        grid: { display: false },
+        ticks: emxChartDefaults,
+        border: { display: false }
       }
     }
-  });
+  }
+});
 
 const consumptionBarChart30day = new Chart(document.getElementById("consumptionBarChart30day"), {
-    type: 'bar',
-    data: {
-      labels: [],  // e.g. ['Jan', 'Feb', 'Mar', 'Apr']
-      datasets: [{
-        label: 'Хэрэглээ (Kв.цаг)' ,
-        data: [],  // e.g. [85, 90, 80, 95]
-        backgroundColor: '#8b5cf6',
-        borderRadius: 8,
-        barThickness: 14  // adjust bar width here
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false
-        }
+  type: "bar",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Хэрэглээ (кВт·ц)",
+      data: [],
+      backgroundColor: [],
+      borderRadius: 2,
+      barThickness: 10
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: "#f2f3ff" },
+        ticks: emxChartDefaults,
+        border: { display: false }
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Хэрэглээ (Kв.цаг)'  
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Сүүлын 24 цаг' 
-          }
-        }
+      x: {
+        grid: { display: false },
+        ticks: Object.assign({ maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, emxChartDefaults),
+        border: { display: false }
       }
     }
-  });
-  
-// Store current data type (Original/Calculated) - declared globally
-let currentDataType = 'Original';
-
-$(document).ready(function () {
-    $('#parentNodeDropdown').jstree({
-        core: {
-            data: {
-                url: '/line-tree-data',
-                dataType: 'json'
-            },
-            themes: {
-                stripes: true
-            }
-        },
-        plugins: ["search"], // enable search
-        icons: false // disable default icons
-    })
-    .on("ready.jstree", function (e, data) {
-        // Automatically select the first line when tree is loaded
-        const tree = data.instance;
-        
-        // Get all nodes in flat format
-        const allNodes = tree.get_json('#', { flat: true });
-        
-        // Find the first leaf node (actual line, not a parent)
-        let firstLeafNode = null;
-        for (let i = 0; i < allNodes.length; i++) {
-            const node = allNodes[i];
-            // Check if it's a leaf node (has no children or children array is empty)
-            if (!node.children || node.children.length === 0) {
-                firstLeafNode = node;
-                break;
-            }
-        }
-        
-        // If no leaf node found, try to get the first node anyway
-        if (!firstLeafNode && allNodes.length > 0) {
-            firstLeafNode = allNodes[0];
-        }
-        
-        // Select the first node programmatically
-        if (firstLeafNode) {
-            tree.select_node(firstLeafNode.id);
-        }
-    })
-    .on("select_node.jstree", function (e, data) {
-        // Store node text
-        $('#parent_node_input').val(data.node.text);
-        $('#treeSearch').val(data.node.text); 
-
-        $('#parentNodeDropdown').removeClass('open').hide();
-        const offsetMs = 8 * 60 * 60 * 1000; // UTC+8
-         
-        
-
-    // tsag gargah
-    const endTime = new Date(Date.now() + offsetMs);  
-    console.log(endTime)   
-    const startTime = new Date(endTime.getTime() - 6 * 60 * 60 * 1000); // minus 6 hours 
-    const isoEnd = endTime.toISOString().split('.')[0];
-    const isoStart = startTime.toISOString().split('.')[0]; 
-
-
-    // active power graph ogogdol avah 
-    $.getJSON(`/active-power-last6h`, {
-      line: data.node.text,
-      start: isoStart,
-      end: isoEnd
-    }, function(response) {
-      console.log(response)   
-      if (response && Array.isArray(response)) { 
-        const labels = response.map(item => item.timestamp);
-        const values = response.map(item => item.value); 
-        consumptionLineChart.data.labels = labels;  
-        consumptionLineChart.data.datasets[0].data = values; 
-        consumptionLineChart.update(); 
-        console.log("updated values")
-      } else {
-        consumptionLineChart.data.labels = [];  
-        consumptionLineChart.data.datasets[0].data = [];
-        consumptionLineChart.update();
-        alert('No data found for selected line and time range.');
-      }
-    }).fail(function() {
-      alert('Failed to fetch data from server.');
-    });
-
-    // 24 tsagin total consumption ogogdol avah 
-    const startTime_1 = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // minus 24 hours 
-    const isoEnd_1 = endTime.toISOString().split('.')[0];
-    const isoStart_1 = startTime_1.toISOString().split('.')[0]; 
-
-    $.getJSON(`/hourly-consumption-last24h`, {
-      line: data.node.text,
-      start: isoStart_1,
-      end: isoEnd_1,
-      type: currentDataType
-    }, function(response) {
-      console.log(response)   
-      if (response && Array.isArray(response)) { 
-        const labels = response.map(item => item.timestamp);
-        const values = response.map(item => item.value); 
-        consumptionBarChart24hour.data.labels = labels;  
-        consumptionBarChart24hour.data.datasets[0].data = values; 
-        consumptionBarChart24hour.update(); 
-        console.log("updated values")
-      } else {
-        consumptionBarChart24hour.data.labels = [];  
-        consumptionBarChart24hour.data.datasets[0].data = [];
-        consumptionBarChart24hour.update();
-        alert('No data found for selected line and time range.');
-      }
-    }).fail(function() {
-      alert('Failed to fetch data from server.');
-    }); 
-
-    // 30 odriin total consumption ogogdol avah 
-    const startTime_2 = new Date(endTime.getTime() - 30 *24 * 60 * 60 * 1000); // minus 30 day  
-    const isoEnd_2 = endTime.toISOString().split('.')[0];
-    const isoStart_2 = startTime_2.toISOString().split('.')[0];  
-    
-    $.getJSON(`/daily-consumption-last30d`, { 
-      line: data.node.text,
-      start: isoStart_2,
-      end: isoEnd_2,
-      type: currentDataType
-    }, function(response) {
-      console.log(response)   
-      if (response && Array.isArray(response)) { 
-        const labels = response.map(item => item.timestamp);
-        const values = response.map(item => item.value); 
-        consumptionBarChart30day.data.labels = labels;  
-        consumptionBarChart30day.data.datasets[0].data = values; 
-        consumptionBarChart30day.update(); 
-        console.log("updated values")
-      } else {
-        consumptionBarChart30day.data.labels = [];  
-        consumptionBarChart30day.data.datasets[0].data = [];
-        consumptionBarChart30day.update(); 
-        alert('No data found for selected line and time range.');
-      }
-    }).fail(function() {
-      alert('Failed to fetch data from server.');
-    }); 
-
-    });
-
-    // Simple toggle click to open/close tree dropdown
-    const $treePanel = $('#parentNodeDropdown');
-    const $treeSearch = $('#treeSearch');
-
-    $treePanel.addClass('line-tree-panel').hide();
-
-    $treeSearch
-        .on('focus', function () {
-            $treePanel.addClass('open').show();
-        })
-        .on('input', function () {
-            $treePanel.jstree(true).search($(this).val());
-        });
-
-    // Hide dropdown when clicking outside
-    $(document).click(function(e) {
-        if (!$(e.target).closest('.line-dropdown-wrapper').length) {
-            $treePanel.removeClass('open');
-            setTimeout(function() {
-                if (!$treePanel.hasClass('open')) {
-                    $treePanel.hide();
-                }
-            }, 300);
-        }
-    });
-}); 
-
-// Function to refresh all charts based on current switch state
-function refreshAllCharts() {
-  const line = $('#treeSearch').val();
-  if (!line) {
-    return; // No line selected, can't refresh
   }
+});
 
-  const offsetMs = 8 * 60 * 60 * 1000; // UTC+8
-  const endTime = new Date(Date.now() + offsetMs);
-  
-  // Active power (last 6 hours) - uses regular_task_readings (no calculated version)
+let currentDataType = "Original";
+
+function formatNum(n) {
+  if (n === null || n === undefined || Number.isNaN(Number(n))) return "—";
+  return Number(n).toLocaleString("en-US", { maximumFractionDigits: 1 });
+}
+
+function weekendColors(labels) {
+  const work = emxCss("--emx-primary", "#004ac6");
+  const weekend = emxCss("--emx-tertiary-dim", "#ffb95f");
+  return labels.map(function (label) {
+    const d = new Date(label);
+    if (Number.isNaN(d.getTime())) return work;
+    const day = d.getDay();
+    return (day === 0 || day === 6) ? weekend : work;
+  });
+}
+
+window.addEventListener("emx-theme-change", applyEmxChartTheme);
+applyEmxChartTheme();
+
+function applySeriesStats(values, totalEl, extraEl, extraKind) {
+  const nums = (values || []).map(Number).filter(function (v) { return !Number.isNaN(v); });
+  const total = nums.reduce(function (a, b) { return a + b; }, 0);
+  if (totalEl) totalEl.textContent = formatNum(total);
+  if (extraEl && nums.length) {
+    if (extraKind === "peak") extraEl.textContent = "Оргил: " + formatNum(Math.max.apply(null, nums)) + " кВт·ц";
+    if (extraKind === "avg") extraEl.textContent = "Дундаж: " + formatNum(total / nums.length) + " кВт·ц/өдөр";
+  }
+}
+
+function utc8Now() {
+  return new Date(Date.now() + 8 * 60 * 60 * 1000);
+}
+
+function isoNoMs(d) {
+  return d.toISOString().split(".")[0];
+}
+
+function selectedLine() {
+  return $("#treeSearch").val();
+}
+
+function loadActivePower(line) {
+  const endTime = utc8Now();
   const startTime = new Date(endTime.getTime() - 6 * 60 * 60 * 1000);
-  const isoEnd = endTime.toISOString().split('.')[0];
-  const isoStart = startTime.toISOString().split('.')[0];
-
-  $.getJSON(`/active-power-last6h`, {
+  $.getJSON("/active-power-last6h", {
     line: line,
-    start: isoStart,
-    end: isoEnd
-  }, function(response) {
+    start: isoNoMs(startTime),
+    end: isoNoMs(endTime)
+  }, function (response) {
     if (response && Array.isArray(response)) {
-      const labels = response.map(item => item.timestamp);
-      const values = response.map(item => item.value);
+      const labels = response.map(function (item) { return item.timestamp; });
+      const values = response.map(function (item) { return item.value; });
       consumptionLineChart.data.labels = labels;
       consumptionLineChart.data.datasets[0].data = values;
       consumptionLineChart.update();
+      const nums = values.map(Number).filter(function (v) { return !Number.isNaN(v); });
+      if (nums.length) {
+        document.getElementById("loadNow").textContent = Number(nums[nums.length - 1]).toFixed(2);
+        document.getElementById("loadPeakChip").textContent = "Оргил: " + Math.max.apply(null, nums).toFixed(2) + " кВт";
+      }
+    } else {
+      consumptionLineChart.data.labels = [];
+      consumptionLineChart.data.datasets[0].data = [];
+      consumptionLineChart.update();
     }
   });
+}
 
-  // Hourly consumption (last 24 hours)
-  const startTime_1 = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-  const isoEnd_1 = endTime.toISOString().split('.')[0];
-  const isoStart_1 = startTime_1.toISOString().split('.')[0];
-
-  $.getJSON(`/hourly-consumption-last24h`, {
+function loadHourly(line) {
+  const endTime = utc8Now();
+  const startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+  $.getJSON("/hourly-consumption-last24h", {
     line: line,
-    start: isoStart_1,
-    end: isoEnd_1,
+    start: isoNoMs(startTime),
+    end: isoNoMs(endTime),
     type: currentDataType
-  }, function(response) {
+  }, function (response) {
     if (response && Array.isArray(response)) {
-      const labels = response.map(item => item.timestamp);
-      const values = response.map(item => item.value);
+      const labels = response.map(function (item) { return item.timestamp; });
+      const values = response.map(function (item) { return item.value; });
       consumptionBarChart24hour.data.labels = labels;
       consumptionBarChart24hour.data.datasets[0].data = values;
       consumptionBarChart24hour.update();
+      applySeriesStats(values, document.getElementById("total24"), document.getElementById("peak24Chip"), "peak");
+      document.getElementById("lineLabel24").textContent = line || "—";
+    } else {
+      consumptionBarChart24hour.data.labels = [];
+      consumptionBarChart24hour.data.datasets[0].data = [];
+      consumptionBarChart24hour.update();
     }
   });
+}
 
-  // Daily consumption (last 30 days)
-  const startTime_2 = new Date(endTime.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const isoEnd_2 = endTime.toISOString().split('.')[0];
-  const isoStart_2 = startTime_2.toISOString().split('.')[0];
-
-  $.getJSON(`/daily-consumption-last30d`, {
+function loadDaily(line) {
+  const endTime = utc8Now();
+  const startTime = new Date(endTime.getTime() - 30 * 24 * 60 * 60 * 1000);
+  $.getJSON("/daily-consumption-last30d", {
     line: line,
-    start: isoStart_2,
-    end: isoEnd_2,
+    start: isoNoMs(startTime),
+    end: isoNoMs(endTime),
     type: currentDataType
-  }, function(response) {
+  }, function (response) {
     if (response && Array.isArray(response)) {
-      const labels = response.map(item => item.timestamp);
-      const values = response.map(item => item.value);
+      const labels = response.map(function (item) { return item.timestamp; });
+      const values = response.map(function (item) { return item.value; });
       consumptionBarChart30day.data.labels = labels;
       consumptionBarChart30day.data.datasets[0].data = values;
+      consumptionBarChart30day.data.datasets[0].backgroundColor = weekendColors(labels);
+      consumptionBarChart30day.update();
+      applySeriesStats(values, document.getElementById("total30"), document.getElementById("avg30Chip"), "avg");
+    } else {
+      consumptionBarChart30day.data.labels = [];
+      consumptionBarChart30day.data.datasets[0].data = [];
       consumptionBarChart30day.update();
     }
   });
 }
 
-// Switch button functionality
-$(document).ready(function() {
-  $('#dashboardSwitch').on('change', function() {
-    const isChecked = $(this).is(':checked');
-    const label = $('#switchLabel');
-    
-    if (isChecked) {
-      label.text('Calculated');
-      currentDataType = 'Calculated';
-      console.log('Switch is ON - Calculated mode enabled');
-    } else {
-      label.text('Original');
-      currentDataType = 'Original';
-      console.log('Switch is OFF - Original mode enabled');
+function refreshAllCharts() {
+  const line = selectedLine();
+  if (!line) return;
+  loadActivePower(line);
+  loadHourly(line);
+  loadDaily(line);
+}
+
+$(document).ready(function () {
+  $("#parentNodeDropdown").jstree({
+    core: {
+      data: { url: "/line-tree-data", dataType: "json" },
+      themes: { stripes: true }
+    },
+    plugins: ["search"],
+    icons: false
+  })
+  .on("ready.jstree", function (e, data) {
+    const tree = data.instance;
+    const allNodes = tree.get_json("#", { flat: true });
+    let firstLeafNode = null;
+    for (let i = 0; i < allNodes.length; i++) {
+      const node = allNodes[i];
+      if (!node.children || node.children.length === 0) {
+        firstLeafNode = node;
+        break;
+      }
     }
-    
-    // Refresh all charts with new data type
+    if (!firstLeafNode && allNodes.length > 0) firstLeafNode = allNodes[0];
+    if (firstLeafNode) tree.select_node(firstLeafNode.id);
+  })
+  .on("select_node.jstree", function (e, data) {
+    $("#treeSearch").val(data.node.text);
+    $("#parentNodeDropdown").removeClass("open").hide();
     refreshAllCharts();
   });
-  
-  // Initialize switch state
-  const switchInput = $('#dashboardSwitch');
-  if (switchInput.length) {
-    switchInput.prop('checked', false);
-    $('#switchLabel').text('Original');
+
+  const $treePanel = $("#parentNodeDropdown");
+  const $treeSearch = $("#treeSearch");
+  $treePanel.addClass("line-tree-panel").hide();
+  $treeSearch
+    .on("focus", function () { $treePanel.addClass("open").show(); })
+    .on("input", function () { $treePanel.jstree(true).search($(this).val()); });
+
+  $(document).click(function (e) {
+    if (!$(e.target).closest(".line-dropdown-wrapper").length) {
+      $treePanel.removeClass("open");
+      setTimeout(function () {
+        if (!$treePanel.hasClass("open")) $treePanel.hide();
+      }, 200);
+    }
+  });
+
+  function setMode(normalized) {
+    $("#dashboardSwitch").prop("checked", normalized);
+    $("#modeOriginal").toggleClass("is-active", !normalized);
+    $("#modeNormalized").toggleClass("is-active", normalized);
+    currentDataType = normalized ? "Calculated" : "Original";
+    refreshAllCharts();
   }
 
-  // Add transition effects to date input (similar to daterangepicker)
-  const dateInput = document.getElementById('selected_date');
-  let datePickerTimeout;
-  
-  if (dateInput) {
-    // Enhanced visual feedback when date picker is being used
-    dateInput.addEventListener('focus', function() {
-      clearTimeout(datePickerTimeout);
-      this.classList.add('date-picker-open');
-      
-      // Add enhanced state after a brief delay (simulating calendar opening)
-      setTimeout(() => {
-        this.classList.add('date-picker-active');
-      }, 150);
-    });
-    
-    // Handle click for immediate feedback
-    dateInput.addEventListener('click', function() {
-      clearTimeout(datePickerTimeout);
-      this.classList.add('date-picker-open');
-      
-      setTimeout(() => {
-        this.classList.add('date-picker-active');
-      }, 100);
-    });
-    
-    dateInput.addEventListener('mousedown', function() {
-      clearTimeout(datePickerTimeout);
-      this.classList.add('date-picker-open');
-    });
-    
-    // Remove classes when calendar closes
-    dateInput.addEventListener('blur', function() {
-      const self = this;
-      clearTimeout(datePickerTimeout);
-      
-      // Delay removal to allow any animations to complete
-      datePickerTimeout = setTimeout(() => {
-        self.classList.remove('date-picker-open', 'date-picker-active');
-      }, 400);
-    });
-    
-    // Also handle when a date is selected
-    dateInput.addEventListener('change', function() {
-      const self = this;
-      clearTimeout(datePickerTimeout);
-      
-      // Keep the active state briefly after selection, then remove
-      datePickerTimeout = setTimeout(() => {
-        self.classList.remove('date-picker-open', 'date-picker-active');
-      }, 300);
-    });
-  }
+  $("#modeOriginal").on("click", function () { setMode(false); });
+  $("#modeNormalized").on("click", function () { setMode(true); });
+  $("#dashboardSwitch").prop("checked", false);
+
+  $("#dashRefreshBtn").on("click", function () { refreshAllCharts(); });
 });
 
 function exportTableToExcel() {
-  const selectedDate = document.getElementById('selected_date').value;
+  const selectedDate = document.getElementById("selected_date").value;
   if (!selectedDate) {
-    alert('Please select a date first!');
+    alert("Огноо сонгоно уу.");
     return;
   }
-
-  const url = `/export-Excel-24H-consumpsion?selected_date=${encodeURIComponent(selectedDate)}`;
-
-  fetch(url, {
-    method: 'GET'
-  })
-    .then(response => {
-      if (!response.ok) throw new Error('Failed to download file');
+  const url = "/export-Excel-24H-consumpsion?selected_date=" + encodeURIComponent(selectedDate);
+  fetch(url, { method: "GET" })
+    .then(function (response) {
+      if (!response.ok) throw new Error("Failed to download file");
       return response.blob();
     })
-    .then(blob => {
+    .then(function (blob) {
       const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = `export_24H_${selectedDate}.xlsx`; 
+      a.download = "export_24H_" + selectedDate + ".xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
     })
-    .catch(err => console.error(err));
+    .catch(function (err) { console.error(err); });
 }
 
-// Live clock in dashboard header (purely visual)
-(function() {
-  const el = document.getElementById('dashHeaderClock');
+(function () {
+  const el = document.getElementById("dashHeaderClock");
   if (!el) return;
-  const tick = () => {
+  const tick = function () {
     const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    const ss = String(now.getSeconds()).padStart(2, '0');
-    el.textContent = `${hh}:${mm}:${ss}`;
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    el.textContent = hh + ":" + mm + ":" + ss;
   };
   tick();
   setInterval(tick, 1000);

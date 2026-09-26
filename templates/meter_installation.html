@@ -1,207 +1,343 @@
 {% extends "base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/install-emx.css?v=2">
+{% endblock %}
 {% block content %}
-{% if message %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    showToast('{{ message }}', 'success');
-  }, 300);
-  toggleCommFields();
-});
-</script>
-{% endif %} 
-<div class="p-4">
-  <div class="page-header mb-4">
-    <div class="page-header-text">
-      <h2 class="page-title mb-1">Суулгасан тоолуурууд</h2>
-      <p class="page-header-sub">Суурилуулсан тоолуурын мэдээлэл болон шугам, дэд станцын холболт.</p>
-    </div>
-  </div>
-
-  <div class="filter-bar-container">
-    <form method = "GET" action = "/search-meter-installation" class="filter-bar">
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="meter_number"
-                 autocomplete="off" 
-                 placeholder="Тоолуур хайх"
-                 value="{{ meter_number | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="installed-meter-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="device_type" required>
+<div class="ireg">
+  <div class="ireg-head">
+    <div>
+      <nav class="ireg-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Суурилуулалт</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Суулгасан тоолуурууд</span>
+      </nav>
+      <div class="ireg-title-row">
+        <span class="ireg-bar"></span>
+        <h1 class="ireg-title">Суулгасан тоолуурууд</h1>
+        <span class="ireg-count">{{ install_total }} суурилагдсан</span>
+        <span class="ireg-sync"><span class="ireg-dot"></span>DLMS/COSEM бүртгэл</span>
       </div>
+      <p class="ireg-sub">Суурилуулсан тоолуурын мэдээлэл, шугам, DCU холболт, CT/VT харьцаа.</p>
     </div>
-    
-
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <!-- Search Input + Dropdown Toggle Combined -->
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 placeholder="Бүлэг хайх"
-                 name = "Zone"  
-                 value="{{ Zone | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <!-- Dropdown Menu (unchanged) -->
-        <ul class="dropdown-menu w-100"
-            aria-labelledby="zoneDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="region" required>
-      </div>
-    </div>
-    <div class="col-md-auto" style="width: 20%;">
-      <div class="dropdown" style="height: 35px;">
-        <!-- Search Input + Dropdown Toggle Combined -->
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 placeholder="Дэд станц"
-                 name = "station"
-                 value="{{ station | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <!-- Dropdown Menu (unchanged) -->
-        <ul class="dropdown-menu w-100"
-            aria-labelledby="stationDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="device_type" required>
-      </div>
-
-    </div>
-    <div class="col-md-auto" style="width: 22.8%;">
-      <div class="dropdown" style="height: 35px;">
-        <!-- Search Input + Dropdown Toggle Combined -->
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 placeholder="DCU" 
-                 name = "DCU"
-                 value="{{ DCU | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <!-- Dropdown Menu (unchanged) -->
-        <ul class="dropdown-menu w-100"
-            aria-labelledby="dcuDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="device_type" required>
-      </div>
-    </div>
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
+    <div class="ireg-actions">
+      <a class="ireg-btn" href="/batch-upload-meter">
+        <span class="material-symbols-outlined">upload_file</span>Багцаар импортлох
+      </a>
+      <button class="ireg-btn" id="iregExport" type="button">
+        <span class="material-symbols-outlined">download</span>Экспорт (CSV)
+      </button>
+      <button class="ireg-btn primary" type="button" data-bs-toggle="modal" data-bs-target="#addMeterModal">
+        <span class="material-symbols-outlined">add</span>Шинэ тоолуур суурилуулах
       </button>
     </div>
-
-    <div class="col-md-auto" style="width: 4.166666%;"> 
-        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addMeterModal">
-          <i class="bi bi-plus" aria-hidden="true"></i>
-        </button>
-    </div>
-    <div class="col-md-auto" style="width: 4.166666%;"> 
-        <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#uninstallMeterModal">
-          <i class="bi bi-dash" aria-hidden="true"></i>
-        </button>
-    </div>
-  </form>
   </div>
 
-  <table class="table table-bordered">
-    <thead class="table-light">
-      <tr style = "height: 30px;">
-        <th style="width: 30px;">#</th>
-        <th>Тоолуурын дугаар</th>
-        <th>Комм хаяг</th>
-        <th>Тоолуурын төрөл</th>
-        <th>CT харьцаа</th>
-        <th>VT харьцаа</th>  
-        <th>Тайлбар</th>
-        <th>Шугам</th>
-        <th>Бүртгэлийн төлөв</th>
-        <th>Үйлдэл</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for meter in installed_meters %}
-      <tr>
-        <td>{{ loop.index }}</td>
-        <td>{{ meter['meter_number'] }}</td>
-        <td>{{ meter['com_address'] }}</td>
-        <td>{{ meter['device_type'] }}</td>
-        <td>{{ meter['CT_ratio'] }}</td>
-        <td>{{ meter['VT_ratio'] }}</td>
-        <td>{{ meter['remarks'] or '-' }}</td>
-        <td>{{ meter['line'] }}</td>
-        <td>
-          {% if meter['status'] == 'installed' %}
-            <span class="badge bg-success text-white">Installed</span>
-          {% elif meter['status'] == 'Archived' %}
-            <span class="badge bg-secondary">Archived</span>
+  <div class="ireg-kpis">
+    <div class="ireg-kpi">
+      <div>
+        <div class="ireg-kpi-label">Нийт суурилуулсан</div>
+        <div class="ireg-kpi-value">{{ install_total }} тоолуур</div>
+        <div class="ireg-kpi-foot">Бүртгэлтэй {{ registered_total }}-аас</div>
+      </div>
+      <div class="ireg-kpi-icon blue"><span class="material-symbols-outlined">electric_meter</span></div>
+    </div>
+    <div class="ireg-kpi">
+      <div>
+        <div class="ireg-kpi-label">CT / VT трансформатортай</div>
+        <div class="ireg-kpi-value">{{ transformer_count }} нэгж <span>{{ direct_count }} шууд</span></div>
+        <div class="ireg-kpi-foot">Харьцаа 1-ээс өөр тоолуур</div>
+      </div>
+      <div class="ireg-kpi-icon amber"><span class="material-symbols-outlined">transform</span></div>
+    </div>
+    <div class="ireg-kpi">
+      <div>
+        <div class="ireg-kpi-label">Шугам &amp; фидер</div>
+        <div class="ireg-kpi-value">{{ line_count }} шугам <span>{{ station_count }} дэд станц</span></div>
+        <div class="ireg-kpi-foot">{{ dcu_count }} DCU дээр тоолууртой</div>
+      </div>
+      <div class="ireg-kpi-icon green"><span class="material-symbols-outlined">account_tree</span></div>
+    </div>
+    <div class="ireg-kpi">
+      <div>
+        <div class="ireg-kpi-label">Холболт</div>
+        <div class="ireg-kpi-value"><span class="good">{{ online_count }} онлайн</span></div>
+        <div class="ireg-kpi-foot">{{ install_total - online_count }} холболтгүй</div>
+      </div>
+      <div class="ireg-kpi-icon green"><span class="material-symbols-outlined">verified</span></div>
+    </div>
+  </div>
+
+  <form class="ireg-filters" method="get" action="/meter-installation">
+    <div class="ireg-filter-row">
+      <div class="ireg-field">
+        <input id="iregSearch" name="q" type="text" placeholder="Тоолуур хайх..." value="{{ q }}">
+      </div>
+      <div class="ireg-field">
+        <select name="zone">
+          <option value="">Бүлэг хайх...</option>
+          {% for item in zone_options %}
+          <option value="{{ item }}" {% if zone == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+        <span class="material-symbols-outlined chev">expand_more</span>
+      </div>
+      <div class="ireg-field">
+        <select name="station">
+          <option value="">Дэд станц...</option>
+          {% for item in station_options %}
+          <option value="{{ item }}" {% if station == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+        <span class="material-symbols-outlined chev">expand_more</span>
+      </div>
+      <div class="ireg-field">
+        <select name="dcu">
+          <option value="">DCU...</option>
+          {% for item in dcu_options %}
+          <option value="{{ item }}" {% if dcu == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+        <span class="material-symbols-outlined chev">expand_more</span>
+      </div>
+      <div class="ireg-tools">
+        <button class="ireg-icon" type="submit" title="Хайх"><span class="material-symbols-outlined">search</span></button>
+        <button class="ireg-icon primary" type="button" title="Шинэ тоолуур суурилуулах" data-bs-toggle="modal" data-bs-target="#addMeterModal"><span class="material-symbols-outlined">add</span></button>
+        <button class="ireg-icon" type="button" title="Суурилуулалтаас хасах" data-bs-toggle="modal" data-bs-target="#uninstallMeterModal"><span class="material-symbols-outlined">remove</span></button>
+      </div>
+    </div>
+    <div class="ireg-chips">
+      <span>Идэвхтэй шүүлтүүр:</span>
+      {% if q %}<a class="ireg-chip" href="/meter-installation?zone={{ zone|urlencode }}&amp;station={{ station|urlencode }}&amp;dcu={{ dcu|urlencode }}">Тоолуур: {{ q }} <span class="material-symbols-outlined">close</span></a>{% endif %}
+      {% if zone %}<a class="ireg-chip" href="/meter-installation?q={{ q|urlencode }}&amp;station={{ station|urlencode }}&amp;dcu={{ dcu|urlencode }}">Бүлэг: {{ zone }} <span class="material-symbols-outlined">close</span></a>{% endif %}
+      {% if station %}<a class="ireg-chip" href="/meter-installation?q={{ q|urlencode }}&amp;zone={{ zone|urlencode }}&amp;dcu={{ dcu|urlencode }}">Дэд станц: {{ station }} <span class="material-symbols-outlined">close</span></a>{% endif %}
+      {% if dcu %}<a class="ireg-chip" href="/meter-installation?q={{ q|urlencode }}&amp;zone={{ zone|urlencode }}&amp;station={{ station|urlencode }}">DCU: {{ dcu }} <span class="material-symbols-outlined">close</span></a>{% endif %}
+      {% if not q and not zone and not station and not dcu %}<span>байхгүй</span>{% endif %}
+      {% if q or zone or station or dcu %}<a class="ireg-clear" href="/meter-installation">Бүгдийг цэвэрлэх</a>{% endif %}
+      <span class="ireg-found">Олдсон: {{ install_shown }} бичлэг</span>
+    </div>
+  </form>
+
+  <div class="ireg-table-card">
+    <div class="ireg-table-wrap">
+      <table class="ireg-table">
+        <thead>
+          <tr>
+            <th class="ireg-center"><input id="iregSelectAll" type="checkbox"></th>
+            <th class="ireg-center">#</th>
+            <th>Тоолуурын дугаар</th>
+            <th>Комм хаяг</th>
+            <th>Тоолуурын төрөл</th>
+            <th class="ireg-right">CT харьцаа</th>
+            <th class="ireg-right">VT харьцаа</th>
+            <th>Тайлбар</th>
+            <th>Шугам / фидер</th>
+            <th class="ireg-center">Бүртгэлийн төлөв</th>
+            <th class="ireg-center">Үйлдэл</th>
+          </tr>
+        </thead>
+        <tbody id="iregBody">
+          {% for meter in installed_meters %}
+          <tr class="ireg-row" data-meter="{{ meter.meter_number }}" data-comm="{{ meter.com_address }}" data-device="{{ meter.device_type }}" data-type="{{ meter.type }}" data-ct="{{ meter.CT_ratio }}" data-vt="{{ meter.VT_ratio }}" data-remarks="{{ meter.remarks }}" data-line="{{ meter.line }}" data-dcu="{{ meter.DCU_number }}" data-status="{{ meter.status }}">
+            <td class="ireg-center"><input class="ireg-check" type="checkbox"></td>
+            <td class="ireg-num ireg-index">{{ loop.index }}</td>
+            <td class="ireg-meter">
+              {{ meter.meter_number }}
+              {% if meter.type.upper().startswith('DTSD') %}<span class="ireg-tag">3-Phase</span>{% endif %}
+              {% if 'LTE' in meter.device_type.upper() or '4G' in meter.device_type.upper() %}<span class="ireg-tag lte">LTE-M</span>{% endif %}
+            </td>
+            <td class="ireg-mono ireg-muted">{{ meter.com_address or '—' }}</td>
+            <td>
+              <span class="ireg-type">
+                {% if 'PLC' in meter.device_type.upper() %}
+                <span class="ireg-dot plc"></span>
+                {% elif '485' in meter.device_type or 'ESP' in meter.device_type.upper() %}
+                <span class="ireg-dot lte"></span>
+                {% else %}
+                <span class="ireg-dot hv"></span>
+                {% endif %}
+                {{ meter.device_type or '—' }}{% if meter.type %} ({{ meter.type }}){% endif %}
+              </span>
+            </td>
+            <td class="ireg-right ireg-mono">{{ meter.CT_ratio }}</td>
+            <td class="ireg-right ireg-mono">{{ meter.VT_ratio }}</td>
+            <td class="ireg-muted">{{ meter.remarks or '—' }}</td>
+            <td>
+              {% if meter.line %}
+              <span class="ireg-line">{{ meter.line }}</span>
+              {% else %}
+              <span class="ireg-muted">—</span>
+              {% endif %}
+              {% if meter.DCU_number %}<span class="ireg-dcu">DCU {{ meter.DCU_number }}</span>{% endif %}
+            </td>
+            <td class="ireg-center">
+              {% if meter.status|lower == 'installed' %}
+              <span class="ireg-status"><span class="ireg-dot"></span>INSTALLED</span>
+              {% elif meter.status|lower == 'archived' %}
+              <span class="ireg-status archived">ARCHIVED</span>
+              {% else %}
+              <span class="ireg-status archived">{{ meter.status or '—' }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="ireg-row-actions">
+                <button type="button" title="Засах" data-bs-toggle="modal" data-bs-target="#editMeterModal"
+                  data-original-meter-number="{{ meter.meter_number }}"
+                  data-meter-number="{{ meter.meter_number }}"
+                  data-comm-address="{{ meter.com_address }}"
+                  data-device-type="{{ meter.device_type }}"
+                  data-type="{{ meter.type }}"
+                  data-password="{{ meter.password }}"
+                  data-remarks="{{ meter.remarks }}"
+                  data-task="{{ meter.task }}"
+                  data-status="{{ meter.status }}"
+                  data-vt_ratio="{{ meter.VT_ratio }}"
+                  data-ct_ratio="{{ meter.CT_ratio }}"
+                  data-line="{{ meter.line }}">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <a href="/meter-parameter" title="Параметр"><span class="material-symbols-outlined">sensors</span></a>
+                <button type="button" title="Одоогоор боломжгүй" disabled><span class="material-symbols-outlined">more_vert</span></button>
+              </div>
+            </td>
+          </tr>
           {% else %}
-            <span class="badge bg-light text-muted">Unknown</span>
-          {% endif %}
-        </td>
-        <td>
-          <button class="btn btn-sm btn-secondary" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#editMeterModal" 
-                  data-original-meter-number="{{meter['meter_number']}}"  
-                  data-meter-number="{{meter['meter_number']}}"
-                  data-comm-address="{{ meter['com_address'] }}"
-                  data-device-type="{{ meter['device_type'] }}"
-                  data-type="{{ meter['type'] }}"
-                  data-password="{{ meter['password'] }}"
-                  data-remarks="{{ meter['remarks'] }}"
-                  data-task="{{ meter['task'] }}"
-                  data-status="{{ meter['status'] }}" 
-                  data-vt_ratio = "{{ meter['VT_ratio'] }}"
-                  data-ct_ratio = "{{ meter['CT_ratio'] }}"  
-                  data-line="{{ meter['line'] }}">  
-                  <i class="bi bi-pencil-square"></i>
-          </button> 
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          <tr><td colspan="11" class="ireg-muted" style="padding:1rem;">Суурилуулсан тоолуур олдсонгүй.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="ireg-foot">
+      <div class="ireg-foot-left">
+        <span>Нийт <strong>{{ install_shown }}</strong> тоолуураас <strong id="iregRange">—</strong> харуулж байна</span>
+        <span>Хуудсанд:</span>
+        <select class="ireg-page-size" id="iregPageSize">
+          <option value="15" selected>15</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="ireg-batch">
+        <button class="ireg-mini" type="button" disabled title="Одоогоор боломжгүй"><span class="material-symbols-outlined">check_circle</span>Сонгосныг батлах</button>
+        <a class="ireg-mini" id="iregRead" href="/meter-parameter"><span class="material-symbols-outlined">sync_alt</span>Шууд зайнаас унших</a>
+        <button class="ireg-mini danger" type="button" disabled title="Реле удирдлага тусдаа хуудсанд"><span class="material-symbols-outlined">power_off</span>Реле таслах</button>
+      </div>
+      <div class="ireg-pager" id="iregPager"></div>
+    </div>
+  </div>
+
+  <div class="ireg-ribbon">
+    <div>
+      <span class="good">СУУРИЛУУЛАЛТ: {{ install_total }} ТООЛУУР</span>
+      <span> · </span>
+      <span>ШУГАМ: <strong>{{ line_count }}</strong></span>
+      <span> · </span>
+      <span>DCU: <strong>{{ dcu_count }}</strong></span>
+      <span> · </span>
+      <span>ОНЛАЙН: <strong>{{ online_count }}/{{ install_total }}</strong></span>
+    </div>
+    <div>Хуудас шинэчлэгдсэн: {{ page_time }}</div>
+  </div>
 </div>
+<script>
+(function () {
+  const rows = Array.from(document.querySelectorAll('#iregBody .ireg-row'));
+  const sizeSelect = document.getElementById('iregPageSize');
+  const pager = document.getElementById('iregPager');
+  const range = document.getElementById('iregRange');
+  const selectAll = document.getElementById('iregSelectAll');
+  let page = 1;
+
+  function pageSize() { return Number(sizeSelect.value) || 15; }
+  function pages() { return Math.max(1, Math.ceil(rows.length / pageSize())); }
+
+  function render() {
+    const size = pageSize();
+    const last = pages();
+    if (page > last) page = last;
+    const start = (page - 1) * size;
+    rows.forEach((row, index) => {
+      const show = index >= start && index < start + size;
+      row.hidden = !show;
+      const num = row.querySelector('.ireg-index');
+      if (num) num.textContent = String(index + 1);
+    });
+    range.textContent = rows.length ? (start + 1) + '-' + Math.min(start + size, rows.length) : '0';
+    pager.innerHTML = '';
+    function add(label, target, current) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ireg-page' + (current ? ' is-current' : '');
+      btn.textContent = label;
+      btn.disabled = target < 1 || target > last;
+      btn.addEventListener('click', () => { page = target; render(); });
+      pager.appendChild(btn);
+    }
+    add('‹', page - 1, false);
+    for (let i = 1; i <= last; i++) add(String(i), i, i === page);
+    add('›', page + 1, false);
+    if (selectAll) {
+      const visible = rows.filter(row => !row.hidden);
+      const checks = visible.map(row => row.querySelector('.ireg-check'));
+      selectAll.checked = checks.length > 0 && checks.every(box => box.checked);
+    }
+  }
+
+  sizeSelect.addEventListener('change', () => { page = 1; render(); });
+  rows.forEach(row => {
+    row.querySelector('.ireg-check').addEventListener('change', () => {
+      row.classList.toggle('is-selected', row.querySelector('.ireg-check').checked);
+      render();
+    });
+  });
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      rows.filter(row => !row.hidden).forEach(row => {
+        const box = row.querySelector('.ireg-check');
+        box.checked = selectAll.checked;
+        row.classList.toggle('is-selected', selectAll.checked);
+      });
+    });
+  }
+
+  document.getElementById('iregExport').addEventListener('click', () => {
+    const header = ['meter_number','com_address','device_type','type','CT_ratio','VT_ratio','remarks','line','DCU_number','status'];
+    const lines = [header.join(',')];
+    rows.forEach(row => {
+      lines.push(header.map(key => '"' + String(row.dataset[key === 'meter_number' ? 'meter' : key === 'com_address' ? 'comm' : key === 'device_type' ? 'device' : key === 'CT_ratio' ? 'ct' : key === 'VT_ratio' ? 'vt' : key === 'DCU_number' ? 'dcu' : key] || '').replaceAll('"', '""') + '"').join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'installed-meters.csv';
+    link.click();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === '/' && document.activeElement && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      event.preventDefault();
+      document.getElementById('iregSearch').focus();
+    }
+  });
+
+  render();
+})();
+{% if message %}
+document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(function () {
+    if (typeof showToast === 'function') showToast({{ message|tojson }}, 'success');
+    if (typeof toggleCommFields === 'function') toggleCommFields();
+  }, 300);
+});
+{% endif %}
+</script>
+
 <!-- add button form for meter adding  -->
+
  
 
 <div class="modal fade" id="addMeterModal" tabindex="-1" aria-labelledby="addMeterModalLabel" aria-hidden="true">

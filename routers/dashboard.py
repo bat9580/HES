@@ -34,31 +34,97 @@ async def dashboard(request: Request, message: str = None):
     total_installations_count = conn.execute("SELECT COUNT(*) FROM installed_meters").fetchone()[0] 
     type_stats = conn.execute(
         """
-        SELECT type, COUNT(*) as count 
+        SELECT COALESCE(NULLIF(TRIM(type), ''), 'Unknown') AS type, COUNT(*) as count
         FROM installed_meters
-        WHERE type IN ('DDSY283SR', 'DTSD546', 'DTSD545S')
-        GROUP BY type
+        GROUP BY COALESCE(NULLIF(TRIM(type), ''), 'Unknown')
+        ORDER BY count DESC
         """
     ).fetchall()
     type_counts = {row["type"]: row["count"] for row in type_stats}
-
-    # Ensure missing types are set to 0
-    for t in ["DDSY283SR", "DTSD546", "DTSD545S"]:
-        type_counts.setdefault(t, 0)
     print(type_counts)
+
+    online_count = len(connected_clients)
+    offline_count = max(total_installations_count - online_count, 0)
+    archived_count = max(registered_meter_count - total_installations_count, 0)
+    online_set = {str(k) for k in connected_clients.keys()}
+
+    feeder_rows = []
+    try:
+        raw_feeders = conn.execute(
+            """
+            SELECT COALESCE(NULLIF(TRIM(line), ''), 'Тодорхойгүй') AS line_name,
+                   COUNT(*) AS meter_count
+            FROM installed_meters
+            GROUP BY COALESCE(NULLIF(TRIM(line), ''), 'Тодорхойгүй')
+            ORDER BY meter_count DESC
+            LIMIT 8
+            """
+        ).fetchall()
+        for row in raw_feeders:
+            line_name = row["line_name"]
+            meters = conn.execute(
+                """
+                SELECT meter_number FROM installed_meters
+                WHERE COALESCE(NULLIF(TRIM(line), ''), 'Тодорхойгүй') = ?
+                """,
+                (line_name,),
+            ).fetchall()
+            online_on_line = sum(1 for m in meters if str(m["meter_number"]) in online_set)
+            feeder_rows.append({
+                "line_name": line_name,
+                "meter_count": row["meter_count"],
+                "online_count": online_on_line,
+            })
+    except Exception as e:
+        print(f"Feeder summary query failed: {e}")
+
+    latest_reading = None
+    try:
+        latest_row = conn.execute(
+            """
+            SELECT voltage_A, current_A, total_power_factor, total_active_power, timestamp
+            FROM regular_task_readings
+            WHERE total_active_power IS NOT NULL
+            ORDER BY timestamp DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        if latest_row:
+            latest_reading = dict(latest_row)
+    except Exception as e:
+        print(f"Latest reading query failed: {e}")
+
+    dcu_info = None
+    try:
+        dcu_row = conn.execute(
+            "SELECT dcu_number, com_address FROM registered_dcus LIMIT 1"
+        ).fetchone()
+        if dcu_row:
+            dcu_info = {
+                "dcu_number": dcu_row["dcu_number"],
+                "ip_address": dcu_row["com_address"],
+            }
+    except Exception as e:
+        print(f"DCU summary query failed: {e}")
 
     conn.close()
 
-
-    return template_response(request, "dashboard.html", 
+    return template_response(request, "dashboard.html",
         {
             "request": request,
             "message": message,
-            "registered_meters": installed_meters, 
-            "total_installations": total_installations_count, 
-            "total_online_meter": len(connected_clients),
+            "registered_meters": installed_meters,
+            "total_installations": total_installations_count,
+            "total_online_meter": online_count,
+            "offline_count": offline_count,
+            "archived_count": archived_count,
             "type_counts": type_counts,
-            "registered_meter_count":registered_meter_count,
+            "registered_meter_count": registered_meter_count,
+            "feeder_rows": feeder_rows,
+            "latest_reading": latest_reading,
+            "dcu_info": dcu_info,
+            "today_date": datetime.now().strftime("%Y-%m-%d"),
+            "today_label": datetime.now().strftime("%Y/%m/%d"),
         }) 
     # return templates.TemplateResponse(
     #     "dashboard.html", 

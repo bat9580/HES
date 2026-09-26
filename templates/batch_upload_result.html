@@ -1,110 +1,136 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/batch-emx.css?v=1">
+{% endblock %}
 {% block content %}
-<div class="wizard-steps">
-  <div  data-step="1">Төхөөрөмжийн төрөл сонгох</div> 
-  <div data-step="2">Төхөөрөмжийн төрөл</div>
-  <div class="active" data-step="3">Баталгаажуулах</div> 
-</div>
+<div class="breg">
+  <div class="breg-head">
+    <div>
+      <nav class="breg-crumb">
+        <span>Үйл ажиллагаа</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Суурилуулалт</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Багц тоолуур суурилуулах</span>
+      </nav>
+      <div class="breg-title-row">
+        <h1 class="breg-title">Багц тоолуур суурилуулах</h1>
+        <span class="breg-badge">Batch Meter Commissioning</span>
+      </div>
+      <p class="breg-sub">Файл дахь дугаарыг суурилуулсан тоолууртай тулгаж, дараа нь системд бүртгэнэ.</p>
+    </div>
+  </div>
 
-<!-- Status Summary -->
-<div class="status"> <span class="add">Шинээр нэмэх: {{ add_success }}</span> <span class="update">Шинэчлэх тоолуур: {{ update_success }}</span> <span class="failed">Бүтэлгүйтсэн: {{ failed }}</span> <span class="total">Нийт: {{ total }}</span> </div>
+  <div class="breg-steps">
+    <div class="breg-step is-done">
+      <div class="breg-step-no">1</div>
+      <div>
+        <div class="breg-kicker">Алхам 01</div>
+        <div class="breg-step-name">1. Төхөөрөмж &amp; файл сонгох</div>
+        <div class="breg-step-state">Дууссан</div>
+      </div>
+    </div>
+    <a class="breg-step is-done" href="/batch-upload-device-type" style="text-decoration:none;color:inherit;">
+      <div class="breg-step-no">2</div>
+      <div>
+        <div class="breg-kicker">Алхам 02</div>
+        <div class="breg-step-name">2. Холболтын тохиргоо</div>
+        <div class="breg-step-state">Дууссан</div>
+      </div>
+    </a>
+    <div class="breg-step is-on">
+      <div class="breg-step-no">3</div>
+      <div>
+        <div class="breg-kicker">Алхам 03</div>
+        <div class="breg-step-name">3. Шалгах &amp; суулгах</div>
+        <div class="breg-step-state"><span class="breg-dot"></span>Идэвхтэй алхам</div>
+      </div>
+    </div>
+  </div>
 
-<!-- Current Exist Meter -->
-<h3 class="mt-4">Системд аль хэдийн бүртгэгдсэн тоолуурууд</h3> 
-<table class="table table-bordered table-striped text-center result-table">
-    <thead class="table-light">
-        <tr>
-            <th>#</th>
-            <th>Тоолуурын дугаар</th> 
-        </tr>
-    </thead>
-    <tbody id="installed-body"></tbody> 
-</table>
+  <div class="breg-card">
+    <h2 class="breg-card-title">3. Шалгалтын үр дүн</h2>
+    <div class="breg-summary status">
+      <span class="add">Шинээр нэмэх: {{ add_success }}</span>
+      <span class="update">Шинэчлэх тоолуур: {{ update_success }}</span>
+      <span class="failed">Бүтэлгүйтсэн: {{ failed }}</span>
+      <span class="total">Нийт: {{ total }}</span>
+    </div>
 
-<!-- Current Exist DCU -->
-<h3 class="mt-4">Системд бүртгэгдээгүй тоолуурууд</h3>
-<table class="table table-bordered table-striped text-center result-table">
-    <thead class="table-light">
-        <tr>
-            <th>#</th>
-            <th>Тоолуурын дугаар</th> 
-        </tr>
-    </thead>
-    <tbody id="not-installed-body"></tbody> 
-</table>
+    <h3 class="breg-block-title">Системд аль хэдийн суурилуулсан</h3>
+    <div class="breg-table-wrap">
+      <table class="breg-table">
+        <thead><tr><th>#</th><th>Тоолуурын дугаар</th></tr></thead>
+        <tbody id="installed-body"></tbody>
+      </table>
+    </div>
 
-<!-- Actions -->
-<p id="serverMessage" style="margin-top:10px; color:blue;"></p>  
-<div class="d-flex justify-content-between mt-4">
-    <a href="/batch-upload-device-type" class="btn btn-secondary">← Өмнөх</a>
-    <button id = "submit_meters" type="submit" class="btn btn-success">Илгээх</button>
+    <h3 class="breg-block-title">Шинээр суулгах</h3>
+    <div class="breg-table-wrap">
+      <table class="breg-table">
+        <thead><tr><th>#</th><th>Тоолуурын дугаар</th></tr></thead>
+        <tbody id="not-installed-body"></tbody>
+      </table>
+    </div>
+
+    <p class="breg-msg" id="serverMessage"></p>
+    <div class="breg-form-actions">
+      <a class="breg-btn" href="/batch-upload-device-type"><span class="material-symbols-outlined">arrow_back</span>Өмнөх</a>
+      <button class="breg-btn primary" id="submit_meters" type="button">Системд суулгах <span class="material-symbols-outlined">arrow_forward</span></button>
+    </div>
+  </div>
+
+  <div class="breg-ribbon">
+    <div><span class="good">DCU: {{ dcu_total }} бүртгэлтэй · {{ dcu_online }} онлайн</span></div>
+    <div>Хуудас шинэчлэгдсэн: {{ page_time }}</div>
+  </div>
 </div>
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
     const savedData = localStorage.getItem("meters");
-    if (!savedData) return;
-
-    const data = JSON.parse(savedData);
-    console.log("Loaded from storage:", data);
-
     const installedBody = document.getElementById("installed-body");
     const notInstalledBody = document.getElementById("not-installed-body");
-
-    // Fill installed meters
-    if (data.already_installed && data.already_installed.length > 0) {
-        data.already_installed.forEach((m, idx) => {
-            installedBody.insertAdjacentHTML("beforeend", `
-                <tr>
-                    <td>${idx + 1}</td>
-                    <td>${m}</td>
-                </tr>
-            `);
-        });
-    } else {
-        installedBody.innerHTML = `<tr><td colspan="2">No Data</td></tr>`;
+    if (!savedData) {
+        installedBody.innerHTML = '<tr><td colspan="2">Шалгалтын өгөгдөл алга. Өмнөх алхмаас үргэлжлүүлнэ үү.</td></tr>';
+        notInstalledBody.innerHTML = '<tr><td colspan="2">Өгөгдөл алга</td></tr>';
+        return;
     }
-
-    // Fill not installed meters
-    if (data.new_meters && data.new_meters.length > 0) {
-        data.new_meters.forEach((m, idx) => {
-            notInstalledBody.insertAdjacentHTML("beforeend", `
-                <tr>
-                    <td>${idx + 1}</td>
-                    <td>${m}</td>
-                </tr>
-            `);
-        });
-    } else {
-        notInstalledBody.innerHTML = `<tr><td colspan="2">No Data</td></tr>`;
-    }
-
-    // Fill summary
-    document.querySelector(".add").textContent = `Шинээр нэмэх: ${data.new_meters.length}`;
-    document.querySelector(".update").textContent = `Шинэчлэх тоолуур: ${data.already_installed.length}`;
-    document.querySelector(".failed").textContent = `Бүтэлгүйтсэн: 0`;
-    document.querySelector(".total").textContent = `Нийт: ${data.total_uploaded}`; 
-});
-document.getElementById("submit_meters").addEventListener('click',function(e){
-    let meter_info = localStorage.getItem("excel_rows");
-    const deviceType = localStorage.getItem("deviceType");
-    const dcuNumber = localStorage.getItem("dcuNumber");
-    const commAddress = localStorage.getItem("commAddress");
-    console.log("submitting") 
-    console.log("Device Type:", deviceType);
-    console.log("DCU Number:", dcuNumber);
-    console.log("Comm Address:", commAddress);
-    console.log("Meter Info:", meter_info);
-    
-    // Prepare request data with device configuration
-    const requestData = {
-        meters: meter_info,
-        device_type: deviceType,
-        dcu_number: dcuNumber || null,
-        comm_address: commAddress || null
+    const data = JSON.parse(savedData);
+    const fill = (body, list, empty) => {
+        if (list && list.length) {
+            list.forEach((meter, idx) => {
+                const tr = document.createElement("tr");
+                const indexCell = document.createElement("td");
+                const meterCell = document.createElement("td");
+                indexCell.textContent = String(idx + 1);
+                meterCell.textContent = String(meter);
+                meterCell.className = "num";
+                tr.append(indexCell, meterCell);
+                body.appendChild(tr);
+            });
+        } else {
+            body.innerHTML = `<tr><td colspan="2">${empty}</td></tr>`;
+        }
     };
-    
+    fill(installedBody, data.already_installed, "Давхардсан дугаар алга");
+    fill(notInstalledBody, data.new_meters, "Шинэ дугаар алга");
+    document.querySelector(".add").textContent = `Шинээр нэмэх: ${(data.new_meters || []).length}`;
+    document.querySelector(".update").textContent = `Шинэчлэх тоолуур: ${(data.already_installed || []).length}`;
+    document.querySelector(".failed").textContent = "Бүтэлгүйтсэн: 0";
+    document.querySelector(".total").textContent = `Нийт: ${data.total_uploaded || 0}`;
+});
+
+document.getElementById("submit_meters").addEventListener("click", function () {
+    const meterInfo = localStorage.getItem("excel_rows");
+    const requestData = {
+        meters: meterInfo,
+        device_type: localStorage.getItem("deviceType"),
+        dcu_number: localStorage.getItem("dcuNumber") || null,
+        comm_address: localStorage.getItem("commAddress") || null
+    };
     fetch("/install_meters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,31 +139,22 @@ document.getElementById("submit_meters").addEventListener('click',function(e){
     .then(res => res.json())
     .then(data => {
         const msgEl = document.getElementById("serverMessage");
-        msgEl.innerText = data.message || "No response from server"; 
-
-        // optional: set color depending on success or fail
-        msgEl.style.color = data.success ? "green" : "yellow";     
-        console.log("Server response:", data);
-        
-        // Clear localStorage after successful installation
+        msgEl.textContent = data.message || data.error || "Хариу ирсэнгүй";
+        msgEl.style.color = data.success ? "var(--emx-secondary-text)" : "var(--emx-error)";
         if (data.success) {
+            if (typeof data.error_count === "number") {
+                document.querySelector(".failed").textContent = "Бүтэлгүйтсэн: " + data.error_count;
+            }
             setTimeout(() => {
-                localStorage.removeItem("deviceType");
-                localStorage.removeItem("dcuNumber");
-                localStorage.removeItem("commAddress");
-                localStorage.removeItem("meterNumbers");
-                localStorage.removeItem("meters");
-                localStorage.removeItem("excel_rows");
+                ["deviceType", "deviceTypeValue", "dcuNumber", "commAddress", "meterNumbers", "meters", "excel_rows"].forEach((key) => localStorage.removeItem(key));
             }, 2000);
         }
     })
     .catch(err => {
-        console.error("Error:", err);
         const msgEl = document.getElementById("serverMessage");
-        msgEl.innerText = "Алдаа гарлаа: " + err.message;
-        msgEl.style.color = "red";
-    }); 
-    
-} )
-</script> 
+        msgEl.textContent = "Алдаа гарлаа: " + err.message;
+        msgEl.style.color = "var(--emx-error)";
+    });
+});
+</script>
 {% endblock %}

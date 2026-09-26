@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("emx-theme");
+        if (theme !== "dark" && theme !== "light") theme = "light";
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <title>HES System</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', path='images/logo.png') }}">
@@ -15,6 +26,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="{{ url_for('static', path='theme-refresh.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='emx-shell.css') }}?v=6">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
@@ -41,17 +53,15 @@
     Turbo.setFormMode("optin");
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
-  <script src="{{ url_for('static', path='js/app-shell.js') }}" defer></script>
+  <script src="{{ url_for('static', path='js/app-shell.js') }}?v=4" defer></script>
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="app-body">
 
 <nav class="navbar navbar-expand-lg shadow-sm app-topbar" id="appTopbar" data-turbo-permanent aria-label="Top navigation">
   <div class="container-fluid app-topbar-inner align-items-center justify-content-between gap-3">
-    <!-- LEFT: sidebar toggle + brand -->
+    <!-- LEFT: brand (sidebar stays open) -->
     <div class="d-flex align-items-center gap-3 navbar-left">
-      <button class="btn btn-outline-light btn-sm toggle-btn" type="button" onclick="toggleSidebar()" aria-controls="sidebar" aria-expanded="true" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-      </button>
       <a class="navbar-brand app-brand d-inline-flex align-items-center gap-2" href="/Dashboard">
         <span class="app-logo-shell">
           <img src="{{ url_for('static', path='images/logo.png') }}" alt="HES System Logo" class="app-logo-img">
@@ -70,7 +80,7 @@
       <input id="globalPageSearch"
              type="search"
              class="topbar-search-input"
-             placeholder="Хуудасны хүснэгтүүдийг шүүх..."
+             placeholder="Хайх: тоолуур, дэд станц, фидер..."
              aria-label="Filter tables on this page"
              autocomplete="off">
       <kbd class="topbar-search-kbd">/</kbd>
@@ -82,8 +92,12 @@
       <!-- Live status indicator -->
       <span class="topbar-status d-none d-md-inline-flex" aria-label="System status: online">
         <span class="topbar-status-dot" aria-hidden="true"></span>
-        <span class="topbar-status-text">Идэвхтэй</span>
+        <span class="topbar-status-text">Шууд холболт: хэвийн</span>
       </span>
+
+      <button class="topbar-icon-btn" type="button" id="emxThemeToggle" aria-label="Харанхуй горим">
+        <i class="bi bi-moon-stars" id="emxThemeIcon"></i>
+      </button>
 
       <!-- Notifications -->
       <div class="dropdown topbar-dropdown">
@@ -167,11 +181,12 @@
 
 <div class="sidebar" id="sidebar" data-turbo-permanent role="navigation" aria-label="Primary" data-state="expanded">
   <div class="sidebar-inner">
-    <div class="sidebar-header">
-      <span class="sidebar-section-pill">
-        <i class="bi bi-stars"></i>
-        <span>{% if user and user.role %}{{ user.role }}{% else %}HES{% endif %}</span>
-      </span>
+    <div class="sidebar-header emx-brand">
+      <div class="emx-brand-mark" aria-hidden="true"><i class="bi bi-lightning-charge-fill"></i></div>
+      <div class="emx-brand-copy">
+        <div class="emx-brand-name">ENERGY METRIX</div>
+        <div class="emx-brand-ver">HES v3.4 Enterprise</div>
+      </div>
     </div>
 
     <div class="sidebar-nav" role="menu">
@@ -247,11 +262,15 @@
     </div>
 
     <div class="sidebar-footer">
-      <div class="sidebar-footer-card">
-        <i class="bi bi-shield-check"></i>
-        <div class="sidebar-footer-text">
-          <span class="sidebar-footer-title">Аюулгүй холболт</span>
-          <span class="sidebar-footer-sub">Session шифрлэгдсэн</span>
+      <div class="emx-sla">
+        <div class="emx-sla-top">
+          <span>DCU GATEWAY</span>
+          <span class="emx-sla-dot" aria-hidden="true"></span>
+        </div>
+        <div class="emx-sla-sub">LTE-M / DLMS COSEM</div>
+        <div class="emx-sla-row">
+          <span>SLA түвшин</span>
+          <strong>99.9% хэвийн</strong>
         </div>
       </div>
     </div>

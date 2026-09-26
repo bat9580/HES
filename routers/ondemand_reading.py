@@ -11,7 +11,7 @@ from utils import frames
 from utils.DCU_meter_reader_functions import generate_frame_from_obis_plc_meter, read_plc_meter_manual
 from utils.generator_funcitons import time_frame_generate
 from utils.parameters import obis_to_column 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from utils.parser_functions import map_meter_data, parse_dlms_frame, process_dlms_data, replace_obis_with_names,calculate_with_transformer_values
 from utils.reader_functions import read_meter_manual
@@ -20,35 +20,115 @@ from utils.storer import store_meter_reading_energy_profile
 import json 
 templates = Jinja2Templates(directory="templates")
 
-router = APIRouter() 
-@router.get("/ondemand-reading",response_class=HTMLResponse) # registered meters for now
-async def ondemand_reading(request: Request, message: str=None,user: dict = Depends(require_permission("Remote Maintain"))): 
-    conn = get_db_connection()  
-    installed_meters = conn.execute("SELECT *FROM installed_meters").fetchall()
-    print(installed_meters)  
+router = APIRouter()
+
+
+def _meter_online(meter, clients) -> bool:
+    device = str(meter["device_type"] or "")
+    dcu = meter["DCU_number"]
+    number = meter["meter_number"]
+    if device == "PLC Meter":
+        try:
+            return int(dcu) in clients
+        except (TypeError, ValueError):
+            return False
+    try:
+        return int(number) in clients
+    except (TypeError, ValueError):
+        return str(number) in clients
+
+
+def _load_ondemand_page(meter_number: str = "", line: str = ""):
+    meter_number = (meter_number or "").strip()
+    line = (line or "").strip()
+    conn = get_db_connection()
+    query = "SELECT * FROM installed_meters WHERE 1=1"
+    params = []
+    if meter_number:
+        query += " AND meter_number LIKE ?"
+        params.append(f"%{meter_number}%")
+    if line:
+        query += " AND line LIKE ?"
+        params.append(f"%{line}%")
+    rows = conn.execute(query, params).fetchall()
     conn.close()
-    return template_response(request,"ondemand_reading.html", {"request": request, "installed_meters": installed_meters, "connected_clients": connected_clients, "message": message,})
+
+    online = 0
+    with_line = 0
+    dcu_ids = []
+    seen = set()
+    for meter in rows:
+        if _meter_online(meter, connected_clients):
+            online += 1
+        if str(meter["line"] or "").strip():
+            with_line += 1
+        dcu = meter["DCU_number"]
+        if dcu is None or str(dcu).strip() == "":
+            continue
+        key = str(dcu).strip()
+        if key not in seen:
+            seen.add(key)
+            dcu_ids.append(key)
+    dcu_online = 0
+    for key in dcu_ids:
+        if key in connected_clients or (key.isdigit() and int(key) in connected_clients):
+            dcu_online += 1
+
+    return {
+        "installed_meters": rows,
+        "connected_clients": connected_clients,
+        "meter_number": meter_number,
+        "line": line,
+        "meter_total": len(rows),
+        "online_count": online,
+        "offline_count": len(rows) - online,
+        "with_line": with_line,
+        "dcu_total": len(dcu_ids),
+        "dcu_online": dcu_online,
+        "page_time": datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M"),
+    }
+
+
+@router.get("/ondemand-reading", response_class=HTMLResponse)
+async def ondemand_reading(
+    request: Request,
+    message: str = None,
+    meter_number: str = "",
+    line: str = "",
+    profile: str = "",
+    start_date: str = "",
+    end_date: str = "",
+    user: dict = Depends(require_permission("Remote Maintain")),
+):
+    context = _load_ondemand_page(meter_number, line)
+    context.update({
+        "request": request,
+        "message": message,
+        "profile": profile,
+        "start_date": start_date,
+        "end_date": end_date,
+    })
+    return template_response(request, "ondemand_reading.html", context)
 
 
 @router.get("/search-meters-ondemand", response_class=HTMLResponse)
-async def search_meter(request:Request, meter_number: str = "",line: str = " ",  user: dict = Depends(require_permission("Remote Maintain"))):   
-    query = "SELECT * FROM installed_meters WHERE 1=1"
-    params = [] 
-    if meter_number: 
-        query+= " AND meter_number LIKE ?" 
-        params.append(f"%{meter_number}%") 
-    if line: 
-        query+= " AND line LIKE ?" 
-        params.append(f"%{line}%")   
-    conn = get_db_connection()  
-    searched_meters = conn.execute(query,params).fetchall() 
-    conn.close() 
-    return template_response(request, "ondemand_reading.html",{  
-        "request": request, 
-        "installed_meters": searched_meters,
-        "meter_number": meter_number,
-        "connected_clients": connected_clients, 
+async def search_meter(
+    request: Request,
+    meter_number: str = "",
+    line: str = "",
+    profile: str = "",
+    start_date: str = "",
+    end_date: str = "",
+    user: dict = Depends(require_permission("Remote Maintain")),
+):
+    context = _load_ondemand_page(meter_number, line)
+    context.update({
+        "request": request,
+        "profile": profile,
+        "start_date": start_date,
+        "end_date": end_date,
     })
+    return template_response(request, "ondemand_reading.html", context)
 @router.post("/read-meter-ondemand-profile") 
 async def read_meter_ondemand_profile(request: Request):
     data = await request.json()
