@@ -161,6 +161,30 @@ def row_to_relay_log_record(row: sqlite3.Row) -> dict:
     }
 
 
+def relay_log_summary(conn, where_sql: str, params: list) -> dict:
+    rows = conn.execute(
+        f"SELECT task_name, result FROM relay_operation_log WHERE 1=1{where_sql}",
+        params,
+    ).fetchall()
+    total = len(rows)
+    success = 0
+    switch_off = 0
+    for row in rows:
+        if (row["result"] or "") == "Success":
+            success += 1
+        if (row["task_name"] or "") == "Switch-Off":
+            switch_off += 1
+    failed = total - success
+    return {
+        "total": total,
+        "success": success,
+        "switch_off": switch_off,
+        "failed": failed,
+        "success_pct": _pct(success, total),
+        "failed_pct": _pct(failed, total),
+    }
+
+
 def build_relay_log_filters(conn, where_sql: str, params: list) -> dict:
     meters = [
         r[0]
@@ -437,6 +461,7 @@ async def get_relay_operation_logs(
 
         filters = build_relay_log_filters(conn, where_sql, params)
         records = [row_to_relay_log_record(row) for row in rows]
+        summary = relay_log_summary(conn, where_sql, params)
     finally:
         conn.close()
 
@@ -448,6 +473,7 @@ async def get_relay_operation_logs(
             "page_size": page_size,
             "total_pages": total_pages,
             "filters": filters,
+            "summary": summary,
         }
     )
 

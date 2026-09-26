@@ -1,389 +1,352 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/user-emx.css?v=1">
+{% endblock %}
 {% block content %}
 {% if message %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    showToast('{{ message }}', 'success');
-  }, 300);
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
 });
 </script>
-{% endif %} 
-  <div class="page-header mb-4">
-    <div class="page-header-text">
-      <h2 class="page-title mb-1">Хэрэглэгчид</h2>
-      <p class="page-header-sub">Хэрэглэгчийн бүртгэл, эрх болон төлөвийг удирдах.</p>
+{% endif %}
+
+<div class="usr">
+  <div class="usr-head">
+    <div>
+      <nav class="usr-crumb">
+        <span>Систем</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Хэрэглэгчид</span>
+      </nav>
+      <h1 class="usr-title">Хэрэглэгчид</h1>
+      <p class="usr-sub">Хэрэглэгчийн бүртгэл, эрх болон төлөвийг удирдах. Тоо нь бүртгэлээс гарна.</p>
+    </div>
+    <div class="usr-actions">
+      <button class="usr-btn" id="usrRefresh" type="button"><span class="material-symbols-outlined">sync</span>Сэргээх</button>
+      <button class="usr-btn" id="usrExport" type="button"><span class="material-symbols-outlined">download</span>Экспорт (Excel)</button>
+      <button class="usr-btn primary" type="button" data-bs-toggle="modal" data-bs-target="#addUserModal"><span class="material-symbols-outlined">add</span>Хэрэглэгч нэмэх</button>
     </div>
   </div>
-<div class="filter-bar-container">
-  <form method="GET" action="/search-user" class="filter-bar"> 
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="user_name"
-                 autocomplete="off" 
-                 placeholder="Хэрэглэгч хайх"
-                 value="{{ user_name | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-    </div>
-    <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
-    
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
-      </button>
-    </div>
-    <div class="col-md-auto">
-      <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addUserModal">
-          <i class="bi bi-plus" aria-hidden="true"></i>
-      </button>
-    </div>
-    <div class="col-md-auto" >
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-trash3"></i> 
-      </button>
-    </div>
-    
-        
 
-</form> 
-</div>
+  <div class="usr-kpis">
+    <div class="usr-kpi">
+      <div class="usr-kpi-label">Нийт хэрэглэгч</div>
+      <div class="usr-kpi-value">{{ total_rows }} <span>{{ active_rows }} {{ active_status }}</span></div>
+      <div class="usr-kpi-sub">шүүсэн бүртгэл</div>
+    </div>
+    <div class="usr-kpi">
+      <div class="usr-kpi-label">Эрхийн төрөл</div>
+      <div class="usr-kpi-value">{{ role_count }}</div>
+      <div class="usr-kpi-sub">өөр өөр эрхийн нэр</div>
+    </div>
+    <div class="usr-kpi">
+      <div class="usr-kpi-label">Хамгийн олон эрх</div>
+      <div class="usr-kpi-value">{{ top_role_count }}</div>
+      <div class="usr-kpi-sub">{{ top_role or '—' }}</div>
+    </div>
+    <div class="usr-kpi">
+      <div class="usr-kpi-label">{{ inactive_status }}</div>
+      <div class="usr-kpi-value">{{ inactive_rows }}</div>
+      <div class="usr-kpi-sub">бүртгэл дэх төлөв</div>
+    </div>
+  </div>
 
-<table class="table table-bordered table-hover table-striped align-middle text-center">
-  <thead class="table-light">
-    <tr>
-      <th><input type="checkbox" id="select-all"></th>
-      <th>#</th>
-      <th>Хэрэглэгчийн нэр</th>
-      <th>Нэр</th> 
-      <!-- <th>Бүс</th>  -->
-      <th>Эрхийн нэр</th>
-      <th>И-мэйл</th> 
-      <th>Гар утас</th> 
-      <th>Төлөв</th> 
-      <th>Үйлдэл</th>  
-    </tr>
-  </thead>
-  <tbody id="device-table-body">
-    {% for user in users %}  
-    <tr>
-      <td><input type="checkbox" class="device-checkbox" value="{{ user['user_name']}}"></td>  
-      <td>{{ loop.index }}</td>
-      <td>{{ user['user_name'] }}</td> 
-      <td>{{ user['nick_name'] }}</td>
-      <td>{{ user['role_name'] }}</td>
-      <td>{{ user['email'] }}</td>
-      <td>{{ user['phone_number'] }}</td>
-      <td>{{ user['status'] }}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm" 
-                data-bs-toggle="modal" 
-                data-bs-target="#editUserModal"    
-                data-user-name="{{user['user_name']}}"  
-                data-nick-name="{{user['nick_name']}}"
-                data-role-name="{{ user['role_name'] }}"
-                data-status="{{ user['status'] }}"
-                data-email="{{ user['email'] }}" 
-                data-phone-number="{{ user['phone_number'] }}" >
-              <i class="bi bi-pencil-square"></i>
-        </button> 
-      </td> 
-    </tr>
-    {% endfor %}
-    <!-- dynamic rows here -->
-  </tbody>
-</table>
-<!-- Add button form for adding task  -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addUserModalLabel">Хэрэглэгч нэмэх</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="usr-card usr-filters">
+    <form method="GET" action="/user-management" id="usrFilter">
+      <input type="hidden" name="page" value="1">
+      <div class="usr-field">
+        <label for="usrSearch">Хэрэглэгч хайх</label>
+        <input id="usrSearch" name="user_name" type="text" value="{{ user_name }}" placeholder="Нэр, и-мэйл, утас" autocomplete="off">
       </div>
-      <div class="modal-body">
-        <form id="addUserForm" method = "Post" action = "/add-user">     
-        <!-- Nav tabs -->
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="detail" role="tabpanel">
-                
-                <div class="col-md-auto">
-                  <label>Хэрэглэгчийн нэр:</label> 
-                  <input type="text" name="user_name" class="form-control" required> 
-                </div>
+      <div class="usr-field">
+        <label for="usrRole">Эрхийн түвшин</label>
+        <select id="usrRole" name="role_name">
+          <option value="">Бүгд</option>
+          {% for role in roles %}
+          <option value="{{ role }}" {% if selected_role == role %}selected{% endif %}>{{ role }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="usr-field">
+        <label for="usrStatus">Төлөв</label>
+        <select id="usrStatus" name="status">
+          <option value="">Бүгд</option>
+          <option value="{{ active_status }}" {% if selected_status == active_status %}selected{% endif %}>{{ active_status }}</option>
+          <option value="{{ inactive_status }}" {% if selected_status == inactive_status %}selected{% endif %}>{{ inactive_status }}</option>
+        </select>
+      </div>
+      <button class="usr-search" type="submit" title="Хайх"><span class="material-symbols-outlined">search</span></button>
+      <button class="usr-icon primary" type="button" data-bs-toggle="modal" data-bs-target="#addUserModal" title="Хэрэглэгч нэмэх"><span class="material-symbols-outlined">add</span></button>
+      <button class="usr-icon" id="clear-selected-button" type="button" title="Сонгосонг устгах"><span class="material-symbols-outlined">delete</span></button>
+    </form>
+  </div>
 
-                <div class="col-md-auto">
-                  <label>Эрхийн нэр:</label>
-                  <div class="dropdown">  
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text" name="role_name" class="form-control dropdown-search-input dimmed-text hoverable-input" required>
-                      </div>
-                        <ul class="dropdown-menu w-100"
-                            aria-labelledby="roleDropdown" 
-                            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-                        </ul>
-                        <input type="hidden" name="device_type" required>
-                    </div>
-                </div>
+  <div class="usr-card">
+    <div class="usr-note">
+      <span>Бүртгэл: <strong>{{ total_rows }}</strong></span>
+      <span>{{ showing_start }}–{{ showing_end }} харуулж байна</span>
+    </div>
+    <div class="usr-table-wrap">
+      <table class="usr-table" id="usr-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="select-all"></th>
+            <th>#</th>
+            <th>Хэрэглэгчийн нэр</th>
+            <th>Нэр</th>
+            <th>Эрхийн нэр</th>
+            <th>И-мэйл</th>
+            <th>Гар утас</th>
+            <th>Төлөв</th>
+            <th>Үйлдэл</th>
+          </tr>
+        </thead>
+        <tbody id="usrBody">
+          {% for user in users %}
+          <tr>
+            <td><input type="checkbox" class="device-checkbox" value="{{ user.user_name }}"></td>
+            <td>{{ showing_start + loop.index0 }}</td>
+            <td>
+              <div class="usr-who">
+                <span class="usr-avatar">{{ (user.user_name[:2] or '?')|upper }}</span>
+                <span class="usr-name">{{ user.user_name }}</span>
+              </div>
+            </td>
+            <td>{{ user.nick_name or '—' }}</td>
+            <td>{% if user.role_name %}<span class="usr-role">{{ user.role_name }}</span>{% else %}—{% endif %}</td>
+            <td>{{ user.email or '—' }}</td>
+            <td>{{ user.phone_number or '—' }}</td>
+            <td>
+              {% if user.status %}
+              <span class="usr-status{% if user.status == active_status %} on{% endif %}"><span class="usr-dot"></span>{{ user.status }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <button class="usr-edit" type="button" title="Засах"
+                data-bs-toggle="modal" data-bs-target="#editUserModal"
+                data-user-name="{{ user.user_name }}"
+                data-nick-name="{{ user.nick_name }}"
+                data-role-name="{{ user.role_name }}"
+                data-status="{{ user.status }}"
+                data-email="{{ user.email }}"
+                data-phone-number="{{ user.phone_number }}">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td class="usr-empty" colspan="9">Хэрэглэгч олдсонгүй</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="usr-foot">
+      <div class="usr-page-size">
+        <label for="usrLimit">Хуудсанд</label>
+        <select id="usrLimit">
+          {% for size in (15, 30, 50, 100) %}
+          <option value="{{ size }}" {% if limit == size %}selected{% endif %}>{{ size }} / хуудас</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="usr-pages">
+        {% if prev_href %}<a class="usr-edge" href="{{ prev_href }}">Өмнөх</a>{% else %}<span class="usr-edge" aria-disabled="true">Өмнөх</span>{% endif %}
+        {% for number, href in page_hrefs %}
+          {% if number == page %}<span class="usr-page is-on">{{ number }}</span>{% else %}<a class="usr-page" href="{{ href }}">{{ number }}</a>{% endif %}
+        {% endfor %}
+        <span>Хуудас {{ page }} / {{ total_pages }}</span>
+        {% if next_href %}<a class="usr-edge" href="{{ next_href }}">Дараах</a>{% else %}<span class="usr-edge" aria-disabled="true">Дараах</span>{% endif %}
+      </div>
+    </div>
+  </div>
 
-                <!-- <div class="col-md-auto">
-                  <label>Cron Expression</label>
-                  <input type="text" name="cron_expression" id="cron_expression_input"  class="form-control" required>
-                </div> -->
-                <div class="col-md-auto">
-                  <label>Нэр:</label>
-                  <input type="text" name="nick_name" id="cron_expression_input" class="form-control" required>
-                </div>
-                <div class="col-md-auto"> 
-                  <label>Утасны дугаар:</label>
-                  <input type="text" name = "phone_number" class="form-control"> 
-                </div>
-                <div class="col-md-auto"> 
-                  <label>И-мэйл хаяг:</label>
-                  <input type="text" name = "email" class="form-control"> 
-                </div> 
-                <div class="col-md-auto"> 
-                  <label>Нууц үг:</label>
-                  <input type="text" name = "password" class="form-control" required>  
-                </div>  
-                <div class="col-md-auto">
-                  <label>Төлөв:</label>
-                  <select class="form-select" name="status"  required> 
-                    <option>Идэвхитэй</option> 
-                    <option>Идэвхигүй</option>
-                  </select>
-                </div> 
-                 
-          </div>
+  <div class="usr-audit">
+    <span>Хадгалсан хэрэглэгчийн бүртгэл</span>
+    <span>Нууц үг хүснэгтэд харагдахгүй</span>
+  </div>
+
+  <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addUserModalLabel">Хэрэглэгч нэмэх</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-      </form>
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="addUserForm" class="btn btn-primary">Submit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Edit button form for editing task  -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editUserModalLabel">Хэрэглэгчийн мэдээлэл өөрчлөх</h5> 
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="editUserForm" method = "Post" action = "/edit-user">  
-            <input type="hidden" name="original_user_name" id="OriginalUserName">   
-        <!-- Nav tabs -->
-        
-
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="detail" role="tabpanel">
-                
-                <div class="col-md-auto">
-                  <label>Хэрэглэгчийн нэр:</label> 
-                  <input type="text" name="user_name" id="editUserName" class="form-control" required> 
-                </div>
-
-                <div class="col-md-auto">
-                  <label>Эрхийн нэр:</label>
-                  <div class="dropdown">  
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text" name="role_name" id = "editRoleName" class="form-control dropdown-search-input dimmed-text hoverable-input" required>
-                      </div>
-                        <ul class="dropdown-menu w-100"
-                            aria-labelledby="roleDropdown" 
-                            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-                        </ul>
-                        <input type="hidden" name="device_type" required>
-                    </div>
-                </div>
-
-                <!-- <div class="col-md-auto">
-                  <label>Cron Expression</label>
-                  <input type="text" name="cron_expression" id="cron_expression_input"  class="form-control" required>
-                </div> -->
-                <div class="col-md-auto">
-                  <label>Нэр:</label>
-                  <input type="text" name="nick_name" id="editNickName" class="form-control" required>
-                </div>
-                <div class="col-md-auto"> 
-                  <label>Утасны дугаар:</label>
-                  <input type="text" name = "phone_number" id = "editPhoneNumber" class="form-control"> 
-                </div>
-                <div class="col-md-auto"> 
-                  <label>И-мэйл хаяг:</label>
-                  <input type="text" name = "email" id = "editEmail" class="form-control"> 
-                </div> 
-                <div class="col-md-auto">
-                  <label>Төлөв:</label>
-                  <select class="form-select" name="status" id = "editStatus"  required> 
-                    <option>Идэвхитэй</option> 
-                    <option>Идэвхигүй</option>
-                  </select>
-                </div> 
-                 
-          </div>
+        <div class="modal-body">
+          <form id="addUserForm" method="post" action="/add-user">
+            <div class="col-md-auto">
+              <label>Хэрэглэгчийн нэр:</label>
+              <input type="text" name="user_name" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+              <label>Эрхийн нэр:</label>
+              <div class="dropdown">
+                <input type="text" name="role_name" class="form-control dropdown-search-input" required autocomplete="off">
+                <ul class="dropdown-menu" aria-labelledby="roleDropdown"></ul>
+              </div>
+            </div>
+            <div class="col-md-auto">
+              <label>Нэр:</label>
+              <input type="text" name="nick_name" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+              <label>Утасны дугаар:</label>
+              <input type="text" name="phone_number" class="form-control">
+            </div>
+            <div class="col-md-auto">
+              <label>И-мэйл хаяг:</label>
+              <input type="text" name="email" class="form-control">
+            </div>
+            <div class="col-md-auto">
+              <label>Нууц үг:</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+              <label>Төлөв:</label>
+              <select class="form-select" name="status" required>
+                <option>{{ active_status }}</option>
+                <option>{{ inactive_status }}</option>
+              </select>
+            </div>
+          </form>
         </div>
-      </form>
-
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" form="addUserForm" class="btn btn-primary">Submit</button>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="editUserForm" class="btn btn-primary">Submit</button>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel">Хэрэглэгчийн мэдээлэл өөрчлөх</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editUserForm" method="post" action="/edit-user">
+            <input type="hidden" name="original_user_name" id="OriginalUserName">
+            <div class="col-md-auto">
+              <label>Хэрэглэгчийн нэр:</label>
+              <input type="text" name="user_name" id="editUserName" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+              <label>Эрхийн нэр:</label>
+              <div class="dropdown">
+                <input type="text" name="role_name" id="editRoleName" class="form-control dropdown-search-input" required autocomplete="off">
+                <ul class="dropdown-menu" aria-labelledby="roleDropdown"></ul>
+              </div>
+            </div>
+            <div class="col-md-auto">
+              <label>Нэр:</label>
+              <input type="text" name="nick_name" id="editNickName" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+              <label>Утасны дугаар:</label>
+              <input type="text" name="phone_number" id="editPhoneNumber" class="form-control">
+            </div>
+            <div class="col-md-auto">
+              <label>И-мэйл хаяг:</label>
+              <input type="text" name="email" id="editEmail" class="form-control">
+            </div>
+            <div class="col-md-auto">
+              <label>Төлөв:</label>
+              <select class="form-select" name="status" id="editStatus" required>
+                <option>{{ active_status }}</option>
+                <option>{{ inactive_status }}</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" form="editUserForm" class="btn btn-primary">Submit</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-
-
-
-
-
-
-
-
-<style>
-  th, td { text-align: center; vertical-align: middle; }
-  .btn-sm { padding: 4px 10px; font-size: 13px; }
-  .form-control, .form-select { height: 32px; font-size: 14px; }
-</style>
 
 <script>
-
-
-document.getElementById('clear-selected-button').addEventListener('click', function () {
-  const selectedUsers = Array.from(document.querySelectorAll('.device-checkbox:checked')).map(cb => cb.value);
-
-  if (selectedUsers.length === 0) { 
-    alert("Please select at least one User.");
-    return;
-  }
-
-  fetch('/clear-user', {  
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      selected_users: selectedUsers  
-    })
-  }); 
-
-});
-  // Select All checkbox
-  document.getElementById("select-all").addEventListener("click", function() {
-    const checkboxes = document.querySelectorAll(".device-checkbox");
-    checkboxes.forEach(cb => cb.checked = this.checked);
+(function () {
+  document.getElementById('usrRefresh').addEventListener('click', function () {
+    window.location.reload();
   });
-
-  const editUserModal = document.getElementById('editUserModal'); 
-    editUserModal.addEventListener('show.bs.modal', event => {
-      const button = event.relatedTarget;
-
-      document.getElementById('OriginalUserName').value = button.getAttribute('data-user-name'); 
-      document.getElementById('editUserName').value = button.getAttribute('data-user-name');
-      document.getElementById('editNickName').value = button.getAttribute('data-nick-name');
-      document.getElementById('editRoleName').value = button.getAttribute('data-role-name');
-      document.getElementById('editPhoneNumber').value = button.getAttribute('data-phone-number');
-      document.getElementById('editEmail').value = button.getAttribute('data-email');
-      document.getElementById('editStatus').value = button.getAttribute('data-status'); 
-      
-    });
-
-document.addEventListener('DOMContentLoaded', function() {
-  const dropdowns = document.querySelectorAll('.dropdown');  
-  dropdowns.forEach(function(dropdown) {
-    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
-    const chevron = dropdown.querySelector('.dropdown-chevron');
-    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
-    
-
-    dropdown.addEventListener('mouseenter', function() {
-      if (!dropdown.classList.contains('show')) {
-        dropdown.classList.add('hover-show');
-      }
-    });
-
-    if (searchInput) {
-  const list = dropdown.querySelector('.dropdown-menu'); 
-   
-  // Fetch meters when input is focused
-  searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
-    var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "roleDropdown"){
-      path = '/get-roles';  
+  document.getElementById('usrExport').addEventListener('click', function () {
+    const table = document.getElementById('usr-table');
+    const workbook = XLSX.utils.table_to_book(table, { sheet: 'Users' });
+    XLSX.writeFile(workbook, 'users.xlsx');
+  });
+  document.getElementById('usrLimit').addEventListener('change', function () {
+    const url = new URL(window.location.href);
+    url.pathname = '/user-management';
+    url.searchParams.set('limit', this.value);
+    url.searchParams.set('page', '1');
+    window.location.href = url;
+  });
+  document.getElementById('clear-selected-button').addEventListener('click', function () {
+    const selectedUsers = Array.from(document.querySelectorAll('.device-checkbox:checked')).map(function (box) { return box.value; });
+    if (!selectedUsers.length) {
+      showToast('Хэрэглэгч сонгоогүй.', 'warning');
+      return;
     }
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
+    if (!window.confirm('Сонгосон хэрэглэгчийг устгах уу?')) return;
+    fetch('/clear-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selected_users: selectedUsers })
+    }).then(function () { window.location.href = '/user-management'; });
+  });
+  const selectAll = document.getElementById('select-all');
+  if (selectAll) {
+    selectAll.addEventListener('click', function () {
+      document.querySelectorAll('.device-checkbox').forEach(function (box) { box.checked = selectAll.checked; });
+    });
+  }
+  const editUserModal = document.getElementById('editUserModal');
+  editUserModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    document.getElementById('OriginalUserName').value = button.getAttribute('data-user-name') || '';
+    document.getElementById('editUserName').value = button.getAttribute('data-user-name') || '';
+    document.getElementById('editNickName').value = button.getAttribute('data-nick-name') || '';
+    document.getElementById('editRoleName').value = button.getAttribute('data-role-name') || '';
+    document.getElementById('editPhoneNumber').value = button.getAttribute('data-phone-number') || '';
+    document.getElementById('editEmail').value = button.getAttribute('data-email') || '';
+    document.getElementById('editStatus').value = button.getAttribute('data-status') || '';
+  });
+  document.querySelectorAll('.usr .dropdown').forEach(function (dropdown) {
+    const searchInput = dropdown.querySelector('.dropdown-search-input');
+    const list = dropdown.querySelector('.dropdown-menu');
+    if (!searchInput || !list) return;
+    searchInput.addEventListener('focus', function () {
+      fetch('/get-roles').then(function (response) { return response.json(); }).then(function (data) {
+        list.innerHTML = '';
+        data.forEach(function (element) {
+          const item = document.createElement('a');
+          item.className = 'dropdown-item';
+          item.href = '#';
+          item.textContent = element;
+          item.addEventListener('click', function (event) {
+            event.preventDefault();
+            searchInput.value = element;
+            dropdown.classList.remove('show');
+          });
           const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
+          li.appendChild(item);
           list.appendChild(li);
         });
-
         dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
       });
-  });
-
-  // Real-time filtering — delegate to input
-  searchInput.addEventListener('input', function () {
-    const term = this.value.toLowerCase();
-    const dropdownItems = list.querySelectorAll('.dropdown-item');
-    dropdownItems.forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
+    });
+    document.addEventListener('click', function (event) {
+      if (!dropdown.contains(event.target)) dropdown.classList.remove('show');
     });
   });
-
-  // Item selection — event delegation
-  list.addEventListener('click', function (e) {
-    if (e.target && e.target.matches('.dropdown-item')) {
-      if (searchInput) searchInput.value = e.target.textContent;
-      dropdown.classList.remove('show');
-      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
-      e.preventDefault();
-    }
-  });
- }
-
-    // Chevron rotation
-    if (chevron) {
-      chevron.style.transition = 'transform 0.2s ease';
-    }
-
-    dropdown.addEventListener('show.bs.dropdown', () => {
-      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
-    });
-    dropdown.addEventListener('hide.bs.dropdown', () => {
-      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
-    });
-
-    // Close when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show');
-      }
-    });
-  });
-});
-
-
+})();
 </script>
-
-{% endblock %} 
+{% endblock %}

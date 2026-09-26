@@ -586,3 +586,150 @@
   .mreg-filter-grid { grid-template-columns: 1fr 1fr; }
   .mreg-filter-actions { grid-column: 1 / -1; }
 }
+
+/* Add-meter dialog. Scoped so the registry table is unchanged. */
+.madd-dialog { max-width: 840px; width: calc(100% - 1.5rem); }
+.madd {
+  border: 1px solid var(--emx-outline);
+  border-radius: 16px;
+  background: var(--emx-card);
+  color: var(--emx-text);
+  overflow: hidden;
+}
+.madd-head, .madd-foot, .madd-title, .madd-tabs, .madd-secret {
+  display: flex;
+  align-items: center;
+}
+.madd-head, .madd-foot { justify-content: space-between; gap: 0.75rem; }
+.madd-head { align-items: flex-start; padding: 1.1rem 1.4rem 0.85rem; border-bottom: 1px solid var(--emx-outline); }
+.madd-title { gap: 0.7rem; }
+.madd-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--emx-surface-high);
+  color: var(--emx-primary);
+  flex: 0 0 auto;
+}
+.madd h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.madd-head p, .madd-foot > span { margin: 0.15rem 0 0; font-size: 12px; color: var(--emx-text-soft); }
+.madd-x {
+  border: 0;
+  background: transparent;
+  color: var(--emx-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.madd-tabs {
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0 1.4rem;
+  list-style: none;
+  border-bottom: 1px solid var(--emx-outline);
+  background: var(--emx-surface-low);
+}
+.madd-tabs .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--emx-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0.7rem 0.8rem;
+}
+.madd-tabs .nav-link.active { color: var(--emx-primary); border-bottom-color: var(--emx-primary); background: var(--emx-card); }
+.madd-tabs .material-symbols-outlined, .madd-mark .material-symbols-outlined, .madd-x .material-symbols-outlined { font-size: 18px; }
+.madd-body { padding: 1.1rem 1.4rem 1.25rem; }
+.madd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 1rem; }
+.madd-field { position: relative; min-width: 0; }
+.madd-field label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--emx-muted);
+}
+.madd-field input, .madd-secret input {
+  width: 100%;
+  height: 42px;
+  padding: 0 2rem 0 0.75rem;
+  border: 1px solid var(--emx-outline);
+  border-radius: 10px;
+  background: var(--emx-card);
+  color: var(--emx-text);
+  font-size: 13px;
+}
+.madd-field input[readonly] { background: var(--emx-surface-low); }
+.madd .dropdown { position: relative; }
+.madd .dropdown-chevron {
+  position: absolute;
+  right: 0.55rem;
+  top: 21px;
+  transform: translateY(-50%);
+  color: var(--emx-muted);
+  pointer-events: none;
+  font-size: 18px;
+}
+.madd .dropdown-menu {
+  position: absolute;
+  z-index: 20;
+  display: none !important;
+  width: 100%;
+  max-height: 180px;
+  overflow: auto;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  border: 1px solid var(--emx-outline);
+  border-radius: 10px;
+  background: var(--emx-card);
+  box-shadow: var(--emx-shadow);
+}
+.madd .dropdown.show .dropdown-menu { display: block !important; opacity: 1; transform: none; pointer-events: auto; }
+.madd .dropdown-item { display: block; padding: 0.4rem 0.75rem; color: var(--emx-text); text-decoration: none; }
+.madd .dropdown-item:hover { background: var(--emx-surface-low); }
+.madd-secret { position: relative; }
+.madd-secret input { padding-right: 4.2rem; }
+.madd-secret button {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--emx-primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.madd-foot {
+  padding: 0.85rem 1.4rem;
+  border-top: 1px solid var(--emx-outline);
+  background: var(--emx-surface-low);
+}
+.madd-foot > div { display: flex; gap: 0.45rem; }
+.madd-btn {
+  min-width: 100px;
+  height: 38px;
+  border: 1px solid var(--emx-outline);
+  border-radius: 10px;
+  background: var(--emx-card);
+  color: var(--emx-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.madd-btn.primary { border-color: transparent; background: var(--emx-primary-bright); color: var(--emx-on-primary); }
+@media (max-width: 720px) {
+  .madd-grid, .madd-foot { grid-template-columns: 1fr; display: flex; flex-direction: column; align-items: stretch; }
+}

@@ -1,474 +1,316 @@
 {% extends "base.html" %}
-{% from "_pagination.html" import render_pagination %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/instant-emx.css?v=1">
+{% endblock %}
 {% block content %}
-<div class="aurora-page-data">
+{% if message %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
+});
+</script>
+{% endif %}
 
-<div class="page-header mb-4">
-  <div class="page-header-text">
-    <h2 class="page-title mb-1">Агшин зуурын Профайл унших</h2>
-    <p class="page-header-sub">Тухайн агшинд хэмжсэн хэрэглээний утгуудын дэлгэрэнгүй.</p>
-  </div>
-</div>
-<div class="filter-bar-container">
-<form method="GET" action="/search-instant-profile" class="filter-bar"> 
-    <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
-      <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="meter_number"
-                 placeholder="Тоолуур хайх"
-                 autocomplete="off" 
-                 value="{{ meter_number | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
-        </div>
-        
-        <ul id="installed-meter-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="deviceDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-        </ul>
-        <input type="hidden" name="device_type" required>
-      </div>
+<div class="ipr">
+  <div class="ipr-head">
+    <div>
+      <nav class="ipr-crumb">
+        <span>Шинжилгээ</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Өгөгдлүүд</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Агшин зуурын Профайл</span>
+      </nav>
+      <h1 class="ipr-title">Агшин зуурын Профайл унших</h1>
+      <p class="ipr-sub">Тухайн агшинд хэмжсэн хэрэглээний утгуудын дэлгэрэнгүй. Тоо нь хадгалсан бүртгэлээс гарна.</p>
     </div>
-
-    
-    <!-- <div class="col-md-auto  position-relative " style="width: 17%; min-height: 35px; height: auto;"> 
-          <select 
-              class="form-select dropdown-search-input dimmed-text hoverable-input"
-              style="height: 33px; border-radius: 2px !important; padding-right: 30px;"> 
-            <option>Агшин зуурын Профайл</option> 
-          </select>
-    </div> --> 
-    <div class="col-md-auto position-relative d-flex align-items-center" style="width: 30%; min-height: 35px; height: auto;">
-        <input type="text" id="daterange" class="form-control filter-bar-date-input" 
-              style="max-width: 300px;">
-        <!-- Hidden inputs to submit the dates -->
-        <input type="hidden" id="start_date" name="start_date" value="{{ start_date | default('') }}">
-        <input type="hidden" id="end_date" name="end_date" value="{{ end_date | default('') }}">
-    </div>
-        <div class="col-md-auto" style="width: 14%; min-height: 35px; height: auto;"> 
-        <div class="line-dropdown-wrapper w-100">
-          <div class="line-dropdown-shell">
-            <input type="text"
-                   id="treeSearch"
-                   name="line"
-                   class="form-control dropdown-search-input dimmed-text hoverable-input line-search-input"
-                   placeholder="Шугам сонгох..."
-                   value="{{ line | default('') }}"
-                   autocomplete="off">
-            <span class="dropdown-chevron line-dropdown-icon">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-            <div id="parentNodeDropdown" class="line-tree-panel"></div>
-          </div>
-        </div>
-      </div>
-    <div class="col-md-auto  position-relative " style="width: 15%; min-height: 35px; height: auto;"> 
-        <div class="dropdown" style="height: 35px;">
-        <div class="dropdown-toggle-wrapper position-relative">
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 id="type-input"
-                 placeholder="Type"
-                 autocomplete="off"
-                 value="{% if selected_type == 'Original' %}Original{% elif selected_type == 'Calculated' %}Calculated{% else %}{{ selected_type | default('') }}{% endif %}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-            <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-              <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
-        
-        <ul id="type-list" 
-            class="dropdown-menu w-100"
-            aria-labelledby="typeDropdown"
-            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="Original">Original</a></li>
-          <li><a class="dropdown-item hoverable-item" href="#" data-value="Calculated">Calculated</a></li>
-        </ul>
-        <input type="hidden" name="type" id="type-hidden" value="{{ selected_type | default('') }}">
-        </div>
-    </div> 
-
-    
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
+    <div class="ipr-actions">
+      <button class="ipr-btn" id="toggle-chart-btn" type="button">
+        <span class="material-symbols-outlined">show_chart</span>График горим
+        <span class="ipr-pill" id="chart-status-pill">Идэвхтэй</span>
       </button>
+      <button class="ipr-btn" id="iprExport" type="button"><span class="material-symbols-outlined">download</span>Экспорт (Excel)</button>
+      <button class="ipr-btn primary" id="iprRefresh" type="button"><span class="material-symbols-outlined">sync</span>Дахин сэргээх</button>
     </div>
-    <div class="col-md-auto">
-      <button type="button" onclick="exportTableToExcel('my-table')" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px">
-        <i class="bi bi-upload"></i>
-      </button>
-    </div>
-</form> 
-</div>
-<div class="table-scroll-top">
-  <div class="table-scroll-x"></div>
-</div>
-<div class="table-scroll-main">
-<table id="my-table" class="table table-bordered table-hover table-striped align-middle text-center">
-  <thead class="table-light">
-    <tr>
-      <th>#</th>
-      <th>Тоолуурын дугаар</th>  
-      <th>Хугацаа</th> 
-      <th>A фазын хүчдэл (32.7.0)</th> 
-      <th>Б фазын хүчдэл (52.7.0)</th> 
-      <th>С фазын хүчдэл (72.7.0)</th> 
-      <th>A фазын гүйдэл (31.7.0)</th> 
-      <th>Б фазын гүйдэл (51.7.0)</th> 
-      <th>С фазын гүйдэл (71.7.0)</th>  
-      <th>Нийт актив чадал (15.7.0)</th> 
-      <th>Нийт реактив чадал (3.7.0)</th> 
-      <th>Нийт бүрэн чадал (9.7.0)</th> 
-      <th>Чадлын фактор (13.7.0)</th>  
-      <th>Дундаж A фазын актив чадал (15.4.0)</th> 
-      <th>Дундаж A фазын реактив чадал (23.4.0)</th> 
-      <th>Дундаж Б фазын реактив чадал (9.4.0)</th> 
-      <th>Дундаж С фазын реактив чадал (13.4.0)</th>  
-    </tr>
-  </thead>
-  <tbody id="device-table-body">
-    {% for reading in readings %}
-    <tr>
-      <td>{{ loop.index + (page - 1) * 100 }}</td> 
-      <td>{{ reading['meter_number'] }}</td> 
-      <td>{{ reading['timestamp'] }}</td> 
-      <td>{{ reading['voltage_A'] }}</td>  
-      <td>{{ reading['voltage_B'] }}</td> 
-      <td>{{ reading['voltage_C'] }}</td>
-      <td>{{ reading['current_A'] }}</td>
-      <td>{{ reading['current_B'] }}</td>  
-      <td>{{ reading['current_C'] }}</td> 
-      <td>{{ reading['total_active_power'] }}</td>
-      <td>{{ reading['total_reactive_power'] }}</td>
-      <td>{{ reading['total_apparent_power'] }}</td>  
-      <td>{{ reading['total_power_factor'] }}</td> 
-      <td>{{ reading['total_active_power_A_avg'] }}</td>
-      <td>{{ reading['total_reactive_power_A_avg'] }}</td>
-      <td>{{ reading['total_reactive_power_B_avg'] }}</td>  
-      <td>{{ reading['total_reactive_power_C_avg'] }}</td> 
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
   </div>
 
-{{ render_pagination(page, total_pages) }}
+  <div class="ipr-kpis">
+    <div class="ipr-kpi">
+      <div class="ipr-kpi-label">Сонгосон тоолуур</div>
+      {% if focus %}
+      <div class="ipr-kpi-meter">{{ focus.meter_number }}</div>
+      <div class="ipr-kpi-sub">{{ focus.meter_type or '—' }} · {{ focus.power_grid or '—' }}</div>
+      {% else %}
+      <div class="ipr-kpi-value">{{ distinct_meters }}</div>
+      <div class="ipr-kpi-sub">шүүлт дэх тоолуур</div>
+      {% endif %}
+    </div>
+    <div class="ipr-kpi">
+      <div class="ipr-kpi-label">Хүчдэл</div>
+      <div class="ipr-phases">
+        <div><span>UA</span>{{ latest.voltage_A }}{% if latest.voltage_A != '—' %} В{% endif %}</div>
+        <div><span>UB</span>{{ latest.voltage_B }}{% if latest.voltage_B != '—' %} В{% endif %}</div>
+        <div><span>UC</span>{{ latest.voltage_C }}{% if latest.voltage_C != '—' %} В{% endif %}</div>
+      </div>
+      <div class="ipr-kpi-sub">сүүлийн хадгалсан мөр</div>
+    </div>
+    <div class="ipr-kpi">
+      <div class="ipr-kpi-label">Гүйдэл ба чадал</div>
+      <div class="ipr-kpi-value">{{ latest.total_active_power }} {% if latest.total_active_power != '—' %}<span>кВт</span>{% endif %}</div>
+      <div class="ipr-kpi-sub">Q {{ latest.total_reactive_power }} · Ia {{ latest.current_A }} · cos φ {{ latest.total_power_factor }}</div>
+    </div>
+    <div class="ipr-kpi">
+      <div class="ipr-kpi-label">Өнөөдрийн мөр</div>
+      <div class="ipr-kpi-value">{{ today_rows }}</div>
+      <div class="ipr-kpi-sub">{% if span_hours %}{{ span_hours }} цаг · {% endif %}нийт {{ total_rows }} хадгалсан · {{ selected_type }}</div>
+    </div>
+  </div>
 
-</div><!-- /.aurora-page-data -->
+  <div class="ipr-card ipr-filters">
+    <form method="GET" action="/instant-profile-read" id="iprFilter">
+      <input type="hidden" name="page" value="1">
+      <div class="ipr-field dropdown">
+        <label for="meterSearch">Тоолуурын хайлт</label>
+        <input id="meterSearch" name="meter_number" type="text" value="{{ meter_number }}" placeholder="Тоолуурын дугаар" autocomplete="off">
+        <ul id="installed-meter-list" class="dropdown-menu" aria-labelledby="deviceDropdown"></ul>
+      </div>
+      <div class="ipr-field ipr-date">
+        <label for="daterange">Хугацааны завсар</label>
+        <input id="daterange" type="text" readonly placeholder="Огноо сонгох" value="{% if start_date and end_date %}{{ start_date }} - {{ end_date }}{% endif %}">
+        <button class="ipr-clear-date" id="iprDateClear" type="button" title="Огноо цэвэрлэх"><span class="material-symbols-outlined">close</span></button>
+        <input type="hidden" id="start_date" name="start_date" value="{{ start_date }}">
+        <input type="hidden" id="end_date" name="end_date" value="{{ end_date }}">
+      </div>
+      <div class="ipr-field line-dropdown-wrapper">
+        <label for="treeSearch">Шугам сонгох</label>
+        <input id="treeSearch" name="line" type="text" value="{{ line }}" placeholder="Бүх шугам" autocomplete="off">
+        <div id="parentNodeDropdown" class="line-tree-panel"></div>
+      </div>
+      <div class="ipr-field">
+        <label for="type-hidden">Type</label>
+        <select id="type-hidden" name="type">
+          <option value="Original" {% if selected_type == 'Original' %}selected{% endif %}>Original</option>
+          <option value="Calculated" {% if selected_type == 'Calculated' %}selected{% endif %}>Calculated</option>
+        </select>
+      </div>
+      <button class="ipr-search" type="submit" title="Хайх"><span class="material-symbols-outlined">search</span></button>
+      <a class="ipr-reset" href="/instant-profile-read" title="Шүүлтүүр цэвэрлэх"><span class="material-symbols-outlined">filter_alt_off</span></a>
+    </form>
+  </div>
 
-<style>
-  th, td { text-align: center; vertical-align: middle; }
-  .btn-sm { padding: 4px 10px; font-size: 13px; }
-  .form-control, .form-select { height: 32px; font-size: 14px; }
-</style>
+  <div class="ipr-chart" id="chart-card">
+    <div class="ipr-chart-top">
+      <h2>Хадгалсан фазын хүчдэл</h2>
+      {% if chart and chart.meter %}<span class="ipr-chip">{{ chart.meter }}</span>{% endif %}
+      <div class="ipr-legend">
+        <span><i class="ipr-swatch total"></i>Фаз A</span>
+        <span><i class="ipr-swatch t1"></i>Фаз B</span>
+        <span><i class="ipr-swatch t2"></i>Фаз C</span>
+      </div>
+    </div>
+    {% if chart %}
+    <div class="ipr-plot">
+      <svg viewBox="0 0 1000 160" preserveAspectRatio="none" aria-hidden="true">
+        {% for key, css in (('voltage_A','total'), ('voltage_B','t1'), ('voltage_C','t2')) %}
+        {% if chart.series.get(key) %}
+        <polyline class="{{ css }}" points="{% for point in chart.series[key] %}{{ point.x }},{{ point.y }} {% endfor %}"></polyline>
+        {% endif %}
+        {% endfor %}
+      </svg>
+      <div class="ipr-chart-axis">
+        <span>{{ chart.first }}</span>
+        <span>{{ chart.min }} – {{ chart.max }} В</span>
+        <span>{{ chart.last }}</span>
+      </div>
+    </div>
+    {% else %}
+    <p class="ipr-sub">График зурах хадгалсан уншилт алга.</p>
+    {% endif %}
+  </div>
+
+  <div class="ipr-card">
+    <div class="ipr-note">
+      <span>Хадгалсан профайл: <strong>{{ total_rows }}</strong> мөр</span>
+      <span>{{ selected_type }}</span>
+    </div>
+    <div class="ipr-table-wrap">
+      <table class="ipr-table" id="ipr-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Тоолуурын дугаар</th>
+            <th>Хугацаа</th>
+            {% for name, label, unit in columns %}
+            <th>{{ label }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody id="iprBody">
+          {% for reading in readings %}
+          <tr>
+            <td>{{ showing_start + loop.index0 }}</td>
+            <td>
+              <span class="ipr-meter">{{ reading.meter_number }}</span>
+              {% if reading.meter_type %}<span class="ipr-tag">{{ reading.meter_type }}</span>{% endif %}
+            </td>
+            <td>{{ reading.timestamp }}</td>
+            {% for value in reading.cells %}
+            <td>{% if value != '—' %}<strong>{{ value }}</strong> <span class="ipr-unit">{{ reading.units[loop.index0] }}</span>{% else %}—{% endif %}</td>
+            {% endfor %}
+          </tr>
+          {% else %}
+          <tr><td class="ipr-empty" colspan="{{ 3 + columns|length }}">Хадгалсан профайл олдсонгүй</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="ipr-foot">
+      <div class="ipr-page-size">
+        <span>Харуулсан: <strong>{{ showing_start }} – {{ showing_end }}</strong> / {{ total_rows }}</span>
+        <label for="iprLimit">Хуудсанд</label>
+        <select id="iprLimit">
+          {% for size in (15, 30, 50, 100) %}
+          <option value="{{ size }}" {% if limit == size %}selected{% endif %}>{{ size }} / хуудас</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="ipr-pages">
+        {% if prev_href %}
+        <a class="ipr-edge" href="{{ prev_href }}">Өмнөх</a>
+        {% else %}
+        <span class="ipr-edge" aria-disabled="true">Өмнөх</span>
+        {% endif %}
+        {% for number, href in page_hrefs %}
+          {% if number == page %}
+          <span class="ipr-page is-on">{{ number }}</span>
+          {% else %}
+          <a class="ipr-page" href="{{ href }}">{{ number }}</a>
+          {% endif %}
+        {% endfor %}
+        <span>Хуудас {{ page }} / {{ total_pages }}</span>
+        {% if next_href %}
+        <a class="ipr-edge" href="{{ next_href }}">Дараах</a>
+        {% else %}
+        <span class="ipr-edge" aria-disabled="true">Дараах</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="ipr-audit">
+    <span>Хадгалсан агшин зуурын профайл · {{ selected_type }}</span>
+    <span>Серверийн цаг: {{ page_time }}</span>
+  </div>
+</div>
 
 <script>
-$(document).ready(function () {
-    const $treePanel = $('#parentNodeDropdown');
-    const $treeSearch = $('#treeSearch');
+(function () {
+  const chart = document.getElementById('chart-card');
+  const pill = document.getElementById('chart-status-pill');
+  document.getElementById('toggle-chart-btn').addEventListener('click', function () {
+    const hidden = chart.classList.toggle('hidden');
+    pill.textContent = hidden ? 'Хаагдсан' : 'Идэвхтэй';
+    pill.classList.toggle('off', hidden);
+  });
+  document.getElementById('iprRefresh').addEventListener('click', function () {
+    window.location.reload();
+  });
+  document.getElementById('iprExport').addEventListener('click', function () {
+    const table = document.getElementById('ipr-table');
+    const workbook = XLSX.utils.table_to_book(table, { sheet: 'Instant profile' });
+    XLSX.writeFile(workbook, 'instant_profile.xlsx');
+  });
+  document.getElementById('iprLimit').addEventListener('change', function () {
+    const url = new URL(window.location.href);
+    url.pathname = '/instant-profile-read';
+    url.searchParams.set('limit', this.value);
+    url.searchParams.set('page', '1');
+    window.location.href = url;
+  });
 
-    if ($treePanel.length) {
-      $treePanel.jstree({
-        core: {
-            data: {
-                url: '/line-tree-data',
-                dataType: 'json'
-            },
-            themes: {
-                stripes: true,
-                icons: false
-            }
-        },
-        plugins: ["search"] // enable search
-    })
-    .on("select_node.jstree", function (e, data) {
-        // Store node text
-        $('#parent_node_input').val(data.node.text);
-          $treeSearch.val(data.node.text); 
-
-          $treePanel.removeClass('open');
-
-      });
-
-      if ($treeSearch.length) {
-        $treeSearch
-        .on('focus', function () {
-              $treePanel.addClass('open');
-        })
-        .on('keyup', function () {
-              $treePanel.jstree(true).search($(this).val());
-        });
-      }
-
-    // Hide dropdown when clicking outside
-    $(document).click(function(e) {
-          if (!$(e.target).closest('.line-dropdown-wrapper, #treeSearch').length) {
-              $treePanel.removeClass('open');
-        }
-    });
+  const meter = document.getElementById('meterSearch');
+  const meterList = document.getElementById('installed-meter-list');
+  const meterDrop = meter.closest('.dropdown');
+  meter.addEventListener('focus', function () {
+    if (meterList.childElementCount) {
+      meterDrop.classList.add('show');
+      return;
     }
-}); 
-$(function() {
-  // Parse dates from server or fallback to current hour
-  const startDateStr = "{{ start_date | default('') }}";
-  const endDateStr = "{{ end_date | default('') }}";
+    fetch('/get-installed-meters').then(function (response) { return response.json(); }).then(function (data) {
+      meterList.innerHTML = '';
+      data.forEach(function (element) {
+        const item = document.createElement('a');
+        item.className = 'dropdown-item';
+        item.href = '#';
+        item.textContent = element;
+        item.addEventListener('click', function (event) {
+          event.preventDefault();
+          meter.value = element;
+          meterDrop.classList.remove('show');
+        });
+        const li = document.createElement('li');
+        li.appendChild(item);
+        meterList.appendChild(li);
+      });
+      meterDrop.classList.add('show');
+    });
+  });
+  meter.addEventListener('input', function () {
+    const term = meter.value.toLowerCase();
+    meterList.querySelectorAll('.dropdown-item').forEach(function (item) {
+      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+    });
+  });
+  document.addEventListener('click', function (event) {
+    if (!meterDrop.contains(event.target)) meterDrop.classList.remove('show');
+  });
 
-  const startDate = startDateStr ? moment(startDateStr, 'YYYY-MM-DD[T]HH:mm:ss') : moment().startOf('hour');
-  const endDate = endDateStr ? moment(endDateStr, 'YYYY-MM-DD[T]HH:mm:ss') : moment().endOf('hour');
-
-  $('#daterange').daterangepicker({
+  const start = document.getElementById('start_date').value;
+  const end = document.getElementById('end_date').value;
+  const range = $('#daterange');
+  const options = {
     timePicker: true,
     timePicker24Hour: true,
     timePickerSeconds: true,
-    locale: {
-      format: 'YYYY-MM-DD[T]HH:mm:ss',
-      separator: 'T'
-    },
-    startDate: startDate,
-    endDate: endDate
-  }, function(start, end) {
-    // Update hidden inputs on user change
-    $('#start_date').val(start.format('YYYY-MM-DD[T]HH:mm:ss'));
-    $('#end_date').val(end.format('YYYY-MM-DD[T]HH:mm:ss'));
+    autoUpdateInput: false,
+    locale: { format: 'YYYY-MM-DD HH:mm:ss', separator: ' - ', cancelLabel: 'Цэвэрлэх' }
+  };
+  if (start && end) {
+    options.startDate = moment(start, 'YYYY-MM-DD[T]HH:mm:ss');
+    options.endDate = moment(end, 'YYYY-MM-DD[T]HH:mm:ss');
+  }
+  range.daterangepicker(options);
+  function clearDates() {
+    document.getElementById('start_date').value = '';
+    document.getElementById('end_date').value = '';
+    range.val('');
+  }
+  range.on('apply.daterangepicker', function (ev, picker) {
+    document.getElementById('start_date').value = picker.startDate.format('YYYY-MM-DD[T]HH:mm:ss');
+    document.getElementById('end_date').value = picker.endDate.format('YYYY-MM-DD[T]HH:mm:ss');
+    range.val(picker.startDate.format('YYYY-MM-DD HH:mm:ss') + ' - ' + picker.endDate.format('YYYY-MM-DD HH:mm:ss'));
   });
+  range.on('cancel.daterangepicker', clearDates);
+  document.getElementById('iprDateClear').addEventListener('click', clearDates);
 
-  // Also set the initial value in the visible input so the user sees it
-  $('#daterange').val(startDate.format('YYYY-MM-DD[T]HH:mm:ss') + 'T' + endDate.format('YYYY-MM-DD[T]HH:mm:ss'));
-
-  // Add transition effects to daterangepicker dropdown
-  $('#daterange').on('show.daterangepicker', function(ev, picker) {
-    if (!picker || !picker.container) return;
-    const $container = picker.container;
-    requestAnimationFrame(function() {
-      $container.addClass('drp-visible');
+  const treePanel = $('#parentNodeDropdown');
+  const treeSearch = $('#treeSearch');
+  if (treePanel.length) {
+    treePanel.jstree({
+      core: { data: { url: '/line-tree-data', dataType: 'json' }, themes: { stripes: true, icons: false } },
+      plugins: ['search']
+    }).on('select_node.jstree', function (e, data) {
+      treeSearch.val(data.node.text);
+      treePanel.removeClass('open');
     });
-  });
-
-  $('#daterange').on('hide.daterangepicker', function(ev, picker) {
-    if (!picker || !picker.container) return;
-    picker.container.removeClass('drp-visible');
-  });
-});
-
-function exportTableToExcel(tableId) {
-  const table = document.getElementById(tableId);
-  const workbook = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-  XLSX.writeFile(workbook, "Meter_Readings.xlsx");
-}
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  // Type dropdown handler - must run before generic handler
-  const typeDropdown = document.querySelector('#type-list')?.closest('.dropdown');
-  const typeInput = document.getElementById('type-input');
-  const typeList = document.getElementById('type-list');
-  const typeHidden = document.getElementById('type-hidden');
-  const typeChevron = typeDropdown?.querySelector('.dropdown-chevron');
-
-  if (typeDropdown && typeInput && typeList) {
-    typeDropdown.setAttribute('data-static-dropdown', 'true');
-    
-    typeInput.addEventListener('focus', function(e) {
-      e.stopPropagation();
-      typeDropdown.classList.add('show');
-      if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(180deg)';
-    }, true);
-
-    typeInput.addEventListener('input', function(e) {
-      e.stopPropagation();
-      const term = this.value.toLowerCase();
-      const items = typeList.querySelectorAll('.dropdown-item');
-      items.forEach(item => {
-        item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none';
-      });
-    }, true);
-
-    typeList.addEventListener('click', function(e) {
-      if (e.target && e.target.matches('.dropdown-item')) {
-        typeInput.value = e.target.textContent;
-        if (typeHidden) typeHidden.value = e.target.getAttribute('data-value');
-        typeDropdown.classList.remove('show');
-        if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(0deg)';
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }, true);
-
-    // Close when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!typeDropdown.contains(e.target)) {
-        typeDropdown.classList.remove('show');
-        if (typeChevron) typeChevron.style.transform = 'translateY(-50%) rotate(0deg)';
-      }
+    treeSearch.on('focus', function () { treePanel.addClass('open'); });
+    treeSearch.on('keyup', function () { treePanel.jstree(true).search(treeSearch.val()); });
+    $(document).on('click', function (event) {
+      if (!$(event.target).closest('.line-dropdown-wrapper, #treeSearch').length) treePanel.removeClass('open');
     });
   }
-
-  const dropdowns = document.querySelectorAll('.dropdown');  
-  dropdowns.forEach(function(dropdown) {
-    // Skip static dropdowns (handled separately)
-    if (dropdown.hasAttribute('data-static-dropdown')) {
-      return;
-    }
-    
-    // Skip known static dropdown IDs
-    const list = dropdown.querySelector('.dropdown-menu');
-    if (list && (list.id === 'obis-code-list' || list.id === 'type-list' || list.id === 'profile-list')) {
-      return;
-    }
-    
-    const searchInput = dropdown.querySelector('.dropdown-search-input'); 
-    const chevron = dropdown.querySelector('.dropdown-chevron');
-    const hiddenInput = dropdown.querySelector('input[name="region"]'); // if exists
-    
-
-    dropdown.addEventListener('mouseenter', function() {
-      if (!dropdown.classList.contains('show')) {
-        dropdown.classList.add('hover-show');
-      }
-    });
-
-    if (searchInput && list) {
-  // Check if this is a static dropdown (already has items)
-  const hasStaticItems = list.querySelectorAll('.dropdown-item').length > 0;
-   
-  if (!hasStaticItems) {
-    // Fetch meters when input is focused (only for dynamic dropdowns)
-  searchInput.addEventListener('focus', function () {
-    console.log(list.getAttribute("aria-labelledby")); 
-    var path = '' ; 
-    if(list.getAttribute("aria-labelledby") == "deviceDropdown"){
-      path = '/get-installed-meters'; 
-    }else if(list.getAttribute("aria-labelledby") == "zoneDropdown"){
-      path = '/get-zone';  
-    }else if(list.getAttribute("aria-labelledby") == "stationDropdown"){
-      path = '/get-station';
-    }else if(list.getAttribute("aria-labelledby") == "dcuDropdown"){
-      path = '/get-installed-dcu';  
-    }else if(list.getAttribute("aria-labelledby") == "archivedDropdown"){
-      path = '/get-archived-meter'; 
-    }else if(list.getAttribute("aria-labelledby") == "installedDropdown"){
-      path = '/get-installed-meters';
-    }
-      if (path) {
-    fetch(path)
-      .then(response => response.json())
-      .then(data => {
-        list.innerHTML = ''; // clear old items
-        console.log(data); 
-        data.forEach(element => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.className = 'dropdown-item hoverable-item';
-          a.href = '#';
-          a.textContent = element;
-          a.setAttribute('data-value', element);  
-          li.appendChild(a);
-          list.appendChild(li);
-        });
-
-        dropdown.classList.add('show');
-        dropdown.classList.remove('hover-show');
-      });
-      }
-    });
-  } else {
-    // Static dropdown - just show on focus
-    searchInput.addEventListener('focus', function () {
-      dropdown.classList.add('show');
-      dropdown.classList.remove('hover-show');
-  });
-  }
-
-  // Real-time filtering — delegate to input
-  searchInput.addEventListener('input', function () {
-    const term = this.value.toLowerCase();
-    const dropdownItems = list.querySelectorAll('.dropdown-item');
-    dropdownItems.forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(term) ? 'block' : 'none'; 
-    });
-  });
-
-  // Item selection — event delegation
-  list.addEventListener('click', function (e) {
-    if (e.target && e.target.matches('.dropdown-item')) {
-      if (searchInput) searchInput.value = e.target.textContent;
-      dropdown.classList.remove('show');
-      if (hiddenInput) hiddenInput.value = e.target.getAttribute('data-value');
-      // Also update hidden input if it exists with a specific name/id
-      const dataValue = e.target.getAttribute('data-value');
-      if (dataValue) {
-        // Try to find hidden input by common patterns (they're siblings, not children)
-        const hiddenType = document.getElementById('type-hidden');
-        if (hiddenType) hiddenType.value = dataValue;
-      }
-      e.preventDefault();
-    }
-  });
-}
-
-    // Chevron rotation
-    if (chevron) {
-      chevron.style.transition = 'transform 0.2s ease';
-    }
-
-    // Handle chevron rotation for both static and dynamic dropdowns
-    if (searchInput) {
-      searchInput.addEventListener('focus', function() {
-        if (chevron && !dropdown.classList.contains('show')) {
-          chevron.style.transform = 'translateY(-50%) rotate(180deg)';
-        }
-      });
-    }
-
-    dropdown.addEventListener('show.bs.dropdown', () => {
-      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
-    });
-    dropdown.addEventListener('hide.bs.dropdown', () => {
-      if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
-    });
-
-    // Close when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show'); 
-        if (chevron) chevron.style.transform = 'translateY(-50%) rotate(0deg)';
-      }
-    });
-  });
-});
-document.addEventListener('DOMContentLoaded', function() {
-  const topScroll = document.querySelector('.table-scroll-top');
-  const mainScroll = document.querySelector('.table-scroll-main');
-  const table = document.getElementById('my-table');
-  const scrollX = document.querySelector('.table-scroll-x');
-
-  if (table && scrollX) {
-    scrollX.style.width = table.scrollWidth + 'px';
-  }
-
-  topScroll.addEventListener('scroll', function() {
-    mainScroll.scrollLeft = topScroll.scrollLeft;
-  });
-
-  mainScroll.addEventListener('scroll', function() {
-    topScroll.scrollLeft = mainScroll.scrollLeft;
-  });
-});
-
-
+})();
 </script>
-
-{% endblock %} 
+{% endblock %}

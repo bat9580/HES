@@ -2,7 +2,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-<link rel="stylesheet" href="{{ url_for('static', path='line-emx.css') }}?v=1">
+<link rel="stylesheet" href="{{ url_for('static', path='line-emx.css') }}?v=2">
 {% endblock %}
 {% block content %}
 {% set shown = lines|length %}
@@ -482,117 +482,127 @@
  
 
 <div class="modal fade" id="addLineModal" tabindex="-1" aria-labelledby="addLineModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addLineModalLabel">Шугам үүсгэх</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered madd-dialog">
+    <div class="modal-content madd">
+      <div class="madd-head">
+        <div class="madd-title">
+          <span class="madd-mark"><span class="material-symbols-outlined">bolt</span></span>
+          <div>
+            <h2 id="addLineModalLabel">Шугам үүсгэх</h2>
+            <p>Шугамын нэр, түвшин, харьяаг бүртгэх.</p>
+          </div>
+        </div>
+        <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
       </div>
-      <div class="modal-body">
-        <form id="addLineForm" method = "Post" action = "/add-line">     
-        <div class="tab-content">
-          <div class="tab-pane fade show active"  role="tabpanel">
-                
-                <div class="col-md-auto">
-                  <label>Шугамын нэр</label> 
-                  <input type="text" name="line_name" class="form-control" required> 
-                </div>
-
-                <div class="col-md-auto">
-                  <label>Шугамын түвшин</label>
-                  <select class="form-select" name="line_level"  required> 
-                    <option>Цахилгаан станц</option>
-                    <option>Дэд станц</option>
-                    <option>Фидер</option> 
-                    <option>Трансформер</option> 
-                  </select>
-                </div>
-                <div class="col-md-auto mb-3">
-                <label class="form-label d-block">Үечлэл</label> 
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="lineType" id="newLine" value="new" checked>
-                            <label class="form-check-label" for="newLine">Шинэ</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="lineType" id="existingLine" value="existing">
-                            <label class="form-check-label" for="existingLine">Харьяа</label>
-                        </div>
-                </div>
-                <div class="col-md-auto" id="parentNodeWrapper" style="display:none;">
-                        <label>Харьяа шугам</label>
-                        <div id="parentNodeTree"></div>
-                        <input type="hidden" name="parent_node" id="parent_node_input">
-                </div>
+      <form id="addLineForm" method="post" action="/add-line">
+        <div class="madd-body">
+          <div class="madd-field">
+            <label for="addLineName">Шугамын нэр</label>
+            <input id="addLineName" type="text" name="line_name" required autocomplete="off">
+          </div>
+          <div class="madd-field">
+            <label for="addLineLevel">Шугамын түвшин</label>
+            <div class="madd-select">
+              <select id="addLineLevel" name="line_level" required>
+                <option>Цахилгаан станц</option>
+                <option>Дэд станц</option>
+                <option>Фидер</option>
+                <option>Трансформер</option>
+              </select>
+              <span class="material-symbols-outlined">expand_more</span>
+            </div>
+          </div>
+          <div class="madd-field">
+            <label>Үечлэл</label>
+            <div class="madd-choices">
+              <label class="madd-choice" for="newLine">
+                <input type="radio" name="lineType" id="newLine" value="new" checked>
+                <span><strong>Шинэ</strong><em>Эх үүсвэр</em></span>
+              </label>
+              <label class="madd-choice" for="existingLine">
+                <input type="radio" name="lineType" id="existingLine" value="existing">
+                <span><strong>Харьяа</strong><em>Өөр шугамд харьяа</em></span>
+              </label>
+            </div>
+          </div>
+          <div class="madd-field" id="parentNodeWrapper" style="display:none;">
+            <label for="parent_node_input">Харьяа шугам</label>
+            <div class="madd-tree" id="parentNodeTree"></div>
+            <input type="hidden" name="parent_node" id="parent_node_input">
+          </div>
+        </div>
+        <div class="madd-foot">
+          <span>Харьяа үед эх шугам сонгоно.</span>
+          <div>
+            <button type="button" class="madd-btn" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="madd-btn primary">Submit</button>
           </div>
         </div>
       </form>
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="addLineForm" class="btn btn-primary">Submit</button>
-      </div>
     </div>
   </div>
 </div>
   
 
-  <!-- edit meter form for meter edit --> 
-  <div class="modal fade" id="editLineModal" tabindex="-1" aria-labelledby="editLineModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editLineModalLabel">Шугам засах</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="editLineModal" tabindex="-1" aria-labelledby="editLineModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered madd-dialog">
+    <div class="modal-content madd">
+      <div class="madd-head">
+        <div class="madd-title">
+          <span class="madd-mark"><span class="material-symbols-outlined">edit</span></span>
+          <div>
+            <h2 id="editLineModalLabel">Шугам засах</h2>
+            <p>Бүртгэсэн шугамын нэр, түвшин, харьяаг өөрчлөх.</p>
+          </div>
+        </div>
+        <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
       </div>
-      <div class="modal-body">
-        <form id="editLineForm" method="POST" action="/edit-line">
-          <div class="tab-content">
-            <div class="tab-pane fade show active" role="tabpanel">
-
-              <div class="col-md-auto">
-                <label>Шугамын нэр</label>
-                <!-- Hidden input to hold original line name for identifying the record -->
-                <input type="hidden" name="original_line_name" id="original_line_name">
-                <input type="text" name="line_name" id="edit_line_name" class="form-control" required>
-              </div>
-
-              <div class="col-md-auto">
-                <label>Шугамын түвшин</label>
-                <select class="form-select" name="line_level" id="edit_line_level" required>
-                  <option>Цахилгаан станц</option>
-                  <option>Дэд станц</option>
-                  <option>Фидер</option>
-                  <option>Трансформер</option>
-                </select>
-              </div>
-
-              <div class="col-md-auto mb-3">
-                <label class="form-label d-block">Үечлэл</label>
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="lineTypeEdit" id="editNewLine" value="new" checked>
-                  <label class="form-check-label" for="editNewLine">Шинэ</label>
-                </div>
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="lineTypeEdit" id="editExistingLine" value="existing">
-                  <label class="form-check-label" for="editExistingLine">Харьяа</label>
-                </div>
-              </div>
-
-              <div class="col-md-auto" id="editParentNodeWrapper" style="display:none;">
-                <label>Харьяа шугам</label>
-                <div id="editParentNodeTree"></div>
-                <input type="hidden" name="parent_node" id="edit_parent_node_input">
-              </div>
-
+      <form id="editLineForm" method="post" action="/edit-line">
+        <input type="hidden" name="original_line_name" id="original_line_name">
+        <div class="madd-body">
+          <div class="madd-field">
+            <label for="edit_line_name">Шугамын нэр</label>
+            <input id="edit_line_name" type="text" name="line_name" required autocomplete="off">
+          </div>
+          <div class="madd-field">
+            <label for="edit_line_level">Шугамын түвшин</label>
+            <div class="madd-select">
+              <select id="edit_line_level" name="line_level" required>
+                <option>Цахилгаан станц</option>
+                <option>Дэд станц</option>
+                <option>Фидер</option>
+                <option>Трансформер</option>
+              </select>
+              <span class="material-symbols-outlined">expand_more</span>
             </div>
           </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="editLineForm" class="btn btn-primary">Submit</button>
-      </div>
+          <div class="madd-field">
+            <label>Үечлэл</label>
+            <div class="madd-choices">
+              <label class="madd-choice" for="editNewLine">
+                <input type="radio" name="lineTypeEdit" id="editNewLine" value="new" checked>
+                <span><strong>Шинэ</strong><em>Эх үүсвэр</em></span>
+              </label>
+              <label class="madd-choice" for="editExistingLine">
+                <input type="radio" name="lineTypeEdit" id="editExistingLine" value="existing">
+                <span><strong>Харьяа</strong><em>Өөр шугамд харьяа</em></span>
+              </label>
+            </div>
+          </div>
+          <div class="madd-field" id="editParentNodeWrapper" style="display:none;">
+            <label for="edit_parent_node_input">Харьяа шугам</label>
+            <div class="madd-tree" id="editParentNodeTree"></div>
+            <input type="hidden" name="parent_node" id="edit_parent_node_input">
+          </div>
+        </div>
+        <div class="madd-foot">
+          <span>Харьяа үед эх шугам сонгоно.</span>
+          <div>
+            <button type="button" class="madd-btn" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="madd-btn primary">Submit</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>

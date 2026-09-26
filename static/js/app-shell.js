@@ -291,6 +291,11 @@
     try {
       var path = window.location.pathname.replace(/\/$/, '');
       if (path === '/batch-upload-device-type' || path === '/step2') path = '/batch-upload-meter';
+      if (path === '/search-one-reading') path = '/data-read';
+      if (path === '/search-energy-profile') path = '/energy-profile-read';
+      if (path === '/search-instant-profile') path = '/instant-profile-read';
+      if (path === '/search-user') path = '/user-management';
+      if (path === '/search-role') path = '/role-management';
       document.querySelectorAll('.sidebar .nav-link.active').forEach(function (a) {
         a.classList.remove('active');
       });

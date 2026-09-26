@@ -1,245 +1,256 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/role-emx.css?v=1">
+{% endblock %}
 {% block content %}
 {% if message %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    showToast('{{ message }}', 'success');
-  }, 300);
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
 });
 </script>
-{% endif %} 
-  <div class="container-fluid">
-    <div class="row">
-      
-      <!-- Left side: Role table -->
-      <div class="col-md-7">
-        <div class="page-header mb-4">
-          <div class="page-header-text">
-            <h2 class="page-title mb-1">Эрхүүд</h2>
-            <p class="page-header-sub">Систем дэх эрхийн төрлүүд ба зөвшөөрөл.</p>
+{% endif %}
+
+<div class="rol">
+  <div class="rol-head">
+    <div>
+      <nav class="rol-crumb">
+        <span>Систем</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span class="here">Эрхүүд</span>
+      </nav>
+      <h1 class="rol-title">Эрхүүд</h1>
+      <p class="rol-sub">Систем дэх эрхийн төрлүүд ба цэсийн зөвшөөрөл. Тоо нь бүртгэлээс гарна.</p>
+    </div>
+    <div class="rol-actions">
+      <button class="rol-btn" id="rolExport" type="button"><span class="material-symbols-outlined">download</span>Экспорт</button>
+      <button class="rol-btn" id="rolRefresh" type="button"><span class="material-symbols-outlined">sync</span>Дахин сэргээх</button>
+      <button class="rol-btn primary" type="button" data-bs-toggle="modal" data-bs-target="#addRoleModal"><span class="material-symbols-outlined">add</span>Шинэ эрх үүсгэх</button>
+    </div>
+  </div>
+
+  <div class="rol-kpis">
+    <div class="rol-kpi">
+      <div class="rol-kpi-label">Нийт эрхийн түвшин</div>
+      <div class="rol-kpi-value">{{ roles_total }}</div>
+      <div class="rol-kpi-sub">бүртгэл дэх эрх</div>
+    </div>
+    <div class="rol-kpi">
+      <div class="rol-kpi-label">Модулийн зөвшөөрөл</div>
+      <div class="rol-kpi-value">{{ grants_total }}</div>
+      <div class="rol-kpi-sub">{{ menu_count }} цэс шалгана</div>
+    </div>
+    <div class="rol-kpi">
+      <div class="rol-kpi-label">Хуваарилагдсан хэрэглэгч</div>
+      <div class="rol-kpi-value">{{ users_total }}</div>
+      <div class="rol-kpi-sub">бүртгэл дэх хэрэглэгч</div>
+    </div>
+    <div class="rol-kpi">
+      <div class="rol-kpi-label">Зөвшөөрөлгүй эрх</div>
+      <div class="rol-kpi-value">{{ empty_roles }}</div>
+      <div class="rol-kpi-sub">цэс оноогоогүй</div>
+    </div>
+  </div>
+
+  <div class="rol-grid">
+    <div class="rol-card">
+      <div class="rol-filters">
+        <form method="GET" action="/role-management" id="rolFilter">
+          <input type="hidden" name="page" value="1">
+          <input type="hidden" name="limit" value="{{ limit }}">
+          <div class="rol-field">
+            <label for="rolSearch">Эрх хайх</label>
+            <input id="rolSearch" name="role_name" type="text" value="{{ role_name }}" placeholder="Эрхийн нэр" autocomplete="off">
           </div>
-        </div>
-        <div class="filter-bar-container">
-          <form method="GET" action="/search-role" class="filter-bar"> 
-            <div class="filter-bar-item" style="flex: 1 1 200px; min-width: 120px; max-width: 360px;">
-                <input type="text" 
-                        class="form-control dropdown-search-input dimmed-text hoverable-input w-100" 
-                        name="role_name"
-                        placeholder="Эрх хайх"
-                        value="{{ role_name | default('') }}"
-                        style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-            </div>
-            <div class="filter-bar-item narrow">
-            <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-                <i class="bi bi-search"></i> 
-            </button>
-            </div>
-            <div class="filter-bar-item narrow">
-            <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addRoleModal">
-                <i class="bi bi-plus" aria-hidden="true"></i>
-            </button>
-            </div>
-            <div class="filter-bar-item narrow">
-            <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
-                <i class="bi bi-trash3"> </i> 
-            </button>
-            </div>
-
-        </form> 
-        </div>
-
-        
-        <table class="table table-bordered table-hover table-striped align-middle text-center">
-            <thead class="table-light">
-                <tr>
-                <th><input type="checkbox" id="select-all"></th>
-                <th>#</th>
-                <th>Эрхийн нэр</th>
-                <th>Тайлбар</th> 
-                <th>Үйлдэл</th>  
-                </tr>
-            </thead>
-            <tbody id="device-table-body">
-                {% for role in roles %}  
-                <tr>
-                <td><input type="checkbox" class="device-checkbox" value="{{ role['role_name']}}"></td>  
-                <td>{{ loop.index }}</td>
-                <td>{{ role['role_name'] }}</td> 
-                <td>{{ role['remark'] }}</td>
-                <td>
-                    <button class="btn btn-secondary btn-sm" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#editRoleModal"     
-                            data-role-name="{{role['role_name']}}"   
-                            data-remarks="{{role['remark']}}">
-                        Засах
-                    </button> 
-                </td> 
-                </tr>
-                {% endfor %}
-                <!-- dynamic rows here -->
-            </tbody>
-            </table>
+          <button class="rol-search" type="submit" title="Хайх"><span class="material-symbols-outlined">search</span></button>
+          <button class="rol-icon primary" type="button" data-bs-toggle="modal" data-bs-target="#addRoleModal" title="Эрх нэмэх"><span class="material-symbols-outlined">add</span></button>
+          <button class="rol-icon" id="clear-selected-button" type="button" title="Сонгосонг устгах"><span class="material-symbols-outlined">delete</span></button>
+        </form>
       </div>
-
-<div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addRoleModalLabel">Эрх нэмэх</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="rol-note">
+        <span>Бүртгэл: <strong>{{ filtered }}</strong></span>
+        <span>{{ showing_start }}–{{ showing_end }} харуулж байна</span>
       </div>
-      <div class="modal-body">
-        <form id="addRoleForm" method = "Post" action = "/add-role">      
-        <!-- Nav tabs -->
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="detail" role="tabpanel">
-                
-                <div class="col-md-auto">
-                  <label>Эрхийн нэр:</label> 
-                  <input type="text" name="role_name" class="form-control" required> 
-                </div>
-                <div class="col-md-auto">
-                  <label>Тэмдэглэгээ:</label>
-                  <input type="text" name="remarks"  class="form-control">
-                </div>
-          </div>
+      <div class="rol-table-wrap">
+        <table class="rol-table" id="rol-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="select-all"></th>
+              <th>#</th>
+              <th>Эрхийн нэр</th>
+              <th>Тайлбар</th>
+              <th>Хэрэглэгч</th>
+              <th>Үйлдэл</th>
+            </tr>
+          </thead>
+          <tbody id="device-table-body">
+            {% for role in roles %}
+            <tr data-role="{{ role.role_name }}">
+              <td><input type="checkbox" class="device-checkbox" value="{{ role.role_name }}"></td>
+              <td>{{ showing_start + loop.index0 }}</td>
+              <td class="rol-name">{{ role.role_name }}</td>
+              <td class="rol-remark">{{ role.remark or '—' }}</td>
+              <td><span class="rol-count">{{ role.user_count }}</span></td>
+              <td><button class="rol-pick" type="button" title="Цэсүүд"><span class="material-symbols-outlined">checklist</span></button></td>
+            </tr>
+            {% else %}
+            <tr class="rol-empty">
+              <td colspan="6">Эрх олдсонгүй</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="rol-foot">
+        <div class="rol-page-size">
+          <label for="rolLimit">Хуудсанд</label>
+          <select id="rolLimit">
+            {% for size in [15, 30, 50, 100] %}
+            <option value="{{ size }}" {% if limit == size %}selected{% endif %}>{{ size }} / хуудас</option>
+            {% endfor %}
+          </select>
+          <span>{{ showing_start }}–{{ showing_end }} / {{ filtered }}</span>
+        </div>
+        <div class="rol-pages">
+          <a class="rol-edge" href="{{ prev_href or '#' }}" {% if not prev_href %}aria-disabled="true"{% endif %}>Өмнөх</a>
+          {% for item in pages %}
+          <a class="rol-page {% if item.current %}is-on{% endif %}" href="{{ item.href }}">{{ item.n }}</a>
+          {% endfor %}
+          <a class="rol-edge" href="{{ next_href or '#' }}" {% if not next_href %}aria-disabled="true"{% endif %}>Дараах</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="rol-card rol-panel">
+      <div class="rol-panel-head">
+        <div>
+          <h2>Цэсүүд</h2>
+          <p>Сонгосон эрхэд хамаарах системийн цэс. Дэд цэс тусад нь хадгалагдахгүй.</p>
+        </div>
+        <span class="rol-badge" id="rolBadge">Эрх сонгоогүй</span>
+      </div>
+      <form id="permissionForm" method="POST" action="/update-permissions">
+        <input type="hidden" name="role_name" id="selectedRoleInput" value="">
+        <div class="rol-perms">
+          {% for menu in menus %}
+          <label class="rol-perm">
+            <span>
+              <strong>{{ menu.label }}</strong>
+              <small>{{ menu.name }}</small>
+            </span>
+            <input type="checkbox" name="permissions" value="{{ menu.name }}">
+          </label>
+          {% endfor %}
+        </div>
+        <div class="rol-save">
+          <button class="rol-btn" id="rolClearPerms" type="button">Цэвэрлэх</button>
+          <button class="rol-btn primary" type="submit">Save Permissions</button>
         </div>
       </form>
+    </div>
+  </div>
 
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="addRoleForm" class="btn btn-primary">Submit</button>
+  <div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addRoleModalLabel">Эрх нэмэх</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addRoleForm" method="post" action="/add-role">
+            <div class="col-md-auto">
+              <label>Эрхийн нэр:</label>
+              <input type="text" name="role_name" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+              <label>Тэмдэглэгээ:</label>
+              <input type="text" name="remarks" class="form-control">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" form="addRoleForm" class="btn btn-primary">Submit</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<script>
+(function () {
+  const rolePermissions = {{ role_permissions | tojson }};
+  const tableBody = document.getElementById('device-table-body');
+  const selectedRoleInput = document.getElementById('selectedRoleInput');
+  const badge = document.getElementById('rolBadge');
+  const boxes = document.querySelectorAll('#permissionForm input[name="permissions"]');
 
-      
-      <!-- Right side: Role Authorization -->
-      <div class="col-md-5">
-        <div class="auth-panel">
-            <h5>Цэсүүд</h5> 
-            <form id="permissionForm" method="POST" action="/update-permissions">
-            
-            <!-- Hidden field to store the selected role -->
-            <input type="hidden" name="role_name" id="selectedRoleInput">
-
-
-            <div class="form-check d-flex align-items-center">
-                <input class="form-check-input me-2" type="checkbox" name="permissions" value="Warehouse" id="perm-archive">
-                <label class="form-check-label mb-2" for="perm-archive">Бүртгэл</label>
-            </div>
-
-            <div class="form-check d-flex align-items-center">
-                <input class="form-check-input me-2" type="checkbox" name="permissions" value="Archive" id="perm-data">
-                <label class="form-check-label mb-2" for="perm-data">Суурилуулалт</label>
-            </div>
-
-            <div class="form-check d-flex align-items-center">
-                <input class="form-check-input me-2" type="checkbox" name="permissions" value="Remote Maintain" id="perm-remote">
-                <label class="form-check-label mb-2" for="perm-remote">Шууд унших</label> 
-            </div>
-
-            <div class="form-check d-flex align-items-center">
-                <input class="form-check-input me-2" type="checkbox" name="permissions" value="System Task" id="perm-task">
-                <label class="form-check-label mb-2" for="perm-task">Хуваариуд</label>
-            </div>
-
-            <div class="form-check d-flex align-items-center">
-                <input class="form-check-input me-2" type="checkbox" name="permissions" value="Data analysis" id="perm-system">
-                <label class="form-check-label mb-2" for="perm-system">Өгөгдлүүд</label> 
-            </div>
-            <div class="form-check d-flex align-items-center">
-                <input class="form-check-input me-2" type="checkbox" name="permissions" value="System Management" id="perm-system">
-                <label class="form-check-label mb-2" for="perm-system">Систем</label>  
-            </div> 
-
-            <hr>
-            <button type="submit" class="btn btn-primary">Save Permissions</button>
-            </form>
-        </div>
-        </div>
-      
-    </div>
-  </div>
-
-<style>
-  .auth-panel {
-    border: 1px solid #dee2e6;   /* light gray border */
-    border-radius: 2px;          /* rounded corners */
-    padding: 16px;               /* spacing inside */
-    background-color: #fff;      /* white background */
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* subtle shadow */
-  }
-  .auth-panel .form-check-label {
-    font-size: 14px;        /* Change font size */
-    font-weight: 500;       /* Make text bold */
-    font-family: Arial, sans-serif; /* Change font family */
-}
-  .auth-panel .form-check {
-    margin-bottom: -0.40rem; /* reduce vertical gap between checkboxes */
-} 
-  .permission-checkbox {
-    margin-right: 5px; /* reduce horizontal space */
-    margin-left: 0;
-} 
-</style>
-  <script>
-    
-
-    document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('device-table-body');
-    const permissionCheckboxes = document.querySelectorAll('.auth-panel .form-check-input');
-    const selectedRoleInput = document.getElementById('selectedRoleInput');
-    const rolePermissions = {{ role_permissions | tojson | safe }}; 
-    console.log(rolePermissions); // { "Admin": [...], "User": [...] }
-    tableBody.querySelectorAll('tr').forEach(row => {
-    row.addEventListener('click', () => {
-        // Highlight row
-        tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
-        row.classList.add('table-active');
-
-        // Get role name
-        const roleName = row.querySelector('td:nth-child(3)').textContent.trim();
-        selectedRoleInput.value = roleName; // store role in hidden input
-
-        // Find permissions for this role
-        const perms = rolePermissions[roleName] || [];
-
-        // Update checkboxes
-        permissionCheckboxes.forEach(checkbox => {
-            const permValue = checkbox.value;
-            checkbox.checked = perms.includes(permValue);
-        });
+  function showRole(roleName) {
+    selectedRoleInput.value = roleName || '';
+    badge.textContent = roleName || 'Эрх сонгоогүй';
+    const granted = rolePermissions[roleName] || [];
+    boxes.forEach(function (box) { box.checked = granted.indexOf(box.value) !== -1; });
+    tableBody.querySelectorAll('tr[data-role]').forEach(function (row) {
+      row.classList.toggle('is-on', row.getAttribute('data-role') === roleName);
     });
-});
-});
-
-
-document.getElementById('clear-selected-button').addEventListener('click', function () {
-  const selectedRoles = Array.from(document.querySelectorAll('.device-checkbox:checked')).map(cb => cb.value);
-
-  if (selectedRoles.length === 0) {
-    alert("Please select at least one Role."); 
-    return;
   }
 
-  fetch('/clear-roles', {  
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      selected_roles: selectedRoles 
-    })
-  }); 
+  tableBody.addEventListener('click', function (event) {
+    if (event.target.closest('input, a, button')) {
+      const pick = event.target.closest('.rol-pick');
+      if (!pick) return;
+    }
+    const row = event.target.closest('tr[data-role]');
+    if (!row) return;
+    showRole(row.getAttribute('data-role'));
+  });
 
-}); 
-</script> 
-{% endblock %} 
-
-
+  document.getElementById('rolRefresh').addEventListener('click', function () {
+    window.location.reload();
+  });
+  document.getElementById('rolExport').addEventListener('click', function () {
+    const table = document.getElementById('rol-table');
+    const workbook = XLSX.utils.table_to_book(table, { sheet: 'Roles' });
+    XLSX.writeFile(workbook, 'roles.xlsx');
+  });
+  document.getElementById('rolLimit').addEventListener('change', function () {
+    const url = new URL(window.location.href);
+    url.pathname = '/role-management';
+    url.searchParams.set('limit', this.value);
+    url.searchParams.set('page', '1');
+    window.location.href = url;
+  });
+  document.getElementById('rolClearPerms').addEventListener('click', function () {
+    boxes.forEach(function (box) { box.checked = false; });
+  });
+  document.getElementById('permissionForm').addEventListener('submit', function (event) {
+    if (!selectedRoleInput.value) {
+      event.preventDefault();
+      showToast('Эрх сонгоогүй.', 'warning');
+    }
+  });
+  document.getElementById('clear-selected-button').addEventListener('click', function () {
+    const selectedRoles = Array.from(document.querySelectorAll('.device-checkbox:checked')).map(function (box) { return box.value; });
+    if (!selectedRoles.length) {
+      showToast('Эрх сонгоогүй.', 'warning');
+      return;
+    }
+    if (!window.confirm('Сонгосон эрхийг устгах уу?')) return;
+    fetch('/clear-roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selected_roles: selectedRoles })
+    }).then(function () { window.location.href = '/role-management'; });
+  });
+  const selectAll = document.getElementById('select-all');
+  if (selectAll) {
+    selectAll.addEventListener('click', function () {
+      document.querySelectorAll('.device-checkbox').forEach(function (box) { box.checked = selectAll.checked; });
+    });
+  }
+})();
+</script>
+{% endblock %}

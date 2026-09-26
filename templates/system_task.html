@@ -1,290 +1,498 @@
 {% extends "base.html" %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
+<link rel="stylesheet" href="/static/task-emx.css?v=1">
+{% endblock %}
 {% block content %}
 {% if message %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    showToast('{{ message }}', 'success');
-  }, 300);
+  setTimeout(() => { showToast({{ message|tojson }}, 'success'); }, 300);
 });
 </script>
-{% endif %} 
-<div class="page-header mb-4">
-  <div class="page-header-text">
-    <h2 class="page-title mb-1">Хуваариуд</h2>
-    <p class="page-header-sub">Автомат уншилтын хуваарь болон Cron илэрхийллийг тохируулах.</p>
+{% endif %}
+
+<div class="tsk">
+  <div class="tsk-top">
+    <nav class="tsk-crumb">
+      <span>Үйл ажиллагаа</span>
+      <span class="material-symbols-outlined">chevron_right</span>
+      <span class="here">Хуваариуд</span>
+      <span class="tsk-pill">APScheduler</span>
+    </nav>
+    <div>
+      {% if scheduler_running %}
+      <span class="tsk-live"><i></i>Cron scheduler: ажиллаж байна</span>
+      {% else %}
+      <span class="tsk-live off"><i></i>Cron scheduler: зогссон</span>
+      {% endif %}
+      <span> · Сервер цаг: <strong id="tskClock">{{ page_time|default('') }}</strong></span>
+    </div>
   </div>
-</div>
-<div class="filter-bar-container">
-  <form method="GET" action="/search-task" class="filter-bar"> 
-    <div class="col-md-auto" style="width: 20%; min-height: 35px; height: auto;"> 
-          <input type="text" 
-                 class="form-control dropdown-search-input dimmed-text hoverable-input" 
-                 name="task_name"
-                 placeholder="Хуваарь хайх"
-                 autocomplete="off"
-                 value="{{ task_name | default('') }}"
-                 style="height: 33px; border-radius: 2px !important; padding-right: 30px;">
-    </div>
-    <!-- <input type="text" class="form-control" style="max-width: 200px;" placeholder="Device Addr" name="dcu_number" value="{{ dcu_number | default('') }}"> -->
-    
-    <div class="col-md-auto" style="width: 4.166666%;">
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-search"></i> 
-      </button>
-    </div>
-    <div class="col-md-auto">
-      <button type="button" class="btn btn-light w-100 border dimmed-text" style="height: 33px; border-radius: 2px" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-          <i class="bi bi-plus" aria-hidden="true"></i>
-      </button>
-    </div>
-    <div class="col-md-auto" >
-      <button type="submit" class="btn btn-light w-100 border dimmed-text" id="clear-selected-button" style="height: 33px; border-radius: 2px" > 
-        <i class="bi bi-trash3"> </i> 
-      </button>
-    </div>
-    
-        
 
-</form> 
-</div>
-
-<table class="table table-bordered table-hover table-striped align-middle text-center">
-  <thead class="table-light">
-    <tr>
-      <th><input type="checkbox" id="select-all"></th>
-      <th>#</th>
-      <th>Хуваарийн нэр</th>
-      <th>Зорилтод параметр</th>
-      <th>Крон илэрхийлэл</th> 
-      <th>Тайлбар</th>
-      <th>Үйлдэлүүд</th>
-    </tr>
-  </thead>
-  <tbody id="device-table-body">
-    {% for task in tasks %} 
-    <tr>
-      <td><input type="checkbox" class="device-checkbox" value="{{ task['task_name']}}"></td>  
-      <td>{{ loop.index }}</td>
-      <td>{{ task['task_name'] }}</td> 
-      <td>{{ task['invoke_target'] }}</td>
-      <td>{{ task['cron_expression'] }}</td>
-      <td>{{ task['remark'] }}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm" 
-                data-bs-toggle="modal" 
-                data-bs-target="#editTaskModal"    
-                data-task-name="{{task['task_name']}}"  
-                data-invoke-target="{{task['invoke_target']}}"
-                data-cron-expression="{{ task['cron_expression'] }}"
-                data-remarks="{{ task['remark'] }}" >
-              <i class="bi bi-pencil-square"></i>
-        </button> 
-      </td> 
-    </tr>
-    {% endfor %}
-    <!-- dynamic rows here -->
-  </tbody>
-</table>
-<!-- Add button form for adding task  -->
-<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addTaskModalLabel">Хуваарь нэмэх</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="tsk-head">
+    <div>
+      <div class="tsk-title-row">
+        <h1 class="tsk-title">Хуваариуд</h1>
+        <span class="tsk-count">{{ task_total|default(0) }} даалгавар бүртгэлтэй</span>
       </div>
-      <div class="modal-body">
-        <form id="addTaskForm" method = "Post" action = "/add-task">     
-        <!-- Nav tabs -->
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="detail" role="tabpanel">
-                
-                <div class="col-md-auto">
-                  <label>Хуваарийн нэр:</label>
-                  <input type="text" name="task_name" class="form-control" required> 
-                </div>
+      <p class="tsk-sub">Автомат уншилтын хуваарь болон крон илэрхийлэл. Тоо болон мөр нь бүртгэлтэй хуваариас гарна.</p>
+    </div>
+    <div class="tsk-actions">
+      <button class="tsk-btn" id="tskRefresh" type="button"><span class="material-symbols-outlined">refresh</span>Дахин сэргээх</button>
+      <button class="tsk-btn" type="button" disabled title="Гүйцэтгэлийн бүртгэл байхгүй"><span class="material-symbols-outlined">manage_search</span>Шалгах түүх / Лог</button>
+      <button class="tsk-btn primary" type="button" data-bs-toggle="modal" data-bs-target="#addTaskModal"><span class="material-symbols-outlined">add</span>Шинэ хуваарь үүсгэх</button>
+    </div>
+  </div>
 
-                <div class="col-md-auto">
-                  <label>Зорилтод параметр:</label>
-                  <select class="form-select" name="invoke_target"  required> 
-                    <option>Energy load profile</option>
-                    <option>Instantanious load profile</option>
-                    <option>Voltage read</option> 
-                    <option>Active Power read</option>  
-                  </select>
-                </div>
+  <div class="tsk-kpis">
+    <div class="tsk-kpi">
+      <div>
+        <div class="tsk-kpi-label">Нийт хуваарь</div>
+        <div class="tsk-kpi-value">{{ task_total|default(0) }}</div>
+        <div class="tsk-kpi-sub">{{ cron_ready|default(0) }} / {{ task_total|default(0) }} крон илэрхийлэлтэй</div>
+      </div>
+      <div class="tsk-kpi-icon"><span class="material-symbols-outlined">calendar_month</span></div>
+    </div>
+    <div class="tsk-kpi">
+      <div>
+        <div class="tsk-kpi-label">Дараагийн уншилт</div>
+        <div class="tsk-kpi-value pri" id="tskCountdown">{% if next_run %}{{ next_run }}{% else %}—{% endif %}</div>
+        <div class="tsk-kpi-sub">Зорилтот: <strong>{{ next_name if next_name else '—' }}</strong></div>
+      </div>
+      <div class="tsk-kpi-icon"><span class="material-symbols-outlined">timelapse</span></div>
+    </div>
+    <div class="tsk-kpi">
+      <div>
+        <div class="tsk-kpi-label">Өнөөдрийн гүйцэтгэл</div>
+        <div class="tsk-kpi-value">—</div>
+        <div class="tsk-kpi-sub">Гүйцэтгэлийн бүртгэл байхгүй</div>
+      </div>
+      <div class="tsk-kpi-icon"><span class="material-symbols-outlined">verified</span></div>
+    </div>
+    <div class="tsk-kpi">
+      <div>
+        <div class="tsk-kpi-label">Сүүлийн алдаа</div>
+        <div class="tsk-kpi-value">—</div>
+        <div class="tsk-kpi-sub">Алдааны бүртгэл байхгүй</div>
+      </div>
+      <div class="tsk-kpi-icon ok"><span class="material-symbols-outlined">health_and_safety</span></div>
+    </div>
+  </div>
 
-                <!-- <div class="col-md-auto">
-                  <label>Cron Expression</label>
-                  <input type="text" name="cron_expression" id="cron_expression_input"  class="form-control" required>
-                </div> -->
-                <div class="col-md-auto">
-                  <label>Крон илэрхийлэл:</label>
-                  <input type="text" name="cron_expression" id="cron_expression_input" class="form-control" required>
-                  <div id="error-message" style="color: red; display: none;">
-                    Буруу крон илэрхийлэл. Засна уу !!!
-                  </div>
-                </div>
-                <div class="col-md-auto">
-                  <label>Тайлбар:</label>
-                  <input type="text" name = "remarks" class="form-control">
-                </div>
+  <div class="tsk-card">
+    <div class="tsk-toolbar">
+      <div class="tsk-filters">
+        <form method="GET" action="/system-task" id="tskFilterForm">
+          <div class="tsk-field">
+            <span class="material-symbols-outlined tsk-field-icon">search</span>
+            <input id="tskSearch" name="task_name" type="text" value="{{ task_name|default('') }}" placeholder="Хуваарь хайх" autocomplete="off">
           </div>
-        </div>
-      </form>
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="addTaskForm" class="btn btn-primary">Submit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Edit button form for editing task  -->
-<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editTaskModalLabel">Хуваарь өөрчлөх</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form id="editTaskForm" method = "Post" action = "/edit-task">  
-            <input type="hidden" name="original_task_name" id="OriginalTaskName">   
-        <!-- Nav tabs -->
-        
-
-        <!-- Tab panes -->
-        <div class="tab-content">
-          <div class="tab-pane fade show active" id="detail" role="tabpanel">
-                
-                <div class="col-md-auto">
-                  <label>Хуваарийн нэр:</label>
-                  <input type="text" name="task_name" id="editTaskName" class="form-control" required> 
-                </div>
-
-                <div class="col-md-auto">
-                  <label>Зорилтод параметр:</label> 
-                  <select class="form-select" name="invoke_target" id="editInvokeTarget" required> 
-                    <option>Energy load profile</option>
-                    <option>Instantanious load profile</option>
-                    <option>Voltage read</option> 
-                    <option>Active Power read</option>  
-                  </select>
-                </div>
-
-                <!-- <div class="col-md-auto">
-                  <label>Cron Expression</label>
-                  <input type="text" name="cron_expression" id="editCronExpression"  class="form-control" required>
-                </div> -->
-                <div class="col-md-auto">
-                  <label>	Крон илэрхийлэл:</label>
-                  <input type="text" name="cron_expression" id="edit_cron_expression_input" class="form-control" required>
-                  <div id="error-message-edit" style="color: red; display: none;">
-                    Буруу крон илэрхийлэл. Засна уу !!!.    
-                  </div>
-                </div>
-              
-                <div class="col-md-auto">
-                  <label>Тайлбар:</label>
-                  <input type="text" name = "remarks" id="editRemarks" class="form-control">
-                </div>
+          <div class="tsk-field">
+            <select name="invoke_target" aria-label="Зорилтот параметр">
+              <option value="">Бүх зорилтот параметр</option>
+              {% for target in invoke_targets|default([]) %}
+              <option value="{{ target }}" {% if invoke_target|default('') == target %}selected{% endif %}>{{ target }}</option>
+              {% endfor %}
+            </select>
           </div>
-        </div>
-      </form>
-
+          <button class="tsk-btn primary" type="submit"><span class="material-symbols-outlined">search</span>Search</button>
+        </form>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="editTaskForm" class="btn btn-primary">Submit</button>
+      <div class="tsk-batch">
+        <button class="tsk-icon" type="button" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Хуваарь нэмэх"><span class="material-symbols-outlined">add</span></button>
+        <button class="tsk-icon danger" id="clear-selected-button" type="button" disabled title="Сонгосон хуваарийг устгах"><span class="material-symbols-outlined">delete</span></button>
+        <button class="tsk-btn" id="tskExport" type="button"><span class="material-symbols-outlined">file_download</span>Экспорт</button>
+      </div>
+    </div>
+
+    <div class="tsk-table-wrap">
+      <table class="tsk-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="select-all" aria-label="Бүгдийг сонгох"></th>
+            <th>#</th>
+            <th>Хуваарийн нэр</th>
+            <th>Зорилтот параметр</th>
+            <th>Крон илэрхийлэл</th>
+            <th>Хүн болгонд ойлгомжтой</th>
+            <th>Дараагийн ажиллах</th>
+            <th>Сүүлийн төлөв</th>
+            <th>Тайлбар</th>
+            <th>Үйлдлүүд</th>
+          </tr>
+        </thead>
+        <tbody id="tskBody">
+          {% for task in tasks|default([]) %}
+          <tr data-task="{{ task.task_name }}">
+            <td><input type="checkbox" class="device-checkbox" value="{{ task.task_name }}" aria-label="{{ task.task_name }}"></td>
+            <td class="tsk-index">{{ loop.index }}</td>
+            <td class="tsk-name">{{ task.task_name }}</td>
+            <td>{{ task.invoke_target or '—' }}</td>
+            <td>
+              {% if task.cron_expression %}
+              <span class="tsk-cron"><code>{{ task.cron_expression }}</code>
+                <button class="tsk-copy" type="button" data-cron="{{ task.cron_expression }}" title="Хуулах"><span class="material-symbols-outlined">content_copy</span></button>
+              </span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="tsk-human" data-cron-text="{{ task.cron_expression }}">{{ task.cron_text or '—' }}</td>
+            <td>{% if task.next_run %}<span class="tsk-dot" style="display:inline-block;vertical-align:middle;margin-right:0.3rem;background:var(--emx-secondary)"></span>{{ task.next_run }}{% else %}—{% endif %}</td>
+            <td class="tsk-muted" title="Гүйцэтгэлийн бүртгэл байхгүй">—</td>
+            <td class="tsk-remark" title="{{ task.remark }}">{{ task.remark or '—' }}</td>
+            <td>
+              <button class="tsk-edit" type="button" title="Засах"
+                      data-bs-toggle="modal" data-bs-target="#editTaskModal"
+                      data-task-name="{{ task.task_name }}"
+                      data-invoke-target="{{ task.invoke_target }}"
+                      data-cron-expression="{{ task.cron_expression }}"
+                      data-remarks="{{ task.remark }}">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+          <tr id="tskEmpty" {% if tasks|default([]) %}hidden{% endif %}>
+            <td class="tsk-empty" colspan="10">Хуваарь олдсонгүй</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tsk-foot">
+      <div class="tsk-page-size">
+        <span id="tskRange">Нийт <strong>{{ task_total|default(0) }}</strong> бичлэг</span>
+        <span>Хуудсанд:</span>
+        <select id="tskPageSize" aria-label="Хуудсанд">
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="tsk-pages" id="tskPager"></div>
+    </div>
+  </div>
+
+  <div class="tsk-guide">
+    <div class="tsk-panel">
+      <div class="tsk-title-row" style="justify-content:space-between">
+        <h3>Крон илэрхийллийн лавлах</h3>
+        <span class="tsk-muted">5 талбар</span>
+      </div>
+      <div class="tsk-slots">
+        <div class="tsk-slot"><b>*</b><span>Минут 0–59</span></div>
+        <div class="tsk-slot"><b>*</b><span>Цаг 0–23</span></div>
+        <div class="tsk-slot"><b>*</b><span>Сар өдөр 1–31</span></div>
+        <div class="tsk-slot"><b>*</b><span>Сар 1–12</span></div>
+        <div class="tsk-slot"><b>*</b><span>7 хоног 0–6</span></div>
+      </div>
+      <div class="tsk-samples">
+        <span class="tsk-muted">Жишээ:</span>
+        <button class="tsk-sample" type="button" data-sample="*/15 * * * *">15 мин тутам <code>*/15 * * * *</code></button>
+        <button class="tsk-sample" type="button" data-sample="0 * * * *">Цаг тутам <code>0 * * * *</code></button>
+        <button class="tsk-sample" type="button" data-sample="0 0 * * *">Өдөр бүр <code>0 0 * * *</code></button>
+      </div>
+    </div>
+    <div class="tsk-panel">
+      <div class="tsk-title-row" style="justify-content:space-between">
+        <span class="tsk-muted">Daemon</span>
+        {% if scheduler_running %}
+        <span class="tsk-badge">АЖИЛЛАЖ БАЙНА</span>
+        {% else %}
+        <span class="tsk-badge off">ЗОГССОН</span>
+        {% endif %}
+      </div>
+      <h3>HES крон scheduler</h3>
+      <p>Крон ажил тоолуур холбогдоход энэ процесст бүртгэгдэнэ.</p>
+      <div class="tsk-daemon">
+        <div class="tsk-daemon-row"><span>Төлөв</span><strong>{% if scheduler_running %}ажиллаж байна{% else %}зогссон{% endif %}</strong></div>
+        <div class="tsk-daemon-row"><span>Бүртгэлтэй ажил</span><strong>{{ job_count|default(0) }}</strong></div>
+        <div class="tsk-daemon-row"><span>Дараагийн хуваарь</span><strong>{{ next_name if next_name else '—' }}</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tsk-audit">
+    <span>{% if scheduler_running %}HES крон scheduler ажиллаж байна{% else %}HES крон scheduler зогссон{% endif %} · бүртгэлтэй ажил {{ job_count|default(0) }}</span>
+    <span>{% if next_name %}Дараагийн ээлж: {{ next_name }} · {{ next_run }}{% else %}Дараагийн ээлж байхгүй{% endif %}</span>
+  </div>
+
+  <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addTaskModalLabel">Хуваарь нэмэх</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addTaskForm" method="post" action="/add-task">
+            <div class="mb-2">
+              <label>Хуваарийн нэр:</label>
+              <input type="text" name="task_name" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label>Зорилтот параметр:</label>
+              <select class="form-select" name="invoke_target" required>
+                {% for target in invoke_targets|default([]) %}
+                <option>{{ target }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label>Крон илэрхийлэл:</label>
+              <input type="text" name="cron_expression" id="cron_expression_input" class="form-control" required>
+              <div id="error-message" style="color: var(--emx-error); display: none;">Буруу крон илэрхийлэл. Засна уу.</div>
+            </div>
+            <div class="mb-2">
+              <label>Тайлбар:</label>
+              <input type="text" name="remarks" class="form-control">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" form="addTaskForm" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTaskModalLabel">Хуваарь өөрчлөх</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editTaskForm" method="post" action="/edit-task">
+            <input type="hidden" name="original_task_name" id="OriginalTaskName">
+            <div class="mb-2">
+              <label>Хуваарийн нэр:</label>
+              <input type="text" name="task_name" id="editTaskName" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label>Зорилтот параметр:</label>
+              <select class="form-select" name="invoke_target" id="editInvokeTarget" required>
+                {% for target in invoke_targets|default([]) %}
+                <option>{{ target }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label>Крон илэрхийлэл:</label>
+              <input type="text" name="cron_expression" id="edit_cron_expression_input" class="form-control" required>
+              <div id="error-message-edit" style="color: var(--emx-error); display: none;">Буруу крон илэрхийлэл. Засна уу.</div>
+            </div>
+            <div class="mb-2">
+              <label>Тайлбар:</label>
+              <input type="text" name="remarks" id="editRemarks" class="form-control">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" form="editTaskForm" class="btn btn-primary">Submit</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-
-
-
-
-
-
-
-
-<style>
-  th, td { text-align: center; vertical-align: middle; }
-  .btn-sm { padding: 4px 10px; font-size: 13px; }
-  .form-control, .form-select { height: 32px; font-size: 14px; }
-</style>
 
 <script>
-document.getElementById("addTaskForm").addEventListener("submit", function (event) {
-    const input = document.getElementById("cron_expression_input").value;
-    const errorMessage = document.getElementById("error-message");
+(function () {
+  const body = document.getElementById('tskBody');
+  const search = document.getElementById('tskSearch');
+  const pageSize = document.getElementById('tskPageSize');
+  const pager = document.getElementById('tskPager');
+  const range = document.getElementById('tskRange');
+  const selectAll = document.getElementById('select-all');
+  const deleteBtn = document.getElementById('clear-selected-button');
+  const countdown = document.getElementById('tskCountdown');
+  const clock = document.getElementById('tskClock');
+  const nextIso = {{ next_iso|default('')|tojson }};
+  const pageIso = {{ page_iso|default('')|tojson }};
+  let page = 1;
 
-    try {
-      const desc = cronstrue.toString(input);  // ✅ Tries to parse it
-      console.log("Valid cron:", desc);
-      errorMessage.style.display = "none";
-    } catch (e) {
-      console.error("Invalid cron:", e.message);
-      errorMessage.style.display = "block";
-      event.preventDefault(); // ⛔ Prevent submission
+  function rows() {
+    return Array.from(body.querySelectorAll('tr[data-task]'));
+  }
+  function matched() {
+    const q = (search.value || '').trim().toLowerCase();
+    return rows().filter(function (row) {
+      return !q || row.innerText.toLowerCase().includes(q);
+    });
+  }
+  function render() {
+    const list = matched();
+    const size = Number(pageSize.value) || 15;
+    const pages = Math.max(1, Math.ceil(list.length / size));
+    if (page > pages) page = pages;
+    const start = (page - 1) * size;
+    rows().forEach(function (row) { row.hidden = true; });
+    list.forEach(function (row, index) {
+      row.hidden = index < start || index >= start + size;
+      const indexCell = row.querySelector('.tsk-index');
+      if (indexCell) indexCell.textContent = String(index + 1);
+    });
+    const empty = document.getElementById('tskEmpty');
+    if (empty) empty.hidden = list.length !== 0;
+    const from = list.length ? start + 1 : 0;
+    const to = Math.min(start + size, list.length);
+    range.innerHTML = 'Нийт <strong>' + list.length + '</strong> бичлэгээс ' + from + '–' + to + ' харуулж байна';
+    pager.innerHTML = '';
+    function add(label, target, disabled, on) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tsk-page' + (on ? ' is-on' : '');
+      btn.textContent = label;
+      btn.disabled = !!disabled;
+      btn.addEventListener('click', function () { page = target; render(); });
+      pager.appendChild(btn);
     }
-  });
-document.getElementById("editTaskForm").addEventListener("submit", function (event) {
-    const input = document.getElementById("edit_cron_expression_input").value;
-    const errorMessage = document.getElementById("error-message-edit");
-
-    try {
-      const desc = cronstrue.toString(input);  // ✅ Tries to parse it
-      console.log("Valid cron:", desc);
-      errorMessage.style.display = "none";
-    } catch (e) {
-      console.error("Invalid cron:", e.message);
-      errorMessage.style.display = "block";
-      event.preventDefault(); // ⛔ Prevent submission
-    }
-  });
-
-document.getElementById('clear-selected-button').addEventListener('click', function () {
-  const selectedTasks = Array.from(document.querySelectorAll('.device-checkbox:checked')).map(cb => cb.value);
-
-  if (selectedTasks.length === 0) {
-    alert("Please select at least one Task.");
-    return;
+    add('‹', page - 1, page <= 1, false);
+    for (let i = 1; i <= pages && i <= 5; i++) add(String(i), i, false, i === page);
+    add('›', page + 1, page >= pages, false);
   }
 
-  fetch('/clear-task', { 
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      selected_tasks: selectedTasks 
-    })
-  }); 
+  search.addEventListener('input', function () { page = 1; render(); });
+  pageSize.addEventListener('change', function () { page = 1; render(); });
 
-});
-  // Select All checkbox
-  document.getElementById("select-all").addEventListener("click", function() {
-    const checkboxes = document.querySelectorAll(".device-checkbox");
-    checkboxes.forEach(cb => cb.checked = this.checked);
+  function selected() {
+    return Array.from(document.querySelectorAll('.device-checkbox:checked')).map(function (cb) { return cb.value; });
+  }
+  function syncDelete() {
+    const count = selected().length;
+    deleteBtn.disabled = count === 0;
+    deleteBtn.title = count ? count + ' хуваарь устгах' : 'Сонгосон хуваарийг устгах';
+  }
+  selectAll.addEventListener('change', function () {
+    document.querySelectorAll('.device-checkbox').forEach(function (cb) {
+      if (!cb.closest('tr').hidden) cb.checked = selectAll.checked;
+    });
+    syncDelete();
+  });
+  body.addEventListener('change', function (event) {
+    if (event.target.classList.contains('device-checkbox')) syncDelete();
   });
 
-  const editTaskModal = document.getElementById('editTaskModal');
-    editTaskModal.addEventListener('show.bs.modal', event => {
-      const button = event.relatedTarget;
+  deleteBtn.addEventListener('click', function () {
+    const selectedTasks = selected();
+    if (!selectedTasks.length) {
+      showToast('Хуваарь сонгоно уу.', 'success');
+      return;
+    }
+    fetch('/clear-task', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selected_tasks: selectedTasks })
+    }).then(function () { window.location.href = '/system-task'; });
+  });
 
-      document.getElementById('OriginalTaskName').value = button.getAttribute('data-task-name'); 
-      document.getElementById('editTaskName').value = button.getAttribute('data-task-name');
-      document.getElementById('editInvokeTarget').value = button.getAttribute('data-invoke-target');
-      document.getElementById('edit_cron_expression_input').value = button.getAttribute('data-cron-expression');
-      document.getElementById('editRemarks').value = button.getAttribute('data-remarks');
+  document.getElementById('tskRefresh').addEventListener('click', function () { window.location.reload(); });
+
+  document.getElementById('tskExport').addEventListener('click', function () {
+    const list = matched();
+    const header = ['task_name', 'invoke_target', 'cron_expression', 'cron_text', 'next_run', 'remark'];
+    const lines = [header.join(',')];
+    list.forEach(function (row) {
+      const cells = Array.from(row.children).map(function (td) { return td.innerText.replace(/\s+/g, ' ').trim(); });
+      const values = [cells[2], cells[3], cells[4], cells[5], cells[6], cells[8]];
+      lines.push(values.map(function (value) {
+        return '"' + String(value || '').replace(/"/g, '""') + '"';
+      }).join(','));
     });
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'schedules.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
 
+  document.querySelectorAll('.tsk-copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const text = btn.getAttribute('data-cron') || '';
+      navigator.clipboard.writeText(text).then(function () {
+        const icon = btn.querySelector('.material-symbols-outlined');
+        if (!icon) return;
+        icon.textContent = 'check';
+        setTimeout(function () { icon.textContent = 'content_copy'; }, 1200);
+      });
+    });
+  });
+
+  document.querySelectorAll('.tsk-sample').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const input = document.getElementById('cron_expression_input');
+      input.value = btn.getAttribute('data-sample') || '';
+      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addTaskModal'));
+      modal.show();
+      input.focus();
+    });
+  });
+
+  document.querySelectorAll('.tsk-human').forEach(function (cell) {
+    if (cell.textContent.trim() && cell.textContent.trim() !== '—') return;
+    const expr = cell.getAttribute('data-cron-text') || '';
+    if (!expr || typeof cronstrue === 'undefined') return;
+    try { cell.textContent = cronstrue.toString(expr); } catch (e) { /* keep dash */ }
+  });
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  if (clock && pageIso) {
+    const base = new Date(pageIso).getTime();
+    const started = Date.now();
+    setInterval(function () {
+      const t = new Date(base + (Date.now() - started));
+      clock.textContent = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()) + ' ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+    }, 1000);
+  }
+  if (countdown && nextIso) {
+    const target = new Date(nextIso).getTime();
+    const tick = function () {
+      let left = Math.max(0, target - Date.now());
+      const h = Math.floor(left / 3600000);
+      left -= h * 3600000;
+      const m = Math.floor(left / 60000);
+      left -= m * 60000;
+      const s = Math.floor(left / 1000);
+      countdown.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  const addForm = document.getElementById('addTaskForm');
+  const editForm = document.getElementById('editTaskForm');
+  function guard(form, inputId, errorId) {
+    form.addEventListener('submit', function (event) {
+      const input = document.getElementById(inputId).value;
+      const errorMessage = document.getElementById(errorId);
+      try {
+        cronstrue.toString(input);
+        errorMessage.style.display = 'none';
+      } catch (e) {
+        errorMessage.style.display = 'block';
+        event.preventDefault();
+      }
+    });
+  }
+  guard(addForm, 'cron_expression_input', 'error-message');
+  guard(editForm, 'edit_cron_expression_input', 'error-message-edit');
+
+  document.getElementById('editTaskModal').addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    if (!button) return;
+    document.getElementById('OriginalTaskName').value = button.getAttribute('data-task-name');
+    document.getElementById('editTaskName').value = button.getAttribute('data-task-name');
+    document.getElementById('editInvokeTarget').value = button.getAttribute('data-invoke-target');
+    document.getElementById('edit_cron_expression_input').value = button.getAttribute('data-cron-expression');
+    document.getElementById('editRemarks').value = button.getAttribute('data-remarks');
+  });
+
+  render();
+})();
 </script>
-
-{% endblock %} 
+{% endblock %}

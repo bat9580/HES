@@ -2,7 +2,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
-<link rel="stylesheet" href="/static/relay-emx.css?v=1">
+<link rel="stylesheet" href="/static/relay-emx.css?v=3">
 {% endblock %}
 {% block content %}
 {% if message %}
@@ -26,13 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
       </nav>
       <div class="rly-title-row">
         <h1 class="rly-title">Реле удирдлага</h1>
-        <span class="rly-en">REMOTE LOAD &amp; DISCONNECT CONTROL</span>
+        <span class="rly-en" id="rlyEn">REMOTE LOAD &amp; DISCONNECT CONTROL</span>
       </div>
-      <p class="rly-sub">Тоолуурын реле залгах, салгах, төлөв шалгах. Жагсаалт болон реле төлөв нь одоогийн бүртгэлээс гарна.</p>
+      <p class="rly-sub" id="rlySub">Тоолуурын реле залгах, салгах, төлөв шалгах. Жагсаалт болон реле төлөв нь одоогийн бүртгэлээс гарна.</p>
     </div>
     <div class="rly-actions">
       <button class="rly-btn" id="rlyHistory" type="button"><span class="material-symbols-outlined">history</span>Шалгах түүх</button>
       <button class="rly-btn" id="rlyRefresh" type="button"><span class="material-symbols-outlined">sync</span>Дахин сэргээх</button>
+      <button class="rly-btn search" id="rlyHeaderExport" type="button"><span class="material-symbols-outlined">download</span>Экспорт</button>
     </div>
   </div>
 
@@ -222,8 +223,30 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="tab-pane fade" id="relay-log-pane" role="tabpanel"
        aria-labelledby="relay-log-tab-btn">
 
-    <div class="filter-bar-container relay-log-filters">
-      <form id="relay-log-filter-form" class="relay-log-filter-grid" onsubmit="return false;">
+    <div class="rly-kpis rly-log-kpis">
+      <div class="rly-kpi">
+        <div class="rly-kpi-label">Нийт команд <span class="material-symbols-outlined">terminal</span></div>
+        <div class="rly-kpi-value" id="logKpiTotal">—</div>
+        <div class="rly-kpi-label">шүүсэн бүртгэл</div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label ok">Амжилттай <span class="material-symbols-outlined">check_circle</span></div>
+        <div class="rly-kpi-value ok"><span id="logKpiSuccess">—</span> <span id="logKpiSuccessPct"></span></div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label warn">Салгах команд <span class="material-symbols-outlined">power_off</span></div>
+        <div class="rly-kpi-value warn" id="logKpiOff">—</div>
+        <div class="rly-kpi-label">Switch-Off</div>
+      </div>
+      <div class="rly-kpi">
+        <div class="rly-kpi-label bad">Алдаатай <span class="material-symbols-outlined">error</span></div>
+        <div class="rly-kpi-value bad"><span id="logKpiFailed">—</span> <span id="logKpiFailedPct"></span></div>
+      </div>
+    </div>
+
+    <div class="rly-log">
+    <div class="filter-bar-container relay-log-filters rly-log-filters">
+      <form id="relay-log-filter-form" class="relay-log-filter-grid rly-log-filter-grid" onsubmit="return false;">
         <!-- Row 1 -->
         <div class="relay-log-filter-item">
           <div class="dropdown" data-static-dropdown>
@@ -261,25 +284,18 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         </div>
 
-        <div class="relay-log-filter-item relay-log-date-item position-relative d-flex align-items-center">
-          <input type="text" id="log-daterange" class="form-control filter-bar-date-input" style="max-width: 300px; min-width: 260px;">
+        <div class="relay-log-filter-item relay-log-date-item rly-field">
+          <span class="material-symbols-outlined rly-field-icon">calendar_month</span>
+          <input type="text" id="log-daterange" class="has-icon" placeholder="Огноо сонгох" autocomplete="off">
+          <button type="button" id="log-date-clear" class="rly-date-clear" title="Огноо цэвэрлэх"><span class="material-symbols-outlined">close</span></button>
           <input type="hidden" id="log-start-date">
           <input type="hidden" id="log-end-date">
         </div>
 
-        <div class="relay-log-filter-item relay-log-search-item">
-          <button type="button" id="log-search-btn" class="btn btn-primary relay-log-search-btn">
-            <i class="bi bi-search"></i> Search
-          </button>
-        </div>
-
-        <div class="relay-log-filter-item relay-log-toolbar">
-          <button type="button" id="log-refresh-btn" class="btn btn-light border" title="Refresh">
-            <i class="bi bi-arrow-clockwise"></i>
-          </button>
-          <button type="button" id="log-export-btn" class="btn btn-light border" title="Export">
-            <i class="bi bi-upload"></i>
-          </button>
+        <div class="relay-log-filter-item relay-log-search-item rly-log-actions">
+          <button type="button" id="log-search-btn" class="rly-btn search"><span class="material-symbols-outlined">search</span>Search</button>
+          <button type="button" id="log-refresh-btn" class="rly-btn" title="Refresh"><span class="material-symbols-outlined">refresh</span></button>
+          <button type="button" id="log-export-btn" class="rly-btn" title="Export"><span class="material-symbols-outlined">download</span></button>
         </div>
 
         <!-- Row 2 -->
@@ -326,43 +342,42 @@ document.addEventListener('DOMContentLoaded', function() {
       </form>
     </div>
 
-    <div class="relay-log-table-shell">
-      <div class="relay-log-scroll-x" id="relay-log-scroll-x">
-        <table class="table table-bordered table-hover table-striped align-middle relay-log-table relay-log-table-main" id="relay-log-table-main">
-          <thead class="table-light">
+    <div class="rly-card relay-log-table-shell">
+      <div class="rly-table-wrap relay-log-scroll-x" id="relay-log-scroll-x">
+        <table class="rly-table relay-log-table" id="relay-log-table-main">
+          <thead>
             <tr>
-              <th class="sortable" data-sort="index"># <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="meter_number">Meter No. <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="zone">Zone <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="power_grid">Power Grid <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="dcu_number">DCU No. <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="task_name">Task Name <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="task_type">Task Type <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="start_time">Start Time <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="end_time">End Time <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="process">Process <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="try_times">Try Times <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th class="sortable" data-sort="user_name">User Name <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sortable" data-sort="index">#</th>
+              <th class="sortable" data-sort="meter_number">Meter No.</th>
+              <th class="sortable" data-sort="zone">Zone / Бүс</th>
+              <th class="sortable" data-sort="power_grid">Power Grid</th>
+              <th class="sortable" data-sort="dcu_number">DCU No.</th>
+              <th class="sortable" data-sort="task_name">Task Name</th>
+              <th class="sortable" data-sort="task_type">Task Type</th>
+              <th class="sortable" data-sort="start_time">Start Time</th>
+              <th class="sortable" data-sort="end_time">End Time</th>
+              <th class="sortable" data-sort="process">Process</th>
+              <th class="sortable" data-sort="try_times">Try</th>
+              <th class="sortable" data-sort="user_name">User</th>
+              <th class="sortable" data-sort="result">Result</th>
+              <th>Operate</th>
             </tr>
           </thead>
           <tbody id="relay-log-table-body-main"></tbody>
         </table>
       </div>
-
-      <div class="relay-log-fixed-cols" id="relay-log-fixed-cols">
-        <table class="table table-bordered table-hover table-striped align-middle relay-log-table relay-log-table-fixed" id="relay-log-table-fixed">
-          <thead class="table-light">
-            <tr>
-              <th class="sortable" data-sort="result">Result <i class="bi bi-arrow-down-up sort-icon"></i></th>
-              <th>Operate</th>
-            </tr>
-          </thead>
-          <tbody id="relay-log-table-body-fixed"></tbody>
-        </table>
+      <div class="rly-foot">
+        <div class="relay-log-pagination" id="relay-log-pagination"></div>
+        <label class="rly-muted">Хуудсанд
+          <select id="log-page-size">
+            <option value="15" selected>15</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+          </select>
+        </label>
       </div>
     </div>
-
-    <div class="relay-log-pagination" id="relay-log-pagination"></div>
+    </div>
   </div>
 </div>
 </div>
@@ -491,14 +506,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   .relay-log-table-shell {
-    display: flex;
+    display: block;
     align-items: stretch;
     width: 100%;
     margin-top: 0.75rem;
-    border: 1px solid var(--aurora-border-soft, #e2e8f0);
-    border-radius: 14px;
-    background: var(--aurora-surface, #fff);
-    box-shadow: var(--aurora-shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.08));
+    border: 1px solid var(--emx-outline);
+    border-radius: 8px;
+    background: var(--emx-card);
     overflow: hidden;
   }
 
@@ -746,6 +760,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (refresh && !refresh.dataset.bound) {
       refresh.dataset.bound = "1";
       refresh.addEventListener("click", function () { location.reload(); });
+    }
+    const headerExport = document.getElementById("rlyHeaderExport");
+    if (headerExport && !headerExport.dataset.bound) {
+      headerExport.dataset.bound = "1";
+      headerExport.addEventListener("click", function () {
+        const logTab = document.getElementById("relay-log-tab-btn");
+        const onLog = logTab && logTab.classList.contains("active");
+        const target = document.getElementById(onLog ? "log-export-btn" : "rlyExport");
+        if (target) target.click();
+      });
     }
     const exportBtn = document.getElementById("rlyExport");
     if (exportBtn && !exportBtn.dataset.bound) {
@@ -1029,6 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   /* ---------- Relay Operation Log (API) ---------- */
   const LOG_PAGE_SIZE = 15;
+  let logPageSize = LOG_PAGE_SIZE;
   let logFilteredData = [];
   let logCurrentPage = 1;
   let logTotalRecords = 0;
@@ -1061,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams({
       ...filters,
       page: String(logCurrentPage),
-      page_size: String(options.page_size || LOG_PAGE_SIZE),
+      page_size: String(options.page_size || logPageSize),
       sort_by: logSortKey,
       sort_dir: logSortDir,
     });
@@ -1075,6 +1100,8 @@ document.addEventListener('DOMContentLoaded', function() {
       logTotalRecords = data.total || 0;
       logCurrentPage = data.page || 1;
       logTotalPages = data.total_pages || 1;
+      if (data.page_size) logPageSize = data.page_size;
+      renderLogSummary(data.summary);
       if (data.filters) {
         logFiltersMeta = data.filters;
         populateLogFilterOptions();
@@ -1142,30 +1169,49 @@ document.addEventListener('DOMContentLoaded', function() {
     ).join("");
   }
 
+  function clearLogDates() {
+    $("#log-daterange").val("");
+    $("#log-start-date").val("");
+    $("#log-end-date").val("");
+  }
+
   function initLogDateRange() {
     const $input = $("#log-daterange");
     if (!$input.length || $input.data("daterangepicker")) return;
 
-    const startDate = moment().startOf("hour");
-    const endDate = moment().endOf("hour");
-
     $input.daterangepicker({
+      autoUpdateInput: false,
       timePicker: true,
       timePicker24Hour: true,
       timePickerSeconds: true,
       locale: {
-        format: "YYYY-MM-DD[T]HH:mm:ss",
-        separator: "T"
+        format: "YYYY-MM-DD HH:mm:ss",
+        separator: " - ",
+        cancelLabel: "Цэвэрлэх"
       },
-      startDate: startDate,
-      endDate: endDate
-    }, function (start, end) {
-      $("#log-start-date").val(start.format("YYYY-MM-DD[T]HH:mm:ss"));
-      $("#log-end-date").val(end.format("YYYY-MM-DD[T]HH:mm:ss"));
+      startDate: moment().startOf("day"),
+      endDate: moment().endOf("day")
     });
 
-    $("#log-start-date").val(startDate.format("YYYY-MM-DD[T]HH:mm:ss"));
-    $("#log-end-date").val(endDate.format("YYYY-MM-DD[T]HH:mm:ss"));
+    $input.on("apply.daterangepicker", function (ev, picker) {
+      $(this).val(picker.startDate.format("YYYY-MM-DD HH:mm:ss") + " - " + picker.endDate.format("YYYY-MM-DD HH:mm:ss"));
+      $("#log-start-date").val(picker.startDate.format("YYYY-MM-DD[T]HH:mm:ss"));
+      $("#log-end-date").val(picker.endDate.format("YYYY-MM-DD[T]HH:mm:ss"));
+    });
+
+    $input.on("cancel.daterangepicker", function () {
+      clearLogDates();
+    });
+
+    const clearBtn = document.getElementById("log-date-clear");
+    if (clearBtn && !clearBtn.dataset.bound) {
+      clearBtn.dataset.bound = "1";
+      clearBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        clearLogDates();
+      });
+    }
 
     $input.on("show.daterangepicker", function (ev, picker) {
       if (!picker || !picker.container) return;
@@ -1184,56 +1230,81 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchLogData({ resetPage: true });
   }
 
+  function escLog(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+
+  function logText(value) {
+    const text = String(value ?? "").trim();
+    return text ? escLog(text) : '<span class="rly-muted">—</span>';
+  }
+
+  function logResultBadge(result) {
+    const text = String(result || "").trim() || "—";
+    const lower = text.toLowerCase();
+    let cls = "bad";
+    if (text === "Success") cls = "ok";
+    else if (text === "Processing") cls = "off";
+    else if (lower.includes("timeout")) cls = "warn";
+    return `<span class="rly-badge ${cls}">${escLog(text)}</span>`;
+  }
+
+  function logDuration(start, end) {
+    if (!start || !end) return "";
+    const a = Date.parse(String(start).replace(/\//g, "-"));
+    const b = Date.parse(String(end).replace(/\//g, "-"));
+    if (!Number.isFinite(a) || !Number.isFinite(b) || b < a) return "";
+    return ` <span class="rly-muted">(${Math.round((b - a) / 1000)}s)</span>`;
+  }
+
+  function renderLogSummary(summary) {
+    const s = summary || {};
+    const total = s.total != null ? s.total : logTotalRecords;
+    const set = function (id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+    set("logKpiTotal", total);
+    set("logKpiSuccess", s.success != null ? s.success : "—");
+    set("logKpiSuccessPct", s.success_pct != null ? s.success_pct + "%" : "");
+    set("logKpiOff", s.switch_off != null ? s.switch_off : "—");
+    set("logKpiFailed", s.failed != null ? s.failed : "—");
+    set("logKpiFailedPct", s.failed_pct != null ? s.failed_pct + "%" : "");
+  }
+
   function renderLogTable() {
     const tbodyMain = document.getElementById("relay-log-table-body-main");
-    const tbodyFixed = document.getElementById("relay-log-table-body-fixed");
     const pageRows = logFilteredData;
-    const startIdx = (logCurrentPage - 1) * LOG_PAGE_SIZE;
+    const startIdx = (logCurrentPage - 1) * logPageSize;
 
-    if (pageRows.length === 0) {
-      tbodyMain.innerHTML = `<tr><td colspan="12" class="relay-log-empty">No operation logs found.</td></tr>`;
-      tbodyFixed.innerHTML = `<tr><td colspan="2" class="relay-log-empty">&nbsp;</td></tr>`;
+    if (!pageRows.length) {
+      tbodyMain.innerHTML = `<tr><td colspan="14" class="relay-log-empty">Бүртгэл олдсонгүй.</td></tr>`;
     } else {
-      const mainRows = [];
-      const fixedRows = [];
-
-      pageRows.forEach((row, i) => {
-        const processBadge = row.process === "Finish"
-          ? `<span class="relay-log-badge-finish">${row.process}</span>`
-          : `<span class="relay-log-badge-waiting">${row.process}</span>`;
-        const resultClass = row.result === "Success" ? "relay-log-result-success"
-          : row.result === "Processing" ? "relay-log-result-processing"
-          : "relay-log-result-timeout";
-
-        mainRows.push(`
+      tbodyMain.innerHTML = pageRows.map(function (row, i) {
+        return `
           <tr data-log-row="${row.id}">
-            <td>${startIdx + i + 1}</td>
-            <td>${row.meter_number}</td>
-            <td>${row.zone}</td>
-            <td>${row.power_grid}</td>
-            <td>${row.dcu_number}</td>
-            <td>${row.task_name}</td>
-            <td>${row.task_type}</td>
-            <td>${row.start_time}</td>
-            <td>${row.end_time || "—"}</td>
-            <td>${processBadge}</td>
-            <td>${row.try_times}</td>
-            <td>${row.user_name}</td>
-          </tr>`);
-
-        fixedRows.push(`
-          <tr data-log-row="${row.id}">
-            <td><span class="${resultClass}">${row.result}</span></td>
+            <td class="rly-index">${startIdx + i + 1}</td>
+            <td><span class="rly-num">${logText(row.meter_number)}</span></td>
+            <td>${logText(row.zone)}</td>
+            <td>${logText(row.power_grid)}</td>
+            <td>${logText(row.dcu_number)}</td>
+            <td>${logText(row.task_name)}</td>
+            <td>${logText(row.task_type)}</td>
+            <td>${logText(row.start_time)}</td>
+            <td>${logText(row.end_time)}${logDuration(row.start_time, row.end_time)}</td>
+            <td>${logText(row.process)}</td>
+            <td>${escLog(row.try_times)}</td>
+            <td>${logText(row.user_name)}</td>
+            <td>${logResultBadge(row.result)}</td>
             <td>
-              <button type="button" class="btn-detail-log" data-log-id="${row.id}">
-                <i class="bi bi-pencil-square"></i> Detail
+              <button type="button" class="rly-icon query btn-detail-log" data-log-id="${row.id}" title="Дэлгэрэнгүй">
+                <span class="material-symbols-outlined">visibility</span>
               </button>
             </td>
-          </tr>`);
-      });
-
-      tbodyMain.innerHTML = mainRows.join("");
-      tbodyFixed.innerHTML = fixedRows.join("");
+          </tr>`;
+      }).join("");
     }
 
     renderLogPagination(logTotalRecords, logTotalPages);
@@ -1262,6 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function syncLogRowHeights() {
+    if (!document.getElementById("relay-log-table-fixed")) return;
     const mainHead = document.querySelector("#relay-log-table-main thead tr");
     const fixedHead = document.querySelector("#relay-log-table-fixed thead tr");
     const mainRows = document.querySelectorAll("#relay-log-table-body-main tr");
@@ -1288,13 +1360,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function renderLogPagination(total, totalPages) {
     const container = document.getElementById("relay-log-pagination");
-    const start = total === 0 ? 0 : (logCurrentPage - 1) * LOG_PAGE_SIZE + 1;
-    const end = Math.min(logCurrentPage * LOG_PAGE_SIZE, total);
+    const start = total === 0 ? 0 : (logCurrentPage - 1) * logPageSize + 1;
+    const end = Math.min(logCurrentPage * logPageSize, total);
 
     let pagesHtml = "";
     for (let p = 1; p <= totalPages; p++) {
       if (p === 1 || p === totalPages || (p >= logCurrentPage - 1 && p <= logCurrentPage + 1)) {
-        pagesHtml += `<button type="button" class="btn-page${p === logCurrentPage ? " active" : ""}" data-page="${p}">${p}</button>`;
+        pagesHtml += `<button type="button" class="rly-page${p === logCurrentPage ? " is-on" : ""}" data-page="${p}">${p}</button>`;
       } else if (p === logCurrentPage - 2 || p === logCurrentPage + 2) {
         pagesHtml += `<span class="px-1 text-muted">…</span>`;
       }
@@ -1305,13 +1377,9 @@ document.addEventListener('DOMContentLoaded', function() {
         Showing <strong>${start}</strong>–<strong>${end}</strong> of <strong>${total}</strong> records
       </div>
       <div class="relay-log-pagination-controls">
-        <button type="button" class="btn-page" data-page="prev" ${logCurrentPage <= 1 ? "disabled" : ""}>
-          <i class="bi bi-chevron-left"></i>
-        </button>
+        <button type="button" class="rly-page" data-page="prev" ${logCurrentPage <= 1 ? "disabled" : ""}>‹</button>
         ${pagesHtml}
-        <button type="button" class="btn-page" data-page="next" ${logCurrentPage >= totalPages ? "disabled" : ""}>
-          <i class="bi bi-chevron-right"></i>
-        </button>
+        <button type="button" class="rly-page" data-page="next" ${logCurrentPage >= totalPages ? "disabled" : ""}>›</button>
       </div>`;
 
     container.querySelectorAll("[data-page]").forEach(btn => {
@@ -1355,7 +1423,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function bindLogDetail() {
-    const tbody = document.getElementById("relay-log-table-body-fixed");
+    const tbody = document.getElementById("relay-log-table-body-main");
     if (!tbody || tbody.dataset.bound) return;
     tbody.dataset.bound = "1";
     tbody.addEventListener("click", async function (e) {
@@ -1470,18 +1538,34 @@ document.addEventListener('DOMContentLoaded', function() {
     if (hash === "#log") {
       const logTab = document.getElementById("relay-log-tab-btn");
       if (logTab) bootstrap.Tab.getOrCreateInstance(logTab).show();
+      setRelayCopy(true);
     }
 
     document.querySelectorAll("#relaySectionTabs button[data-bs-toggle='tab']").forEach(btn => {
       btn.addEventListener("shown.bs.tab", function (e) {
-        window.location.hash = e.target.id === "relay-log-tab-btn" ? "log" : "operation";
-        if (e.target.id === "relay-log-tab-btn") {
+        const onLog = e.target.id === "relay-log-tab-btn";
+        window.location.hash = onLog ? "log" : "operation";
+        setRelayCopy(onLog);
+        if (onLog) {
           initLogDateRange();
           fetchLogData();
           requestAnimationFrame(syncLogRowHeights);
         }
       });
     });
+  }
+
+  function setRelayCopy(onLog) {
+    const en = document.getElementById("rlyEn");
+    const sub = document.getElementById("rlySub");
+    if (!en || !sub) return;
+    if (onLog) {
+      en.textContent = "REMOTE LOAD & DISCONNECT CONTROL (LOGS)";
+      sub.textContent = "Тоолуурын реле залгах, салгах, төлөв шалгах түүхэн бүртгэл. Тоонууд нь шүүсэн бүртгэлээс гарна.";
+    } else {
+      en.textContent = "REMOTE LOAD & DISCONNECT CONTROL";
+      sub.textContent = "Тоолуурын реле залгах, салгах, төлөв шалгах. Жагсаалт болон реле төлөв нь одоогийн бүртгэлээс гарна.";
+    }
   }
 
   function initRelayLog() {
@@ -1496,6 +1580,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!window._relayLogResizeBound) {
       window._relayLogResizeBound = true;
       window.addEventListener("resize", syncLogRowHeights);
+    }
+
+    const pageSize = document.getElementById("log-page-size");
+    if (pageSize && !pageSize.dataset.bound) {
+      pageSize.dataset.bound = "1";
+      pageSize.addEventListener("change", function () {
+        logPageSize = parseInt(pageSize.value, 10) || LOG_PAGE_SIZE;
+        fetchLogData({ resetPage: true, page_size: logPageSize });
+      });
     }
   }
 
