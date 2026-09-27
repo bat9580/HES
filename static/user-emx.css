@@ -216,14 +216,127 @@
 }
 .usr .dropdown.show .dropdown-menu { display: block !important; }
 .usr .dropdown-item { display: block; padding: 0.3rem 0.6rem; color: var(--emx-text); text-decoration: none; }
-.usr .modal-content {
+.usr .madd-dialog { max-width: 760px; width: calc(100% - 1.5rem); }
+.usr .madd {
+  border: 1px solid var(--emx-outline);
+  border-radius: 16px;
   background: var(--emx-card);
   color: var(--emx-text);
-  border: 1px solid var(--emx-outline);
+  overflow: visible;
 }
-.usr .modal-header, .usr .modal-footer { border-color: var(--emx-outline); }
-.usr .modal .col-md-auto { margin-bottom: 0.55rem; }
-.usr .modal label { font-size: 12px; color: var(--emx-text-soft); }
+.usr .madd-head, .usr .madd-foot, .usr .madd-title, .usr .madd-secret {
+  display: flex;
+  align-items: center;
+}
+.usr .madd-head, .usr .madd-foot { justify-content: space-between; gap: 0.75rem; }
+.usr .madd-head { align-items: flex-start; padding: 1.1rem 1.4rem 0.85rem; border-bottom: 1px solid var(--emx-outline); border-radius: 16px 16px 0 0; }
+.usr .madd-title { gap: 0.7rem; }
+.usr .madd-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--emx-surface-high);
+  color: var(--emx-primary);
+  flex: 0 0 auto;
+}
+.usr .madd h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.usr .madd-head p, .usr .madd-foot > span { margin: 0.15rem 0 0; font-size: 12px; color: var(--emx-text-soft); }
+.usr .madd-x {
+  border: 0;
+  background: transparent;
+  color: var(--emx-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.usr .madd-mark .material-symbols-outlined, .usr .madd-x .material-symbols-outlined { font-size: 18px; }
+.usr .madd-body { padding: 1.1rem 1.4rem 1.25rem; }
+.usr .madd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 1rem; }
+.usr .madd-field { position: relative; min-width: 0; }
+.usr .madd-field > label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--emx-muted);
+}
+.usr .madd-field input, .usr .madd-select select, .usr .madd-secret input {
+  width: 100%;
+  height: 42px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--emx-outline);
+  border-radius: 10px;
+  background: var(--emx-card);
+  color: var(--emx-text);
+  font-size: 13px;
+}
+.usr .madd .dropdown { position: relative; }
+.usr .madd .dropdown-chevron {
+  position: absolute;
+  right: 0.55rem;
+  top: 21px;
+  transform: translateY(-50%);
+  color: var(--emx-muted);
+  pointer-events: none;
+  font-size: 18px;
+}
+.usr .madd .dropdown-menu {
+  border-radius: 10px;
+  box-shadow: var(--emx-shadow);
+}
+.usr .madd-select { position: relative; }
+.usr .madd-select select { appearance: none; padding-right: 2rem; }
+.usr .madd-select .material-symbols-outlined {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--emx-muted);
+  pointer-events: none;
+  font-size: 18px;
+}
+.usr .madd-secret { position: relative; }
+.usr .madd-secret input { padding-right: 4.2rem; }
+.usr .madd-secret button {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--emx-primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.usr .madd-foot {
+  padding: 0.85rem 1.4rem;
+  border-top: 1px solid var(--emx-outline);
+  background: var(--emx-surface-low);
+  border-radius: 0 0 16px 16px;
+}
+.usr .madd-foot > div { display: flex; gap: 0.45rem; }
+.usr .madd-btn {
+  min-width: 100px;
+  height: 38px;
+  border: 1px solid var(--emx-outline);
+  border-radius: 10px;
+  background: var(--emx-card);
+  color: var(--emx-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.usr .madd-btn.primary { border-color: transparent; background: var(--emx-primary-bright); color: var(--emx-on-primary); }
+@media (max-width: 720px) {
+  .usr .madd-grid { grid-template-columns: 1fr; }
+  .usr .madd-foot { flex-direction: column; align-items: stretch; }
+}
 @media (max-width: 1100px) {
   .usr-kpis { grid-template-columns: 1fr 1fr; }
 }

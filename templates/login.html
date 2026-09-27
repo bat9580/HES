@@ -1,613 +1,437 @@
 {# Preserve form action and field names exactly: name="username", name="password", id="password", id="loginForm". #}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HES · Energy Metrix</title>
+    <title>Нэвтрэх | Energy Metrix HES</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
     <style>
-:root {
-    --ink: #0b1020;
-    --ink-2: #111834;
-    --primary: #6366f1;
-    --primary-2: #4f46e5;
-    --violet: #8b5cf6;
-    --accent: #f59e0b;
-    --accent-2: #fbbf24;
-    --surface: #ffffff;
-    --surface-2: #fafbff;
-    --border: #e4e7f1;
-    --text: #0f172a;
-    --text-soft: #334155;
-    --text-muted: #64748b;
-    --text-dim: #94a3b8;
-    --danger: #f43f5e;
-    --ring: 0 0 0 4px rgba(99, 102, 241, 0.18);
-    --font-display: "Sora", "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
-    --font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body {
-    height: 100%;
-}
-
-body {
-    font-family: var(--font-body);
-    color: var(--text);
-    background: var(--surface);
-    min-height: 100vh;
-    display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* ---------- Left: branded gradient panel ---------- */
-.brand-panel {
-    position: relative;
-    background:
-        radial-gradient(1000px 600px at 0% 0%, rgba(139, 92, 246, 0.4), transparent 60%),
-        radial-gradient(800px 500px at 100% 100%, rgba(245, 158, 11, 0.22), transparent 55%),
-        linear-gradient(140deg, #0b1020 0%, #111834 50%, #1b2447 100%);
-    color: #fff;
-    padding: 3.5rem 3rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-    isolation: isolate;
-}
-
-.brand-panel::before,
-.brand-panel::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    opacity: 0.55;
-    z-index: -1;
-    pointer-events: none;
-}
-
-.brand-panel::before {
-    width: 480px; height: 480px;
-    top: -120px; left: -100px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.55), transparent 65%);
-    animation: float 12s ease-in-out infinite;
-}
-
-.brand-panel::after {
-    width: 400px; height: 400px;
-    bottom: -120px; right: -80px;
-    background: radial-gradient(circle, rgba(245, 158, 11, 0.35), transparent 65%);
-    animation: float 14s ease-in-out -6s infinite;
-}
-
-.grid-overlay {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: linear-gradient(180deg, rgba(0,0,0,0.55), transparent 85%);
-    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.55), transparent 85%);
-    pointer-events: none;
-    z-index: -1;
-}
-
-.brand-top {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-}
-
-.brand-mark {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    color: #2a1a02;
-    box-shadow: 0 12px 30px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255,255,255,0.35);
-}
-
-.brand-name {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.05;
-}
-
-.brand-name .main {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-}
-
-.brand-name .sub {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent-2);
-    margin-top: 0.25rem;
-}
-
-.brand-middle h1 {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 2.4vw + 1rem, 3rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.08;
-    margin-bottom: 1.1rem;
-    background: linear-gradient(100deg, #ffffff 20%, #fbbf24 95%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    max-width: 18ch;
-}
-
-.brand-middle p {
-    font-size: 1.02rem;
-    line-height: 1.65;
-    color: rgba(226, 232, 240, 0.78);
-    max-width: 44ch;
-}
-
-.brand-metrics {
-    display: flex;
-    gap: 2.2rem;
-    flex-wrap: wrap;
-}
-
-.metric {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-}
-
-.metric .value {
-    font-family: var(--font-mono);
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.02em;
-}
-
-.metric .label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(148, 163, 184, 0.78);
-}
-
-.metric .divider {
-    width: 22px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), transparent);
-    margin-top: 0.45rem;
-    border-radius: 2px;
-}
-
-/* ---------- Right: login card ---------- */
-.form-panel {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2.5rem;
-    background:
-        radial-gradient(600px 400px at 100% 0%, rgba(99, 102, 241, 0.05), transparent 60%),
-        var(--surface);
-    overflow-y: auto;
-}
-
-.form-card {
-    width: 100%;
-    max-width: 420px;
-    padding: 0.5rem 0;
-    animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.form-card h2 {
-    font-family: var(--font-display);
-    font-size: 1.85rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    color: var(--text);
-    margin-bottom: 0.35rem;
-}
-
-.form-card .lead {
-    color: var(--text-muted);
-    font-size: 0.96rem;
-    margin-bottom: 2.25rem;
-}
-
-.error-banner {
-    background: rgba(244, 63, 94, 0.08);
-    border: 1px solid rgba(244, 63, 94, 0.25);
-    color: #be123c;
-    padding: 0.75rem 0.95rem;
-    border-radius: 12px;
-    font-size: 0.88rem;
-    font-weight: 500;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-}
-
-.error-banner::before {
-    content: "⚠";
-    font-size: 1rem;
-}
-
-.field {
-    margin-bottom: 1.1rem;
-}
-
-.field label {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-soft);
-    letter-spacing: -0.005em;
-    margin-bottom: 0.45rem;
-}
-
-.input-shell {
-    position: relative;
-}
-
-.input-shell input {
-    width: 100%;
-    height: 50px;
-    padding: 0 2.85rem 0 2.85rem;
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    color: var(--text);
-    background: var(--surface-2);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-
-.input-shell input::placeholder {
-    color: var(--text-dim);
-}
-
-.input-shell input:hover:not(:focus) {
-    border-color: rgba(99, 102, 241, 0.4);
-}
-
-.input-shell input:focus {
-    border-color: var(--primary);
-    background: #fff;
-    box-shadow: var(--ring);
-}
-
-.input-shell .icon {
-    position: absolute;
-    top: 50%;
-    left: 0.95rem;
-    transform: translateY(-50%);
-    color: var(--text-dim);
-    font-size: 1.05rem;
-    pointer-events: none;
-    transition: color 0.2s ease;
-}
-
-.input-shell input:focus ~ .icon,
-.input-shell:focus-within .icon {
-    color: var(--primary);
-}
-
-.password-toggle {
-    position: absolute;
-    top: 50%;
-    right: 0.45rem;
-    transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease, color 0.2s ease;
-}
-
-.password-toggle:hover {
-    background: rgba(99, 102, 241, 0.08);
-    color: var(--primary);
-}
-
-.password-toggle svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0.25rem 0 1.75rem;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.remember {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    cursor: pointer;
-    user-select: none;
-    font-size: 0.86rem;
-    color: var(--text-soft);
-    font-weight: 500;
-}
-
-.remember input { display: none; }
-
-.remember .box {
-    width: 18px;
-    height: 18px;
-    border: 1.5px solid var(--border);
-    border-radius: 5px;
-    background: var(--surface-2);
-    display: grid;
-    place-items: center;
-    transition: all 0.2s ease;
-}
-
-.remember .box::after {
-    content: "";
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
-    background: linear-gradient(135deg, var(--primary), var(--violet));
-    transform: scale(0);
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.remember input:checked + .box {
-    border-color: var(--primary);
-    background: rgba(99, 102, 241, 0.08);
-}
-
-.remember input:checked + .box::after {
-    transform: scale(1);
-}
-
-.forgot {
-    font-size: 0.86rem;
-    font-weight: 600;
-    color: var(--primary);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.forgot:hover { color: var(--primary-2); }
-
-.submit-btn {
-    width: 100%;
-    height: 52px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--violet) 100%);
-    color: #fff;
-    font-family: var(--font-body);
-    font-size: 0.98rem;
-    font-weight: 700;
-    letter-spacing: 0.005em;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.32), inset 0 1px 0 rgba(255,255,255,0.18);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-}
-
-.submit-btn::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transform: translateX(-100%);
-    transition: transform 0.55s ease;
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 40px rgba(79, 70, 229, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-}
-
-.submit-btn:hover::before { transform: translateX(100%); }
-
-.submit-btn:active { transform: translateY(0); }
-
-.submit-btn:focus-visible {
-    outline: 3px solid rgba(99, 102, 241, 0.45);
-    outline-offset: 3px;
-}
-
-.footer-note {
-    margin-top: 2rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    letter-spacing: 0.03em;
-}
-
-.footer-note .sep { opacity: 0.6; margin: 0 0.4rem; }
-
-/* ---------- Animations ---------- */
-@keyframes float {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(30px, -30px); }
-}
-
-@keyframes rise {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 980px) {
-    body { grid-template-columns: 1fr; overflow-y: auto; }
-    .brand-panel {
-        padding: 2rem 1.75rem;
-        min-height: 320px;
-    }
-    .brand-middle h1 { font-size: 2rem; }
-    .brand-metrics { gap: 1.5rem; }
-    .form-panel { padding: 2rem 1.5rem 3rem; }
-}
-
-@media (max-width: 480px) {
-    .brand-panel { padding: 1.5rem; min-height: 240px; }
-    .brand-middle h1 { font-size: 1.6rem; margin-bottom: 0.6rem; }
-    .brand-middle p { font-size: 0.92rem; }
-    .brand-metrics { gap: 1.1rem; }
-    .metric .value { font-size: 1.3rem; }
-    .form-panel { padding: 1.5rem 1.2rem 2.5rem; }
-    .form-card h2 { font-size: 1.5rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; }
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            font-family: Inter, "Segoe UI", sans-serif;
+            color: #1e293b;
+            background: #0f172a;
+            -webkit-font-smoothing: antialiased;
+        }
+        .split {
+            flex: 1;
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+        .hero {
+            position: relative;
+            width: 58%;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3.2rem 3.5rem;
+            overflow: hidden;
+            background-color: #020617;
+            background-image:
+                radial-gradient(circle at 15% 25%, rgba(245, 158, 11, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.18) 0%, transparent 55%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+            border-right: 1px solid rgba(30, 41, 59, 0.8);
+        }
+        .glow {
+            position: absolute;
+            width: 24rem;
+            height: 24rem;
+            border-radius: 50%;
+            filter: blur(64px);
+            pointer-events: none;
+        }
+        .glow.amber { top: -8rem; left: -8rem; background: rgba(245, 158, 11, 0.10); }
+        .glow.blue { right: 2.5rem; bottom: 2.5rem; background: rgba(37, 99, 235, 0.15); }
+        .hero-top, .hero-mid, .hero-foot { position: relative; z-index: 1; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+        .bolt {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            box-shadow: 0 10px 24px rgba(245, 158, 11, 0.25);
+        }
+        .bolt svg { width: 24px; height: 24px; fill: #020617; }
+        .brand-name {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+        .brand-name strong {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+        .ver {
+            padding: 0.1rem 0.45rem;
+            border-radius: 4px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.15);
+            color: #fcd34d;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .brand p {
+            margin-top: 0.15rem;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .hero-mid { max-width: 36rem; padding: 2.5rem 0; }
+        .pill, .node-pill, .proto, .live {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .pill {
+            margin-bottom: 1.4rem;
+            padding: 0.28rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            color: #cbd5e1;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 12px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            animation: pulse 2.2s ease-in-out infinite;
+        }
+        .dot.amber { background: #fbbf24; animation: none; }
+        .dot.blue { background: #60a5fa; animation: none; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.55; transform: scale(0.9); }
+        }
+        h1 {
+            font-size: clamp(2.1rem, 3vw, 3.25rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.18;
+        }
+        h1 span {
+            background: linear-gradient(90deg, #fbbf24, #fcd34d, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero-mid > p {
+            margin-top: 1.4rem;
+            max-width: 34rem;
+            color: #cbd5e1;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+        .protos { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1.8rem; }
+        .proto, .live {
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            color: #cbd5e1;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .live { border-color: rgba(16, 185, 129, 0.4); color: #34d399; }
+        .hero-foot { border-top: 1px solid rgba(30, 41, 59, 0.8); padding-top: 1.4rem; }
+        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+        .metric + .metric { border-left: 1px solid #1e293b; padding-left: 1.4rem; }
+        .metric strong {
+            display: block;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+        .metric span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.35rem;
+            color: #94a3b8;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .auth {
+            width: 42%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2.2rem 3rem 1.6rem;
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 100% 0%, rgba(224, 231, 255, 0.45) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(254, 243, 199, 0.35) 0px, transparent 50%);
+        }
+        .auth-top { display: flex; justify-content: flex-end; }
+        .node-pill {
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+            color: #475569;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .node-pill .dot { background: #10b981; }
+        .card { width: 100%; max-width: 28rem; margin: auto; }
+        h2 { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.03em; color: #0f172a; }
+        .lead { margin-top: 0.45rem; color: #64748b; font-size: 0.92rem; }
+        .error-banner {
+            margin-top: 1rem;
+            padding: 0.65rem 0.8rem;
+            border-radius: 10px;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        form { margin-top: 1.8rem; display: flex; flex-direction: column; gap: 1.15rem; }
+        label.lbl {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #334155;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .shell { position: relative; }
+        .shell svg.lead-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            height: 48px;
+            padding: 0 2.8rem 0 2.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            color: #0f172a;
+            font: 500 14px/1 Inter, sans-serif;
+            outline: none;
+        }
+        input:hover { border-color: #cbd5e1; }
+        input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16); }
+        .password-toggle {
+            position: absolute;
+            right: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+        }
+        .password-toggle:hover, .password-toggle.is-on { color: #2563eb; }
+        .password-toggle svg { width: 20px; height: 20px; }
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        .remember {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .remember input { accent-color: #2563eb; width: 16px; height: 16px; }
+        .forgot { color: #2563eb; font-size: 12px; font-weight: 600; text-decoration: none; }
+        .forgot:hover { color: #1d4ed8; }
+        .submit-btn {
+            height: 48px;
+            border: 0;
+            border-radius: 12px;
+            background: #2563eb;
+            color: #fff;
+            font: 600 14px/1 Inter, sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            box-shadow: 0 10px 25px -3px rgba(37, 99, 235, 0.35);
+        }
+        .submit-btn:hover { background: #1d4ed8; }
+        .submit-btn svg { width: 16px; height: 16px; }
+        footer {
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            text-align: center;
+        }
+        footer p { color: #64748b; font-size: 12px; font-weight: 500; }
+        footer small { display: block; margin-top: 0.25rem; color: #94a3b8; font-size: 11px; }
+        @media (max-width: 980px) {
+            .split { flex-direction: column; }
+            .hero, .auth { width: 100%; }
+            .hero { min-height: auto; padding: 2rem 1.4rem; }
+            .auth { padding: 1.4rem; }
+            .metrics { gap: 0.6rem; }
+            .metric strong { font-size: 1.25rem; }
+        }
     </style>
 </head>
 <body>
-    <!-- Branded left panel -->
-    <aside class="brand-panel" aria-hidden="true">
-        <div class="grid-overlay"></div>
-        <div class="brand-top">
-            <div class="brand-mark">⚡</div>
-            <div class="brand-name">
-                <span class="main">Energy Metrix</span>
-                <span class="sub">Head End System</span>
-            </div>
-        </div>
-
-        <div class="brand-middle">
-            <h1>Эрчим хүчний ухаалаг хяналтын төв.</h1>
-            <p>Бодит цагийн тоолуурын өгөгдөл, шугамын ачаалал, суурилуулалтын хяналтыг нэг дороос удирдана.</p>
-        </div>
-
-        <div class="brand-metrics">
-            <div class="metric">
-                <span class="value">99.9%</span>
-                <span class="divider"></span>
-                <span class="label">Uptime</span>
-            </div>
-            <div class="metric">
-                <span class="value">24/7</span>
-                <span class="divider"></span>
-                <span class="label">Мониторинг</span>
-            </div>
-            <div class="metric">
-                <span class="value">SSL</span>
-                <span class="divider"></span>
-                <span class="label">Аюулгүй</span>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Login form -->
-    <main class="form-panel">
-        <div class="form-card">
-            <h2>Тавтай морил</h2>
-            <p class="lead">Системд нэвтрэхийн тулд дансны мэдээллээ оруулна уу.</p>
-
-            {% if error %}
-            <div class="error-banner" role="alert">{{ error }}</div>
-            {% endif %}
-
-            <form class="login-form" id="loginForm" action="/login" method="post" novalidate>
-                <div class="field">
-                    <label for="usernameInput">Нэвтрэх нэр</label>
-                    <div class="input-shell">
-                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        <input type="text" id="usernameInput" name="username" placeholder="Нэрээ оруулна уу" required autocomplete="username">
+    <main class="split">
+        <section class="hero">
+            <div class="glow amber"></div>
+            <div class="glow blue"></div>
+            <div class="hero-top">
+                <div class="brand">
+                    <span class="bolt" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z"></path></svg>
+                    </span>
+                    <div>
+                        <div class="brand-name">
+                            <strong>Energy Metrix</strong>
+                            <span class="ver">HES v3.4 Enterprise</span>
+                        </div>
+                        <p>Head End System • SCADA Dispatch</p>
                     </div>
                 </div>
+            </div>
+            <div class="hero-mid">
+                <div class="pill"><span class="dot"></span><span>DISPATCH GRID ACTIVE: 14,820 NODES</span></div>
+                <h1>Эрчим хүчний ухаалаг <span>хяналтын төв.</span></h1>
+                <p>Бодит цагийн тоолуурын өгөгдөл, шугамын ачаалал, суурилуулалтын хяналтыг нэг дороос удирдана.</p>
+                <div class="protos">
+                    <span class="proto">DLMS / COSEM</span>
+                    <span class="proto">IEC 62056-5-3</span>
+                    <span class="proto">MQTT / TLS 1.3</span>
+                    <span class="live"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>Active Grid: 14,820 Nodes</span>
+                </div>
+            </div>
+            <div class="hero-foot">
+                <div class="metrics">
+                    <div class="metric">
+                        <strong>99.9%</strong>
+                        <span><i class="dot amber"></i>Uptime SLA</span>
+                    </div>
+                    <div class="metric">
+                        <strong>24/7</strong>
+                        <span><i class="dot"></i>Мониторинг</span>
+                    </div>
+                    <div class="metric">
+                        <strong>AES-256</strong>
+                        <span><i class="dot blue"></i>Аюулгүй байдал</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <div class="field">
-                    <label for="password">Нууц үг</label>
-                    <div class="input-shell">
-                        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
-                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Нууц үг харах">
-                            <svg id="eyeIcon" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
+        <section class="auth">
+            <div class="auth-top">
+                <div class="node-pill"><span class="dot"></span>HES Secure Node • AES-GCM</div>
+            </div>
+            <div class="card">
+                <h2>Тавтай морил</h2>
+                <p class="lead">Системд нэвтрэхийн тулд мэдээллээ оруулна уу.</p>
+                {% if error %}
+                <div class="error-banner" role="alert">{{ error }}</div>
+                {% endif %}
+                <form class="login-form" id="loginForm" action="/login" method="post" novalidate>
+                    <div>
+                        <label class="lbl" for="usernameInput">Нэвтрэх нэр</label>
+                        <div class="shell">
+                            <svg class="lead-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
                             </svg>
-                        </button>
+                            <input type="text" id="usernameInput" name="username" placeholder="Нэрээ оруулна уу" required autocomplete="username">
+                        </div>
                     </div>
-                </div>
-
-                <div class="form-options">
-                    <label class="remember">
-                        <input type="checkbox" name="remember">
-                        <span class="box" aria-hidden="true"></span>
-                        <span>Сануулах</span>
-                    </label>
-                    <a href="#" class="forgot">Нууц үг мартсан?</a>
-                </div>
-
-                <button type="submit" class="submit-btn">Нэвтрэх</button>
-            </form>
-
-            <div class="footer-note">
-                © Energy Metrix <span class="sep">·</span> Secure login
+                    <div>
+                        <label class="lbl" for="password">Нууц үг</label>
+                        <div class="shell">
+                            <svg class="lead-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+                            </svg>
+                            <input type="password" id="password" name="password" placeholder="Нууц үгээ оруулна уу" required autocomplete="current-password">
+                            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Нууц үг харах">
+                                <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+                                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="remember">
+                            <input type="checkbox" name="remember">
+                            <span>Сануулах</span>
+                        </label>
+                        <a class="forgot" href="#">Нууц үг мартсан?</a>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        Нэвтрэх
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                            <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+                        </svg>
+                    </button>
+                </form>
             </div>
-        </div>
+            <footer>
+                <p>© Energy Metrix · Secure login · Системийн хувилбар v3.4.12</p>
+                <small>Эрх бүхий ажилтнууд зөвшөөрөгдсөн түлхүүрээр хандана уу.</small>
+            </footer>
+        </section>
     </main>
-
     <script>
-        // Password visibility toggle (visual only — preserves input name/id/form semantics)
         (function () {
             var toggle = document.getElementById('passwordToggle');
             var input = document.getElementById('password');
-            var icon = document.getElementById('eyeIcon');
-            if (!toggle || !input || !icon) return;
-
-            var eyeOpen = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-            var eyeOff = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.77 19.77 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a19.75 19.75 0 0 1-4 4.93"/><line x1="1" y1="1" x2="23" y2="23"/>';
-
+            if (!toggle || !input) return;
             toggle.addEventListener('click', function () {
-                var isPwd = input.type === 'password';
-                input.type = isPwd ? 'text' : 'password';
-                icon.innerHTML = isPwd ? eyeOff : eyeOpen;
-                toggle.setAttribute('aria-label', isPwd ? 'Нууц үг нуух' : 'Нууц үг харах');
+                var hidden = input.type === 'password';
+                input.type = hidden ? 'text' : 'password';
+                toggle.classList.toggle('is-on', hidden);
+                toggle.setAttribute('aria-label', hidden ? 'Нууц үг нуух' : 'Нууц үг харах');
             });
         })();
     </script>

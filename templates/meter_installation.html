@@ -2,7 +2,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
-<link rel="stylesheet" href="/static/install-emx.css?v=2">
+<link rel="stylesheet" href="/static/install-emx.css?v=3">
 {% endblock %}
 {% block content %}
 <div class="ireg">
@@ -341,406 +341,291 @@ document.addEventListener('DOMContentLoaded', function () {
  
 
 <div class="modal fade" id="addMeterModal" tabindex="-1" aria-labelledby="addMeterModalLabel" aria-hidden="true">
-    <div class="modal-dialog custom-modal modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addMeterModalLabel">Тоолуур суурилуулах</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="addMeterForm" method = "Post" action = "/install-meter">  
-          <!-- Nav tabs -->
-          <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-            <li class="nav-item">
-              <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">Дэргэрэнгүй</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">Нууцлал</button>
-            </li>
-          </ul>
-  
-          <!-- Tab panes -->
-          <div class="tab-content">
-            <div class="tab-pane fade show active" id="detail" role="tabpanel">
-              
-                
-   
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label>Модулийн төрөл: </label>
-                    <div class="dropdown">
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text"
-                               name="meter_type"
-                               id="addMeterType"
-                               class="form-control dropdown-search-input dimmed-text hoverable-input"
-                               placeholder="Модулийн төрөл сонгох"
-                               autocomplete="off"
-                               value="GPRS Meter"
-                               required>
-                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        </span>
-                      </div>
-                      <ul id="add-meter-type-list" 
-                          class="dropdown-menu w-100"
-                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li> 
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li> 
-                          
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="dropdown">  
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <label>Тоолуурын дугаар:</label>
-                        <input type="text" name="meter_number" class="form-control dropdown-search-input dimmed-text hoverable-input" readonly  required>
-                      </div>
-                        <ul class="dropdown-menu w-100"
-                            aria-labelledby="archivedDropdown"
-                            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-                        </ul>
-                        <input type="hidden" name="device_type" required>
-                    </div>
-                  </div>
-                </div>
-  
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <div id="commAddressGroup">
-                      <label>Комм хаяг:</label>
-                      <input type="text" name="comm_address" id="commAddressInput" class="form-control" readonly required>
-                    </div>
-                    <div id="dcuNumberGroup" class="d-none">
-                      <label>DCU дугаар:</label>
-                      <div class="dropdown">
-                        <div class="dropdown-toggle-wrapper position-relative">
-                          <input type="text"
-                                 name="dcu_number"
-                                 id="addDcuNumberInput"
-                                 class="form-control dropdown-search-input dimmed-text hoverable-input"
-                                 placeholder="DCU дугаарыг сонгох"
-                                 autocomplete="off">
-                          <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                            <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                          </span>
-                        </div>
-                        <ul id="add-dcu-number-list"
-                            class="dropdown-menu w-100"
-                            aria-labelledby="dcuDropdown"
-                            style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                          <!-- dynamically populated -->
-                        </ul>
-                      </div>
-                      <small class="text-muted">PLC, EDAT эсвэл ESP32 төхөөрөмжийн дугаарыг сонгоно уу</small>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label>Тоолуурын төрөл:</label>
-                    <div class="dropdown">
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text"
-                               name="modem_type"
-                               id="addModemType"
-                               class="form-control dropdown-search-input dimmed-text hoverable-input"
-                               placeholder="Тоолуурын төрөл сонгох"
-                               autocomplete="off"
-                               value="DDSY283"
-                               required>
-                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        </span>
-                      </div>
-                      <ul id="add-modem-type-list" 
-                          class="dropdown-menu w-100"
-                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-  
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label>CT харьцаа:</label> 
-                    <input type="number" name="CT_ratio" class="form-control" step="1" min="1" value="1">
-                  </div> 
-                  <div class="col-md-6">
-                    <label>Тайлбар:</label>
-                    <input type="text" name = "remarks" class="form-control" readonly >
-                  </div>
-                </div>
-                <div class="row mb-3">
-
-                <div class="col-md-6">
-                    <label>VT харьцаа:</label> 
-                    <input type="number" name="VT_ratio" class="form-control" step="1" min="1" value="1">
-                  </div> 
-                <div class="col-md-auto" id="parentNodeWrapper" style="display:block;">
-                        <label>Харьяа шугам:</label>
-                        <div id="parentNodeTree"></div>
-                        <input type="hidden" name="line" id="parent_node_input">
-                </div> 
-                </div>
-
-            </div>
-  
-            <div class="tab-pane fade" id="safety" role="tabpanel">
-                <label>Нууц үг:</label> 
-                <input type="text" name="password" class="form-control" readonly required>
-            </div>
+  <div class="modal-dialog modal-dialog-centered madd-dialog">
+    <div class="modal-content madd">
+      <div class="madd-head">
+        <div class="madd-title">
+          <span class="madd-mark"><span class="material-symbols-outlined">electric_meter</span></span>
+          <div>
+            <h2 id="addMeterModalLabel">Тоолуур суурилуулах</h2>
+            <p>Архив дахь тоолуурыг шугамд суурилуулах.</p>
           </div>
-        </form>
-  
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
-          <button type="submit" form="addMeterForm" class="btn btn-primary">Нэмэх</button>
-        </div>
+        <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
       </div>
-    </div>
-  </div>
- <!-- meter uninstall hiih form --> 
-  <div class="modal fade" id="uninstallMeterModal" tabindex="-1" aria-labelledby="uninstallMeterModalLabel" aria-hidden="true">
-  <div class="modal-dialog custom-modal modal-dialog-centered modal-md">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="uninstallMeterModalLabel">Суурилуулалтаас хасах</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <form id="uninstallMeterForm" method="POST" action="/uninstall-meter">
-          <h6 class="mb-3 border-bottom pb-2">Тоолуурын мэдээлэл</h6>
-
-          <div class="mb-3 row align-items-center">
-            
-                  <label class="col-sm-3 col-form-label fw-bold">Тоолуурын дугаар:</label> 
-                   <div class="col-sm-9">
-                    <div class="dropdown">  
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text" name="meter_number" class="form-control dropdown-search-input dimmed-text hoverable-input" required>
-                      </div>
-                        <ul class="dropdown-menu w-100"
-                            aria-labelledby="installedDropdown"
-                            style="max-height: 200px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 2px !important;">
-                        </ul>
-                        <input type="hidden" name="device_type" required>
-                    </div>
-                  </div>
-          </div>
-
-          <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label fw-bold">Комм хаяг:</label>
-            <div class="col-sm-9">
-              <input type="text" name="comm_address" class="form-control">
-            </div>
-          </div>
-
-          <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label fw-bold">Тоолуурын төрөл:</label>
-            <div class="col-sm-9">
-              <div class="dropdown">
-                <div class="dropdown-toggle-wrapper position-relative">
-                  <input type="text"
-                         name="type"
-                         id="uninstallType"
-                         class="form-control dropdown-search-input dimmed-text hoverable-input"
-                         placeholder="Тоолуурын төрөл сонгох"
-                         autocomplete="off"
-                         value="DDSY283"
-                         required>
-                  <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                    <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </span>
+      <form id="addMeterForm" method="post" action="/install-meter">
+        <ul class="madd-tabs" role="tablist">
+          <li>
+            <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button" role="tab">
+              <span class="material-symbols-outlined">description</span>Дэлгэрэнгүй
+            </button>
+          </li>
+          <li>
+            <button class="nav-link" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">
+              <span class="material-symbols-outlined">lock</span>Нууцлал
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content madd-body">
+          <div class="tab-pane fade show active" id="detail" role="tabpanel">
+            <div class="madd-grid">
+              <div class="madd-field">
+                <label for="addMeterType">Модулийн төрөл</label>
+                <div class="dropdown">
+                  <input type="text" name="meter_type" id="addMeterType" class="dropdown-search-input" value="GPRS Meter" autocomplete="off" required>
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul id="add-meter-type-list" class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li>
+                  </ul>
                 </div>
-                <ul id="uninstall-type-list" 
-                    class="dropdown-menu w-100"
-                    style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                  <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283">DDSY283</a></li>
-                  <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
-                  <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
-                  <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
-                </ul>
+              </div>
+              <div class="madd-field">
+                <label>Тоолуурын дугаар</label>
+                <div class="dropdown">
+                  <input type="text" name="meter_number" class="dropdown-search-input" readonly required>
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul class="dropdown-menu" aria-labelledby="archivedDropdown"></ul>
+                  <input type="hidden" name="device_type" required>
+                </div>
+              </div>
+              <div class="madd-field">
+                <div id="commAddressGroup">
+                  <label for="commAddressInput">Комм хаяг</label>
+                  <input id="commAddressInput" type="text" name="comm_address" readonly required>
+                </div>
+                <div id="dcuNumberGroup" class="d-none">
+                  <label for="addDcuNumberInput">DCU дугаар</label>
+                  <div class="dropdown">
+                    <input type="text" name="dcu_number" id="addDcuNumberInput" class="dropdown-search-input" autocomplete="off">
+                    <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                    <ul id="add-dcu-number-list" class="dropdown-menu" aria-labelledby="dcuDropdown"></ul>
+                  </div>
+                  <p class="madd-hint">PLC, EDAT эсвэл ESP32 төхөөрөмжийн дугаарыг сонгоно уу</p>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="addModemType">Тоолуурын төрөл</label>
+                <div class="dropdown">
+                  <input type="text" name="modem_type" id="addModemType" class="dropdown-search-input" value="DDSY283" autocomplete="off" required>
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul id="add-modem-type-list" class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" data-value="DDSY283">DDSY283</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="addCT">CT харьцаа</label>
+                <input id="addCT" type="number" name="CT_ratio" step="1" min="1" value="1">
+              </div>
+              <div class="madd-field">
+                <label for="addRemarks">Тайлбар</label>
+                <input id="addRemarks" type="text" name="remarks" readonly>
+              </div>
+              <div class="madd-field">
+                <label for="addVT">VT харьцаа</label>
+                <input id="addVT" type="number" name="VT_ratio" step="1" min="1" value="1">
+              </div>
+              <div class="madd-field" id="parentNodeWrapper">
+                <label for="parent_node_input">Харьяа шугам</label>
+                <div class="madd-tree" id="parentNodeTree"></div>
+                <input type="hidden" name="line" id="parent_node_input">
               </div>
             </div>
           </div>
-
-          <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label fw-bold">Бүртгэлийн Төлөв</label>
-            <div class="col-sm-9">
-              <input type="text" name="status" class="form-control" value="Archived" readonly>
+          <div class="tab-pane fade" id="safety" role="tabpanel">
+            <div class="madd-field">
+              <label for="addInstallPassword">Нууц үг</label>
+              <input id="addInstallPassword" type="text" name="password" readonly required>
             </div>
           </div>
-
-          <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label fw-bold">Тайлбар</label>
-            <div class="col-sm-9">
-              <textarea name="remarks" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="madd-foot">
+          <span>Архив дахь тоолуурын дугаар, хаяг, нууц үг эндээс уншина.</span>
+          <div>
+            <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+            <button type="submit" class="madd-btn primary">Нэмэх</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="uninstallMeterModal" tabindex="-1" aria-labelledby="uninstallMeterModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered madd-dialog">
+    <div class="modal-content madd">
+      <div class="madd-head">
+        <div class="madd-title">
+          <span class="madd-mark"><span class="material-symbols-outlined">link_off</span></span>
+          <div>
+            <h2 id="uninstallMeterModalLabel">Суурилуулалтаас хасах</h2>
+            <p>Суурилуулсан тоолуурыг архивт буцаах.</p>
+          </div>
+        </div>
+        <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form id="uninstallMeterForm" method="post" action="/uninstall-meter">
+        <div class="madd-body">
+          <div class="madd-grid">
+            <div class="madd-field">
+              <label>Тоолуурын дугаар</label>
+              <div class="dropdown">
+                <input type="text" name="meter_number" class="dropdown-search-input" required>
+                <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                <ul class="dropdown-menu" aria-labelledby="installedDropdown"></ul>
+                <input type="hidden" name="device_type" required>
+              </div>
+            </div>
+            <div class="madd-field">
+              <label for="uninstallComm">Комм хаяг</label>
+              <input id="uninstallComm" type="text" name="comm_address">
+            </div>
+            <div class="madd-field">
+              <label for="uninstallType">Тоолуурын төрөл</label>
+              <div class="dropdown">
+                <input type="text" name="type" id="uninstallType" class="dropdown-search-input" value="DDSY283" autocomplete="off" required>
+                <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                <ul id="uninstall-type-list" class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#" data-value="DDSY283">DDSY283</a></li>
+                  <li><a class="dropdown-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+                  <li><a class="dropdown-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                  <li><a class="dropdown-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
+                </ul>
+              </div>
+            </div>
+            <div class="madd-field">
+              <label for="uninstallStatus">Бүртгэлийн төлөв</label>
+              <input id="uninstallStatus" type="text" name="status" value="Archived" readonly>
+            </div>
+            <div class="madd-field madd-span">
+              <label for="uninstallRemarks">Тайлбар</label>
+              <input id="uninstallRemarks" type="text" name="remarks">
             </div>
           </div>
-
-        </form>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Цуцлах</button>
-        <button type="submit" form="uninstallMeterForm" class="btn btn-primary">Хасах</button>
-      </div>
+        </div>
+        <div class="madd-foot">
+          <span>Хассан тоолуур Archived төлөвтэй бүртгэлд үлдэнэ.</span>
+          <div>
+            <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+            <button type="submit" class="madd-btn primary">Хасах</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-  <!-- edit meter form for meter edit --> 
-  <div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel" aria-hidden="true">
-    <div class="modal-dialog custom-modal modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addMeterModalLabel">Тоолуур өөрчлөх</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered madd-dialog">
+    <div class="modal-content madd">
+      <div class="madd-head">
+        <div class="madd-title">
+          <span class="madd-mark"><span class="material-symbols-outlined">edit</span></span>
+          <div>
+            <h2 id="editMeterModalLabel">Тоолуур өөрчлөх</h2>
+            <p>Суурилуулсан тоолуурын мэдээллийг өөрчлөх.</p>
+          </div>
         </div>
-        <div class="modal-body">
-          <form id="editMeterForm" method = "Post" action = "/edit-meter-installation">   
-            <input type="hidden" name="original_meter_number" id="OriginalMeterNumber">  
-          <!-- Nav tabs -->
-          <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-            <li class="nav-item">
-              <button class="nav-link active" id="detail1-tab" data-bs-toggle="tab" data-bs-target="#detail1" type="button" role="tab">Дэргэрэнгүй</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" id="safety1-tab" data-bs-toggle="tab" data-bs-target="#safety1" type="button" role="tab">Нууцлал</button>
-            </li>
-          </ul>
-  
-          <!-- Tab panes -->
-          <div class="tab-content">
-            <div class="tab-pane fade show active" id="detail1" role="tabpanel">
-              
-   
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label>Модулийн төрөл: </label>
-                    <div class="dropdown">
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text"
-                               name="device_type"
-                               id="editDeviceType"
-                               class="form-control dropdown-search-input dimmed-text hoverable-input"
-                               placeholder="Модулийн төрөл сонгох"
-                               autocomplete="off"
-                               required>
-                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        </span>
-                      </div>
-                      <ul id="edit-device-type-list" 
-                          class="dropdown-menu w-100"
-                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label>Тоолуурын дугаар:</label>
-                    <input type="text" name="meter_number" id = "editMeterNumber" class="form-control" required> 
-                  </div>
+        <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form id="editMeterForm" method="post" action="/edit-meter-installation">
+        <input type="hidden" name="original_meter_number" id="OriginalMeterNumber">
+        <ul class="madd-tabs" role="tablist">
+          <li>
+            <button class="nav-link active" id="detail1-tab" data-bs-toggle="tab" data-bs-target="#detail1" type="button" role="tab">
+              <span class="material-symbols-outlined">description</span>Дэлгэрэнгүй
+            </button>
+          </li>
+          <li>
+            <button class="nav-link" id="safety1-tab" data-bs-toggle="tab" data-bs-target="#safety1" type="button" role="tab">
+              <span class="material-symbols-outlined">lock</span>Нууцлал
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content madd-body">
+          <div class="tab-pane fade show active" id="detail1" role="tabpanel">
+            <div class="madd-grid">
+              <div class="madd-field">
+                <label for="editDeviceType">Модулийн төрөл</label>
+                <div class="dropdown">
+                  <input type="text" name="device_type" id="editDeviceType" class="dropdown-search-input" autocomplete="off" required>
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul id="edit-device-type-list" class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" data-value="GPRS Meter">GPRS Meter</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="PLC Meter">PLC Meter</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="Lorawan Meter">Lorawan Meter</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="RS485 with EDAT">RS485 with EDAT</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="RS485 with ESP32">RS485 with ESP32</a></li>
+                  </ul>
                 </div>
-  
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label>Комм хаяг:</label>
-                    <input type="text" name="comm_address" id = "editCommAddress" class="form-control" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label>Тоолуурын төрөл:</label>
-                    <div class="dropdown">
-                      <div class="dropdown-toggle-wrapper position-relative">
-                        <input type="text"
-                               name="type"
-                               id="editType"
-                               class="form-control dropdown-search-input dimmed-text hoverable-input"
-                               placeholder="Тоолуурын төрөл сонгох"
-                               autocomplete="off"
-                               required>
-                        <span class="dropdown-chevron position-absolute end-0 top-50 translate-middle-y me-2">
-                          <svg width="25" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        </span>
-                      </div>
-                      <ul id="edit-type-list" 
-                          class="dropdown-menu w-100"
-                          style="max-height: 220px; overflow-y: auto; top: 100%; left: 0; margin-top: 5px; border-radius: 10px !important;">
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DTSD546">DTSD546</a></li>
-                        <li><a class="dropdown-item hoverable-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
-                      </ul>
-                    </div>
-                  </div>
+              </div>
+              <div class="madd-field">
+                <label for="editMeterNumber">Тоолуурын дугаар</label>
+                <input id="editMeterNumber" type="text" name="meter_number" required>
+              </div>
+              <div class="madd-field">
+                <label for="editCommAddress">Комм хаяг</label>
+                <input id="editCommAddress" type="text" name="comm_address" required>
+              </div>
+              <div class="madd-field">
+                <label for="editType">Тоолуурын төрөл</label>
+                <div class="dropdown">
+                  <input type="text" name="type" id="editType" class="dropdown-search-input" autocomplete="off" required>
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul id="edit-type-list" class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" data-value="DDSY283SR">DDSY283SR</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="DTSD545S">DTSD545S</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="DTSD546">DTSD546</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="DDSD285_2018">DDSD285_2018</a></li>
+                  </ul>
                 </div>
-  
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label>CT харьцаа:</label> 
-                    <input type="number" name="CT_ratio" id = "editCT_ratio" class="form-control" step="1" min="1" value="1">
-                  </div> 
-                  <div class="col-md-6">
-                    <label>Тайлбар:</label>
-                    <input type="text" name = "remarks" id = "editRemarks" class="form-control" readonly>  
-                  </div>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label>VT харьцаа:</label> 
-                    <input type="number" name="VT_ratio" id = "editVT_ratio" class="form-control" step="1" min="1" value="1">
-                  </div> 
-                  <div class="col-md-auto" id="editLineWrapper" style="display:block;"> 
-                    <label>Харьяа шугам:</label>
-                    <div id="editLineTree"></div>
-                    <input type="hidden" name="line" id="edit_line_input">
-                  </div> 
-                </div>
-  
-              
-            </div>
-  
-            <div class="tab-pane fade" id="safety1" role="tabpanel">
-                <label>Нууц үг:</label> 
-                <input type="text" name="password" id = "editPassword" class="form-control" required>
+              </div>
+              <div class="madd-field">
+                <label for="editCT_ratio">CT харьцаа</label>
+                <input id="editCT_ratio" type="number" name="CT_ratio" step="1" min="1" value="1">
+              </div>
+              <div class="madd-field">
+                <label for="editRemarks">Тайлбар</label>
+                <input id="editRemarks" type="text" name="remarks" readonly>
+              </div>
+              <div class="madd-field">
+                <label for="editVT_ratio">VT харьцаа</label>
+                <input id="editVT_ratio" type="number" name="VT_ratio" step="1" min="1" value="1">
+              </div>
+              <div class="madd-field" id="editLineWrapper">
+                <label for="edit_line_input">Харьяа шугам</label>
+                <div class="madd-tree" id="editLineTree"></div>
+                <input type="hidden" name="line" id="edit_line_input">
+              </div>
             </div>
           </div>
-        </form>
-  
+          <div class="tab-pane fade" id="safety1" role="tabpanel">
+            <div class="madd-field">
+              <label for="editPassword">Нууц үг</label>
+              <div class="madd-secret">
+                <input id="editPassword" type="password" name="password" required autocomplete="new-password">
+                <button type="button" id="editInstallPasswordToggle">Үзэх</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Цуцлах</button>
-          <button type="submit" form="editMeterForm" class="btn btn-primary">Өөрчлөх</button> 
+        <div class="madd-foot">
+          <span>Тайлбар бүртгэлээс уншина.</span>
+          <div>
+            <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+            <button type="submit" class="madd-btn primary">Өөрчлөх</button>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   </div>
+</div>
  
   <script>
     const editModal = document.getElementById('editMeterModal');
@@ -752,7 +637,11 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('editCommAddress').value = button.getAttribute('data-comm-address');
       document.getElementById('editDeviceType').value = button.getAttribute('data-device-type');
       document.getElementById('editType').value = button.getAttribute('data-type');
-      document.getElementById('editPassword').value = button.getAttribute('data-password');
+      const editPassword = document.getElementById('editPassword');
+      editPassword.value = button.getAttribute('data-password');
+      editPassword.type = 'password';
+      const editToggle = document.getElementById('editInstallPasswordToggle');
+      if (editToggle) editToggle.textContent = 'Үзэх';
       document.getElementById('editRemarks').value = button.getAttribute('data-remarks'); 
       const vtRatio = button.getAttribute('data-vt_ratio');
       const ctRatio = button.getAttribute('data-ct_ratio');
@@ -1026,11 +915,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!input || !dropdown) return;
 
-    // Open dropdown on focus
-    input.addEventListener('focus', function() {
+    function openMenu(event) {
+      if (event) event.stopPropagation();
       dropdown.classList.add('show');
       if (chevron) chevron.style.transform = 'translateY(-50%) rotate(180deg)';
-    });
+    }
+    input.addEventListener('focus', openMenu);
+    input.addEventListener('click', openMenu);
 
     // Filter items on input
     input.addEventListener('input', function() {
@@ -1058,6 +949,15 @@ document.addEventListener('DOMContentLoaded', function() {
   initDropdown('uninstall-type-list', 'uninstallType');
   initDropdown('edit-device-type-list', 'editDeviceType');
   initDropdown('edit-type-list', 'editType');
+  const editInstallToggle = document.getElementById('editInstallPasswordToggle');
+  const editInstallPassword = document.getElementById('editPassword');
+  if (editInstallToggle && editInstallPassword) {
+    editInstallToggle.addEventListener('click', function () {
+      const hidden = editInstallPassword.type === 'password';
+      editInstallPassword.type = hidden ? 'text' : 'password';
+      editInstallToggle.textContent = hidden ? 'Нуух' : 'Үзэх';
+    });
+  }
 
   // Close all dropdowns when clicking outside
   document.addEventListener('click', function(e) {

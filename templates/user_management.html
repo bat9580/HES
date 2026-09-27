@@ -2,7 +2,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
-<link rel="stylesheet" href="/static/user-emx.css?v=1">
+<link rel="stylesheet" href="/static/user-emx.css?v=2">
 {% endblock %}
 {% block content %}
 {% if message %}
@@ -169,104 +169,137 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
   <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addUserModalLabel">Хэрэглэгч нэмэх</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="addUserForm" method="post" action="/add-user">
-            <div class="col-md-auto">
-              <label>Хэрэглэгчийн нэр:</label>
-              <input type="text" name="user_name" class="form-control" required>
+    <div class="modal-dialog modal-dialog-centered madd-dialog">
+      <div class="modal-content madd">
+        <div class="madd-head">
+          <div class="madd-title">
+            <span class="madd-mark"><span class="material-symbols-outlined">person_add</span></span>
+            <div>
+              <h2 id="addUserModalLabel">Хэрэглэгч нэмэх</h2>
+              <p>Нэвтрэх нэр, эрх, төлөв.</p>
             </div>
-            <div class="col-md-auto">
-              <label>Эрхийн нэр:</label>
-              <div class="dropdown">
-                <input type="text" name="role_name" class="form-control dropdown-search-input" required autocomplete="off">
-                <ul class="dropdown-menu" aria-labelledby="roleDropdown"></ul>
+          </div>
+          <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form id="addUserForm" method="post" action="/add-user">
+          <div class="madd-body">
+            <div class="madd-grid">
+              <div class="madd-field">
+                <label for="addUserName">Хэрэглэгчийн нэр</label>
+                <input id="addUserName" type="text" name="user_name" required>
+              </div>
+              <div class="madd-field">
+                <label for="addRoleName">Эрхийн нэр</label>
+                <div class="dropdown">
+                  <input id="addRoleName" type="text" name="role_name" class="dropdown-search-input" required autocomplete="off">
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul class="dropdown-menu" aria-labelledby="roleDropdown"></ul>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="addNickName">Нэр</label>
+                <input id="addNickName" type="text" name="nick_name" required>
+              </div>
+              <div class="madd-field">
+                <label for="addPhoneNumber">Утасны дугаар</label>
+                <input id="addPhoneNumber" type="text" name="phone_number">
+              </div>
+              <div class="madd-field">
+                <label for="addEmail">И-мэйл хаяг</label>
+                <input id="addEmail" type="text" name="email">
+              </div>
+              <div class="madd-field">
+                <label for="addUserPassword">Нууц үг</label>
+                <div class="madd-secret">
+                  <input id="addUserPassword" type="password" name="password" required autocomplete="new-password">
+                  <button type="button" id="addUserPasswordToggle">Үзэх</button>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="addUserStatus">Төлөв</label>
+                <div class="madd-select">
+                  <select id="addUserStatus" name="status" required>
+                    <option>{{ active_status }}</option>
+                    <option>{{ inactive_status }}</option>
+                  </select>
+                  <span class="material-symbols-outlined">expand_more</span>
+                </div>
               </div>
             </div>
-            <div class="col-md-auto">
-              <label>Нэр:</label>
-              <input type="text" name="nick_name" class="form-control" required>
+          </div>
+          <div class="madd-foot">
+            <span>Нууц үг хүснэгтэд харагдахгүй.</span>
+            <div>
+              <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+              <button type="submit" class="madd-btn primary">Нэмэх</button>
             </div>
-            <div class="col-md-auto">
-              <label>Утасны дугаар:</label>
-              <input type="text" name="phone_number" class="form-control">
-            </div>
-            <div class="col-md-auto">
-              <label>И-мэйл хаяг:</label>
-              <input type="text" name="email" class="form-control">
-            </div>
-            <div class="col-md-auto">
-              <label>Нууц үг:</label>
-              <input type="password" name="password" class="form-control" required>
-            </div>
-            <div class="col-md-auto">
-              <label>Төлөв:</label>
-              <select class="form-select" name="status" required>
-                <option>{{ active_status }}</option>
-                <option>{{ inactive_status }}</option>
-              </select>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="addUserForm" class="btn btn-primary">Submit</button>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editUserModalLabel">Хэрэглэгчийн мэдээлэл өөрчлөх</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="editUserForm" method="post" action="/edit-user">
-            <input type="hidden" name="original_user_name" id="OriginalUserName">
-            <div class="col-md-auto">
-              <label>Хэрэглэгчийн нэр:</label>
-              <input type="text" name="user_name" id="editUserName" class="form-control" required>
+    <div class="modal-dialog modal-dialog-centered madd-dialog">
+      <div class="modal-content madd">
+        <div class="madd-head">
+          <div class="madd-title">
+            <span class="madd-mark"><span class="material-symbols-outlined">edit</span></span>
+            <div>
+              <h2 id="editUserModalLabel">Хэрэглэгч өөрчлөх</h2>
+              <p>Нэр, эрх, холбоо барих, төлөв.</p>
             </div>
-            <div class="col-md-auto">
-              <label>Эрхийн нэр:</label>
-              <div class="dropdown">
-                <input type="text" name="role_name" id="editRoleName" class="form-control dropdown-search-input" required autocomplete="off">
-                <ul class="dropdown-menu" aria-labelledby="roleDropdown"></ul>
+          </div>
+          <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form id="editUserForm" method="post" action="/edit-user">
+          <input type="hidden" name="original_user_name" id="OriginalUserName">
+          <div class="madd-body">
+            <div class="madd-grid">
+              <div class="madd-field">
+                <label for="editUserName">Хэрэглэгчийн нэр</label>
+                <input id="editUserName" type="text" name="user_name" required>
+              </div>
+              <div class="madd-field">
+                <label for="editRoleName">Эрхийн нэр</label>
+                <div class="dropdown">
+                  <input id="editRoleName" type="text" name="role_name" class="dropdown-search-input" required autocomplete="off">
+                  <span class="dropdown-chevron material-symbols-outlined">expand_more</span>
+                  <ul class="dropdown-menu" aria-labelledby="roleDropdown"></ul>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="editNickName">Нэр</label>
+                <input id="editNickName" type="text" name="nick_name" required>
+              </div>
+              <div class="madd-field">
+                <label for="editPhoneNumber">Утасны дугаар</label>
+                <input id="editPhoneNumber" type="text" name="phone_number">
+              </div>
+              <div class="madd-field">
+                <label for="editEmail">И-мэйл хаяг</label>
+                <input id="editEmail" type="text" name="email">
+              </div>
+              <div class="madd-field">
+                <label for="editStatus">Төлөв</label>
+                <div class="madd-select">
+                  <select id="editStatus" name="status" required>
+                    <option>{{ active_status }}</option>
+                    <option>{{ inactive_status }}</option>
+                  </select>
+                  <span class="material-symbols-outlined">expand_more</span>
+                </div>
               </div>
             </div>
-            <div class="col-md-auto">
-              <label>Нэр:</label>
-              <input type="text" name="nick_name" id="editNickName" class="form-control" required>
+          </div>
+          <div class="madd-foot">
+            <span>Нууц үг энэ цонхоор өөрчлөгдөхгүй.</span>
+            <div>
+              <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+              <button type="submit" class="madd-btn primary">Өөрчлөх</button>
             </div>
-            <div class="col-md-auto">
-              <label>Утасны дугаар:</label>
-              <input type="text" name="phone_number" id="editPhoneNumber" class="form-control">
-            </div>
-            <div class="col-md-auto">
-              <label>И-мэйл хаяг:</label>
-              <input type="text" name="email" id="editEmail" class="form-control">
-            </div>
-            <div class="col-md-auto">
-              <label>Төлөв:</label>
-              <select class="form-select" name="status" id="editStatus" required>
-                <option>{{ active_status }}</option>
-                <option>{{ inactive_status }}</option>
-              </select>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="editUserForm" class="btn btn-primary">Submit</button>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -308,6 +341,20 @@ document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('.device-checkbox').forEach(function (box) { box.checked = selectAll.checked; });
     });
   }
+  const addPassword = document.getElementById('addUserPassword');
+  const addPasswordToggle = document.getElementById('addUserPasswordToggle');
+  if (addPassword && addPasswordToggle) {
+    addPasswordToggle.addEventListener('click', function () {
+      const hidden = addPassword.type === 'password';
+      addPassword.type = hidden ? 'text' : 'password';
+      addPasswordToggle.textContent = hidden ? 'Нуух' : 'Үзэх';
+    });
+  }
+  document.getElementById('addUserModal').addEventListener('show.bs.modal', function () {
+    if (!addPassword || !addPasswordToggle) return;
+    addPassword.type = 'password';
+    addPasswordToggle.textContent = 'Үзэх';
+  });
   const editUserModal = document.getElementById('editUserModal');
   editUserModal.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
@@ -323,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = dropdown.querySelector('.dropdown-search-input');
     const list = dropdown.querySelector('.dropdown-menu');
     if (!searchInput || !list) return;
+    searchInput.addEventListener('click', function (event) { event.stopPropagation(); });
     searchInput.addEventListener('focus', function () {
       fetch('/get-roles').then(function (response) { return response.json(); }).then(function (data) {
         list.innerHTML = '';

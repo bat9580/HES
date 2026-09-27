@@ -2,7 +2,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
-<link rel="stylesheet" href="/static/task-emx.css?v=1">
+<link rel="stylesheet" href="/static/task-emx.css?v=2">
 {% endblock %}
 {% block content %}
 {% if message %}
@@ -219,82 +219,110 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
   <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addTaskModalLabel">Хуваарь нэмэх</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered madd-dialog">
+      <div class="modal-content madd">
+        <div class="madd-head">
+          <div class="madd-title">
+            <span class="madd-mark"><span class="material-symbols-outlined">schedule</span></span>
+            <div>
+              <h2 id="addTaskModalLabel">Хуваарь нэмэх</h2>
+              <p>Крон ажил тоолуур холбогдоход бүртгэгдэнэ.</p>
+            </div>
+          </div>
+          <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
         </div>
-        <div class="modal-body">
-          <form id="addTaskForm" method="post" action="/add-task">
-            <div class="mb-2">
-              <label>Хуваарийн нэр:</label>
-              <input type="text" name="task_name" class="form-control" required>
+        <form id="addTaskForm" method="post" action="/add-task">
+          <div class="madd-body">
+            <div class="madd-grid">
+              <div class="madd-field">
+                <label for="addTaskName">Хуваарийн нэр</label>
+                <input id="addTaskName" type="text" name="task_name" required>
+              </div>
+              <div class="madd-field">
+                <label for="addInvokeTarget">Зорилтот параметр</label>
+                <div class="madd-select">
+                  <select id="addInvokeTarget" name="invoke_target" required>
+                    {% for target in invoke_targets|default([]) %}
+                    <option>{{ target }}</option>
+                    {% endfor %}
+                  </select>
+                  <span class="material-symbols-outlined">expand_more</span>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="cron_expression_input">Крон илэрхийлэл</label>
+                <input id="cron_expression_input" type="text" name="cron_expression" required>
+                <div class="madd-error" id="error-message" style="display: none;">Буруу крон илэрхийлэл. Засна уу.</div>
+              </div>
+              <div class="madd-field">
+                <label for="addTaskRemarks">Тайлбар</label>
+                <input id="addTaskRemarks" type="text" name="remarks">
+              </div>
             </div>
-            <div class="mb-2">
-              <label>Зорилтот параметр:</label>
-              <select class="form-select" name="invoke_target" required>
-                {% for target in invoke_targets|default([]) %}
-                <option>{{ target }}</option>
-                {% endfor %}
-              </select>
+          </div>
+          <div class="madd-foot">
+            <span>Крон илэрхийлэл 5 талбартай байна.</span>
+            <div>
+              <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+              <button type="submit" class="madd-btn primary">Нэмэх</button>
             </div>
-            <div class="mb-2">
-              <label>Крон илэрхийлэл:</label>
-              <input type="text" name="cron_expression" id="cron_expression_input" class="form-control" required>
-              <div id="error-message" style="color: var(--emx-error); display: none;">Буруу крон илэрхийлэл. Засна уу.</div>
-            </div>
-            <div class="mb-2">
-              <label>Тайлбар:</label>
-              <input type="text" name="remarks" class="form-control">
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="addTaskForm" class="btn btn-primary">Submit</button>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editTaskModalLabel">Хуваарь өөрчлөх</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered madd-dialog">
+      <div class="modal-content madd">
+        <div class="madd-head">
+          <div class="madd-title">
+            <span class="madd-mark"><span class="material-symbols-outlined">edit</span></span>
+            <div>
+              <h2 id="editTaskModalLabel">Хуваарь өөрчлөх</h2>
+              <p>Хадгалсан хуваарийн нэр, параметр, крон.</p>
+            </div>
+          </div>
+          <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
         </div>
-        <div class="modal-body">
-          <form id="editTaskForm" method="post" action="/edit-task">
-            <input type="hidden" name="original_task_name" id="OriginalTaskName">
-            <div class="mb-2">
-              <label>Хуваарийн нэр:</label>
-              <input type="text" name="task_name" id="editTaskName" class="form-control" required>
+        <form id="editTaskForm" method="post" action="/edit-task">
+          <input type="hidden" name="original_task_name" id="OriginalTaskName">
+          <div class="madd-body">
+            <div class="madd-grid">
+              <div class="madd-field">
+                <label for="editTaskName">Хуваарийн нэр</label>
+                <input id="editTaskName" type="text" name="task_name" required>
+              </div>
+              <div class="madd-field">
+                <label for="editInvokeTarget">Зорилтот параметр</label>
+                <div class="madd-select">
+                  <select id="editInvokeTarget" name="invoke_target" required>
+                    {% for target in invoke_targets|default([]) %}
+                    <option>{{ target }}</option>
+                    {% endfor %}
+                  </select>
+                  <span class="material-symbols-outlined">expand_more</span>
+                </div>
+              </div>
+              <div class="madd-field">
+                <label for="edit_cron_expression_input">Крон илэрхийлэл</label>
+                <input id="edit_cron_expression_input" type="text" name="cron_expression" required>
+                <div class="madd-error" id="error-message-edit" style="display: none;">Буруу крон илэрхийлэл. Засна уу.</div>
+              </div>
+              <div class="madd-field">
+                <label for="editRemarks">Тайлбар</label>
+                <input id="editRemarks" type="text" name="remarks">
+              </div>
             </div>
-            <div class="mb-2">
-              <label>Зорилтот параметр:</label>
-              <select class="form-select" name="invoke_target" id="editInvokeTarget" required>
-                {% for target in invoke_targets|default([]) %}
-                <option>{{ target }}</option>
-                {% endfor %}
-              </select>
+          </div>
+          <div class="madd-foot">
+            <span>Крон илэрхийлэл 5 талбартай байна.</span>
+            <div>
+              <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+              <button type="submit" class="madd-btn primary">Өөрчлөх</button>
             </div>
-            <div class="mb-2">
-              <label>Крон илэрхийлэл:</label>
-              <input type="text" name="cron_expression" id="edit_cron_expression_input" class="form-control" required>
-              <div id="error-message-edit" style="color: var(--emx-error); display: none;">Буруу крон илэрхийлэл. Засна уу.</div>
-            </div>
-            <div class="mb-2">
-              <label>Тайлбар:</label>
-              <input type="text" name="remarks" id="editRemarks" class="form-control">
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="editTaskForm" class="btn btn-primary">Submit</button>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -2,7 +2,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..600,0,0&display=swap">
-<link rel="stylesheet" href="/static/role-emx.css?v=1">
+<link rel="stylesheet" href="/static/role-emx.css?v=2">
 {% endblock %}
 {% block content %}
 {% if message %}
@@ -153,28 +153,39 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
   <div class="modal fade" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addRoleModalLabel">Эрх нэмэх</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="addRoleForm" method="post" action="/add-role">
-            <div class="col-md-auto">
-              <label>Эрхийн нэр:</label>
-              <input type="text" name="role_name" class="form-control" required>
+    <div class="modal-dialog modal-dialog-centered madd-dialog">
+      <div class="modal-content madd">
+        <div class="madd-head">
+          <div class="madd-title">
+            <span class="madd-mark"><span class="material-symbols-outlined">badge</span></span>
+            <div>
+              <h2 id="addRoleModalLabel">Эрх нэмэх</h2>
+              <p>Эрхийн нэр, тэмдэглэгээ.</p>
             </div>
-            <div class="col-md-auto">
-              <label>Тэмдэглэгээ:</label>
-              <input type="text" name="remarks" class="form-control">
+          </div>
+          <button type="button" class="madd-x" data-bs-dismiss="modal" aria-label="Хаах"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form id="addRoleForm" method="post" action="/add-role">
+          <div class="madd-body">
+            <div class="madd-grid">
+              <div class="madd-field madd-span">
+                <label for="addRoleName">Эрхийн нэр</label>
+                <input id="addRoleName" type="text" name="role_name" required>
+              </div>
+              <div class="madd-field madd-span">
+                <label for="addRoleRemarks">Тэмдэглэгээ</label>
+                <input id="addRoleRemarks" type="text" name="remarks">
+              </div>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" form="addRoleForm" class="btn btn-primary">Submit</button>
-        </div>
+          </div>
+          <div class="madd-foot">
+            <span>Цэсийн эрхийг бүртгэсний дараа баруун самбараас сонгоно.</span>
+            <div>
+              <button type="button" class="madd-btn" data-bs-dismiss="modal">Цуцлах</button>
+              <button type="submit" class="madd-btn primary">Нэмэх</button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
